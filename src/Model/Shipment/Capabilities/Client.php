@@ -5,48 +5,58 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
-use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use InvalidArgumentException;
 use MyParcelNL\Magento\Service\UserAgent;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Configuration;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\CapabilitiesPostContractDefinitionsRequestV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesMapper;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
-use Psr\Http\Message\ResponseInterface;
+use MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory;
+use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 use Throwable;
 
 /**
- * Calls the Core API capabilities and contract definitions endpoints for one API key.
+ * Calls the capabilities and contract definitions endpoints with requests built by the SDK's ShipmentApi.
  *
- * The SDK builds the request. The response body is decoded as is, because of SDK defects 1 to 3 in
- * docs/sdk-v11.md. serialize() is separate from send() because the cache key hashes the body.
+ * Sends them on its own Guzzle client and returns the raw response arrays, never a model: the cache
+ * and the stored answers json_encode() them, and a model with an enum value the SDK does not know
+ * throws there. One malformed entry must not fail the whole answer; CapabilitySet skips it.
  */
 class Client
 {
-    private const PATH            = '/shipments/capabilities';
-    private const PATH_CONTRACTS  = self::PATH . '/contract-definitions';
-    private const ACCEPT          = 'application/json;charset=utf-8;version=2';
-    private const CONTENT_TYPE    = 'application/json;charset=utf-8';
-    private const TIMEOUT_SECONDS = 10;
-
-    /** Shorter than the read timeout: a checkout waits this long per request on an unreachable host. */
+    /** A checkout waits this long per request on an unreachable host. */
     private const CONNECT_TIMEOUT_SECONDS = 2;
 
-    private GuzzleClient       $httpClient;
     private UserAgent          $userAgent;
     private CapabilitiesMapper $mapper;
 
+    /** @var callable|null the innermost Guzzle handler; null is Guzzle's default */
+    private $handler;
+
+    private ?GuzzleClient $http = null;
+
+    /** @var array<string,ShipmentApi> keyed by API key */
+    private array $apis = [];
+
+    /** Null is the SDK's default host. */
+    private ?string $host;
+
     public function __construct(
-        GuzzleClient        $httpClient,
         UserAgent           $userAgent,
-        ?CapabilitiesMapper $mapper = null
+        ?CapabilitiesMapper $mapper = null,
+        ?callable           $handler = null,
+        ?string             $host = null
     )
     {
-        $this->httpClient = $httpClient;
-        $this->userAgent  = $userAgent;
-        $this->mapper     = $mapper ?? new CapabilitiesMapper();
+        $this->userAgent = $userAgent;
+        $this->mapper    = $mapper ?? new CapabilitiesMapper();
+        $this->handler   = $handler;
+        $this->host      = $host;
     }
 
     /**
@@ -56,11 +66,7 @@ class Client
      */
     public function serialize(CapabilitiesRequest $request): string
     {
-        $core = $this->mapper->mapToCoreApi($request);
-
-        $this->logDroppedOptions($request, $core);
-
-        return (string) json_encode(ObjectSerializer::sanitizeForSerialization($core));
+        return (string) json_encode(ObjectSerializer::sanitizeForSerialization($this->mapper->mapToCoreApi($request)));
     }
 
     /**
@@ -71,42 +77,50 @@ class Client
      */
     public function send(string $apiKey, string $body): array
     {
-        return $this->post($apiKey, $body, self::PATH, 'results', 'capabilities');
+        return $this->call($apiKey, 'results', 'capabilities', static function (ShipmentApi $api) use ($body): RequestInterface {
+            // The decoded body as is: a model round trip turns an option's {} into [].
+            return $api->postCapabilitiesRequest(json_decode($body));
+        });
     }
 
     /**
-     * Get every contract definition of the account, in one call, with the same error mapping and
-     * timeouts as send().
+     * Get every contract definition of the account, in one call.
      *
      * @return array the response's `items` entries, verbatim
      * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
      */
     public function sendContractDefinitions(string $apiKey): array
     {
-        return $this->post(
-            $apiKey,
-            '{}',
-            self::PATH_CONTRACTS,
-            'items',
-            'contract definitions'
-        );
+        return $this->call($apiKey, 'items', 'contract definitions', static function (ShipmentApi $api): RequestInterface {
+            return $api->postCapabilitiesContractDefinitionsRequest(new CapabilitiesPostContractDefinitionsRequestV2());
+        });
     }
 
     /**
-     * @param  string $envelope the response key carrying the entries
-     * @param  string $label    what to call this endpoint in an error or log line
+     * @param  string                                 $envelope the response key carrying the entries
+     * @param  string                                 $label    what to call this endpoint in an error
+     * @param  callable(ShipmentApi):RequestInterface $build
      * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
      */
-    private function post(string $apiKey, string $body, string $path, string $envelope, string $label): array
+    private function call(string $apiKey, string $envelope, string $label, callable $build): array
     {
-        $response = $this->request($apiKey, $body, $path);
-        $status   = $response->getStatusCode();
+        try {
+            $response = $this->http()->send($build($this->apiFor($apiKey)));
+        } catch (Throwable $e) {
+            throw new RuntimeException(sprintf('%s request failed: %s', $label, $e->getMessage()), 0, $e);
+        }
 
-        if ($status < 200 || $status > 299) {
+        $status = $response->getStatusCode();
+
+        if ($status < 200 || $status >= 300) {
             throw new RuntimeException(sprintf('%s responded %d', $label, $status));
         }
 
         $decoded = json_decode((string) $response->getBody(), true);
+
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            throw new RuntimeException(sprintf('%s response is not JSON: %s', $label, json_last_error_msg()));
+        }
 
         if (! is_array($decoded) || ! is_array($decoded[$envelope] ?? null)) {
             throw new RuntimeException(sprintf('%s response carried no %s array', $label, $envelope));
@@ -115,60 +129,40 @@ class Client
         return $decoded[$envelope];
     }
 
-    /**
-     * @throws \RuntimeException on a transport failure
-     */
-    private function request(string $apiKey, string $body, string $path): ResponseInterface
+    /** Built here: ShipmentApiFactory takes no connect timeout. */
+    private function apiFor(string $apiKey): ShipmentApi
     {
-        try {
-            return $this->httpClient->request('POST', $this->url($path), [
-                RequestOptions::HEADERS         => [
-                    'Authorization' => 'Bearer ' . base64_encode($apiKey),
-                    'Content-Type'  => self::CONTENT_TYPE,
-                    'Accept'        => self::ACCEPT,
-                    'User-Agent'    => $this->userAgent->header(),
-                ],
-                RequestOptions::BODY            => $body,
-                RequestOptions::HTTP_ERRORS     => false,
-                RequestOptions::ALLOW_REDIRECTS => false,
-                RequestOptions::TIMEOUT         => self::TIMEOUT_SECONDS,
-                RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
-            ]);
-        } catch (Throwable $e) {
-            throw new RuntimeException('capabilities request failed: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    /** Log the options that CapabilitiesMapper::mapOptions() drops without a message. */
-    private function logDroppedOptions(CapabilitiesRequest $request, object $core): void
-    {
-        $sent = $request->getOptions();
-
-        if (empty($sent)) {
-            return;
+        if ('' === $apiKey) {
+            throw new InvalidArgumentException('no API key');
         }
 
-        $mapped  = (array) ObjectSerializer::sanitizeForSerialization($core->getOptions());
-        $dropped = [];
+        if (! isset($this->apis[$apiKey])) {
+            $configuration = new Configuration();
+            $configuration->setAccessToken(base64_encode($apiKey));
+            $configuration->setUserAgent($this->userAgent->header());
 
-        foreach (array_keys($sent) as $name) {
-            $key = ShipmentOption::toV2Name((string) $name);
-
-            if (null === $key || ! array_key_exists($key, $mapped)) {
-                $dropped[] = (string) $name;
+            if (null !== $this->host) {
+                $configuration->setHost($this->host);
             }
+
+            $this->apis[$apiKey] = new ShipmentApi($this->http(), $configuration);
         }
 
-        if ($dropped) {
-            Logger::notice(sprintf(
-                'Capabilities request dropped option(s) the SDK cannot carry: %s',
-                implode(', ', $dropped)
-            ));
-        }
+        return $this->apis[$apiKey];
     }
 
-    private function url(string $path): string
+    private function http(): GuzzleClient
     {
-        return (new Configuration())->getHost() . $path;
+        if (null === $this->http) {
+            $this->http = new GuzzleClient([
+                'handler'                       => HandlerStack::create($this->handler),
+                RequestOptions::TIMEOUT         => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT,
+                RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
+                RequestOptions::ALLOW_REDIRECTS => false,
+                RequestOptions::HTTP_ERRORS     => false,
+            ]);
+        }
+
+        return $this->http;
     }
 }

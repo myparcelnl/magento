@@ -75,26 +75,28 @@ it('takes the aliases from the SDK', function () {
         ->and(ShipmentOption::fromV2Name('requiresSignature'))->toBe(ShipmentOption::SIGNATURE);
 });
 
-it('maps every package type to a v2 enum value the SDK allows', function () {
-    $allowed = RefShipmentPackageTypeV2::getAllowableEnumValues();
-
-    expect(PackageType::V2_NAMES_MAP)->toHaveCount(7);
-
+it('maps every package type to a v2 enum value the SDK allows, and back', function () {
     foreach (PackageType::V2_NAMES_MAP as $name => $v2Name) {
-        expect($allowed)->toContain($v2Name)
+        expect(RefShipmentPackageTypeV2::getAllowableEnumValues())->toContain($v2Name)
             ->and(PackageType::fromV2Name($v2Name))->toBe($name);
     }
 });
 
-it('maps every delivery type to a v2 enum value the SDK allows', function () {
-    $allowed = RefTypesDeliveryTypeV2::getAllowableEnumValues();
+// An SDK update that adds a value fails here, not as a package type the checkout drops without a log.
+it('has a module name for every package type the SDK allows', function () {
+    expect(array_values(array_diff(RefShipmentPackageTypeV2::getAllowableEnumValues(), PackageType::V2_NAMES_MAP)))->toBe([]);
+});
 
-    expect(DeliveryType::V2_NAMES_MAP)->toHaveCount(7);
-
+it('maps every delivery type to a v2 enum value the SDK allows, and back', function () {
     foreach (DeliveryType::V2_NAMES_MAP as $name => $v2Name) {
-        expect($allowed)->toContain($v2Name)
+        expect(RefTypesDeliveryTypeV2::getAllowableEnumValues())->toContain($v2Name)
             ->and(DeliveryType::fromV2Name($v2Name))->toBe($name);
     }
+});
+
+// An SDK update that adds a value fails here, not as a delivery type the checkout drops without a log.
+it('has a module name for every delivery type the SDK allows', function () {
+    expect(array_values(array_diff(RefTypesDeliveryTypeV2::getAllowableEnumValues(), DeliveryType::V2_NAMES_MAP)))->toBe([]);
 });
 
 it('maps every carrier to a v2 enum value the SDK allows', function () {

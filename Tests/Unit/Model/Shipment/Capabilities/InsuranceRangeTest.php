@@ -7,7 +7,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 it('reads the flat properties and converts cents to euros', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue([
+    $range = insuranceRangeOf([
         'min'     => ['amount' => 0, 'currency' => 'EUR'],
         'max'     => ['amount' => 500000, 'currency' => 'EUR'],
         'default' => ['amount' => 10000, 'currency' => 'EUR'],
@@ -20,7 +20,7 @@ it('reads the flat properties and converts cents to euros', function () {
 it('ignores the deprecated insuredAmount wrapper', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue([
+    expect(insuranceRangeOf([
         'isRequired'    => true,
         'insuredAmount' => [
             'min'     => ['amount' => 5000, 'currency' => 'EUR'],
@@ -33,7 +33,7 @@ it('ignores the deprecated insuredAmount wrapper', function () {
 it('rounds inwards so a fractional bound cannot widen the range', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue([
+    $range = insuranceRangeOf([
         'min' => ['amount' => 1050],
         'max' => ['amount' => 249950],
     ]);
@@ -47,7 +47,7 @@ it('answers null when the minimum is present but not money-shaped', function () 
     // requires insurance, so the range is discarded exactly as a malformed maximum is.
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue([
+    expect(insuranceRangeOf([
         'isRequired' => true,
         'min'        => 8500,
         'max'        => ['amount' => 500000],
@@ -57,7 +57,7 @@ it('answers null when the minimum is present but not money-shaped', function () 
 it('does not let a malformed minimum leave a required contract shippable uninsured', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue([
+    $range = insuranceRangeOf([
         'isRequired' => true,
         'min'        => ['amount' => 8500],
         'max'        => ['amount' => 500000],
@@ -70,46 +70,46 @@ it('does not let a malformed minimum leave a required contract shippable uninsur
 it('treats a missing minimum as zero', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue(['max' => ['amount' => 100000]])->min())->toBe(0);
+    expect(insuranceRangeOf(['max' => ['amount' => 100000]])->min())->toBe(0);
 });
 
 it('answers null when the option is absent', function () {
-    expect(InsuranceRange::fromOptionValue(null))->toBeNull()
-        ->and(InsuranceRange::fromOptionValue([]))->toBeNull();
+    expect(insuranceRangeOf(null))->toBeNull()
+        ->and(insuranceRangeOf([]))->toBeNull();
 });
 
 it('answers null when no maximum is named, so the caller falls open', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue(['isRequired' => false]))->toBeNull()
-        ->and(InsuranceRange::fromOptionValue(['min' => ['amount' => 100]]))->toBeNull();
+    expect(insuranceRangeOf(['isRequired' => false]))->toBeNull()
+        ->and(insuranceRangeOf(['min' => ['amount' => 100]]))->toBeNull();
 });
 
 it('answers null for a bound that is a bare number, whose scale is unstated', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue(['min' => 0, 'max' => 500000]))->toBeNull();
+    expect(insuranceRangeOf(['min' => 0, 'max' => 500000]))->toBeNull();
 });
 
 it('answers null for a maximum below one euro, so clamp cannot zero an amount', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue(['max' => ['amount' => 50]]))->toBeNull()
-        ->and(InsuranceRange::fromOptionValue(['min' => ['amount' => 0], 'max' => ['amount' => 99]]))
+    expect(insuranceRangeOf(['max' => ['amount' => 50]]))->toBeNull()
+        ->and(insuranceRangeOf(['min' => ['amount' => 0], 'max' => ['amount' => 99]]))
         ->toBeNull();
 });
 
 it('answers null for a range whose rounded minimum exceeds its maximum', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(InsuranceRange::fromOptionValue(['min' => ['amount' => 150], 'max' => ['amount' => 100]]))
+    expect(insuranceRangeOf(['min' => ['amount' => 150], 'max' => ['amount' => 100]]))
         ->toBeNull();
 });
 
 it('clamps to the nearest bound and never to zero', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue([
+    $range = insuranceRangeOf([
         'min' => ['amount' => 10000],
         'max' => ['amount' => 250000],
     ]);
@@ -123,7 +123,7 @@ it('clamps to the nearest bound and never to zero', function () {
 it('treats an option that does not say it is required as optional', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue(['max' => ['amount' => 50000]]);
+    $range = insuranceRangeOf(['max' => ['amount' => 50000]]);
 
     expect($range->isRequired())->toBeFalse()
         ->and($range->allows(0))->toBeTrue();
@@ -132,7 +132,7 @@ it('treats an option that does not say it is required as optional', function () 
 it('allows zero for an optional contract, even one with a minimum above zero', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue([
+    $range = insuranceRangeOf([
         'isRequired' => false,
         'min'        => ['amount' => 10000],
         'max'        => ['amount' => 250000],
@@ -147,7 +147,7 @@ it('allows zero for an optional contract, even one with a minimum above zero', f
 it('refuses zero for a contract that requires insurance', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue([
+    $range = insuranceRangeOf([
         'isRequired' => true,
         'min'        => ['amount' => 10000],
         'max'        => ['amount' => 250000],
@@ -162,7 +162,7 @@ it('refuses zero for a contract that requires insurance', function () {
 it('reports whether an amount is inside the range', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $range = InsuranceRange::fromOptionValue(['min' => ['amount' => 0], 'max' => ['amount' => 50000]]);
+    $range = insuranceRangeOf(['min' => ['amount' => 0], 'max' => ['amount' => 50000]]);
 
     expect($range->contains(500))->toBeTrue()
         ->and($range->contains(501))->toBeFalse();

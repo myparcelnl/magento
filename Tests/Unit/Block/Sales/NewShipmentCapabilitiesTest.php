@@ -56,8 +56,9 @@ it('ignores a reported carrier the module has no settings for', function () {
         capabilityResult(['carrier' => 'UPS_EXPRESS_SAVER']),
     ]);
 
+    // The SDK knows both, so neither is an unknown value: the module only has no settings for them.
     expect(createNewShipmentBlockWith($set)->getCarriers())->toBe([Carrier::POSTNL])
-        ->and($set->unknownValues()['carrier'])->toBe(['CHEAP_CARGO', 'UPS_EXPRESS_SAVER']);
+        ->and($set->unknownValues()['carrier'])->toBe([]);
 });
 
 it('offers every configured carrier when capabilities could not be reached', function () {
