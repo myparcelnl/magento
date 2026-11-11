@@ -7,16 +7,16 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Helper\MyParcelCurl;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\MyParcelRequest;
 
 /**
- * What the admin is told when MyParcel does not confirm the orders of a PPS chunk.
+ * What the admin is told when MyParcel does not confirm the orders of an Order v1 chunk.
  *
  * The real OrderCollection::save() runs against a fake cURL from MyParcelRequest::setCurlFactory(),
  * so these cases go through the SDK's own error handling, where a timeout and an error body are the
@@ -28,10 +28,10 @@ afterEach(function () {
 });
 
 /** An order the real builder makes, with the given increment id as its external identifier. */
-function ppsBuiltOrder(string $incrementId): FulfilmentOrder
+function orderV1BuiltOrder(string $incrementId): SdkOrderV1
 {
-    return createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(
+    return createOrderV1Builder()->build(
+        createOrderV1MagentoOrder(
             ['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'],
             ['getIncrementId' => $incrementId]
         ),
@@ -40,14 +40,14 @@ function ppsBuiltOrder(string $incrementId): FulfilmentOrder
 }
 
 /**
- * Runs exportFulfilmentChunk() for one chunk, with every request answered by $answer.
+ * Runs exportOrderV1Chunk() for one chunk, with every request answered by $answer.
  *
- * @param array<string,FulfilmentOrder> $builtByIncrementId what the builder returns per order
+ * @param array<string,SdkOrderV1> $builtByIncrementId what the builder returns per order
  * @param array{response?: string, code?: int, timeout?: string} $answer
  *
  * @return array{errors: string[], exported: string[], sent: string[], rows: array<string,string|null>}
  */
-function ppsChunkRun(array $builtByIncrementId, array $answer): array
+function orderV1ChunkRun(array $builtByIncrementId, array $answer): array
 {
     $did = new class { public array $errors = []; public array $exported = []; public array $sent = []; public array $rows = []; };
 
@@ -98,7 +98,7 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
     $userAgent = Mockery::mock(UserAgent::class);
     $userAgent->shouldReceive('map')->andReturn([]);
 
-    $builder       = Mockery::mock(FulfilmentOrderBuilder::class);
+    $builder       = Mockery::mock(OrderV1Builder::class);
     $magentoOrders = [];
 
     foreach ($builtByIncrementId as $incrementId => $built) {
@@ -121,15 +121,15 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
     setPrivateProperty($collection, 'options', []);
 
     (function () use ($builder, $magentoOrders): void {
-        $this->exportFulfilmentChunk($builder, $magentoOrders);
+        $this->exportOrderV1Chunk($builder, $magentoOrders);
     })->call($collection);
 
     return ['errors' => $did->errors, 'exported' => $did->exported, 'sent' => $did->sent, 'rows' => $did->rows];
 }
 
 it('tells the admin that a chunk MyParcel did not answer may have been created', function () {
-    $run = ppsChunkRun(
-        ['100000001' => ppsBuiltOrder('100000001'), '100000002' => ppsBuiltOrder('100000002')],
+    $run = orderV1ChunkRun(
+        ['100000001' => orderV1BuiltOrder('100000001'), '100000002' => orderV1BuiltOrder('100000002')],
         ['timeout' => 'Operation timed out after 10000 milliseconds']
     );
 
@@ -142,8 +142,8 @@ it('tells the admin that a chunk MyParcel did not answer may have been created',
 
 it('does not mark an order exported when the answer leaves it out', function () {
     // A 5xx without a body throws nothing in the SDK: save() returns an empty collection.
-    $run = ppsChunkRun(
-        ['100000001' => ppsBuiltOrder('100000001'), '100000002' => ppsBuiltOrder('100000002')],
+    $run = orderV1ChunkRun(
+        ['100000001' => orderV1BuiltOrder('100000001'), '100000002' => orderV1BuiltOrder('100000002')],
         ['response' => '', 'code' => 502]
     );
 

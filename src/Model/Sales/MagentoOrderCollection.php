@@ -16,14 +16,14 @@ use Magento\Shipping\Model\ShipmentNotifier;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderNote;
 use MyParcelNL\Sdk\Support\Str;
 use Throwable;
@@ -85,7 +85,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Set existing or create new Magento Track and set API consignment to collection
+     * Set existing or create new Magento Track and add its MyParcel shipment to the collection
      *
      * @throws Exception
      * @throws LocalizedException
@@ -137,16 +137,16 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Export every order in the collection as a PPS order, grouped by API key and chunked.
+     * Export every order in the collection as an Order v1 order, grouped by API key and chunked.
      *
      * Do not leave the grouping to OrderCollection::save(): there, an exception on the second account
      * escapes before the first account's orders are marked exported, and the next run creates them again.
      *
      * @return $this
      */
-    public function setFulfilment(): self
+    public function exportAsOrderV1(): self
     {
-        $builder   = new FulfilmentOrderBuilder($this->objectManager);
+        $builder   = new OrderV1Builder($this->objectManager);
         $chunkSize = $this->config->getExportChunkSize();
         $sentAgain = [];
 
@@ -165,7 +165,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($this->ordersByApiKey() as $magentoOrders) {
             foreach (array_chunk($magentoOrders, $chunkSize) as $chunk) {
-                $this->exportFulfilmentChunk($builder, $chunk);
+                $this->exportOrderV1Chunk($builder, $chunk);
             }
         }
 
@@ -184,7 +184,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @param Order[] $magentoOrders
      */
-    protected function exportFulfilmentChunk(FulfilmentOrderBuilder $builder, array $magentoOrders): void
+    protected function exportOrderV1Chunk(OrderV1Builder $builder, array $magentoOrders): void
     {
         $orderCollection = (new OrderCollection())->setUserAgents($this->userAgent->map());
         $sent            = [];
@@ -264,13 +264,13 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $incrementIds = [];
 
-        $savedOrders->each(function (FulfilmentOrder $order) use (&$incrementIds) {
+        $savedOrders->each(function (SdkOrderV1 $order) use (&$incrementIds) {
             $incrementIds[] = (string) $order->getExternalIdentifier();
         });
 
         $commentsByIncrementId = $this->orderCommentsByIncrementId($incrementIds);
 
-        $savedOrders->each(function (FulfilmentOrder $order) use ($commentsByIncrementId) {
+        $savedOrders->each(function (SdkOrderV1 $order) use ($commentsByIncrementId) {
 
             // Only this one reaches the wire.
             $notes    = (new OrderNotesCollection())->setUserAgents($this->userAgent->map());
@@ -365,15 +365,15 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         foreach ($magentoOrders as $magentoOrder) {
-            $fulfilmentOrder = $byExternalIdentifier[(string) $magentoOrder->getIncrementId()] ?? null;
+            $orderV1Order = $byExternalIdentifier[(string) $magentoOrder->getIncrementId()] ?? null;
 
-            if (! $fulfilmentOrder) {
+            if (! $orderV1Order) {
                 $unconfirmed[] = $magentoOrder;
                 continue;
             }
 
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
-            $magentoOrder->setData('myparcel_uuid', $fulfilmentOrder->getUuid());
+            $magentoOrder->setData('myparcel_uuid', $orderV1Order->getUuid());
             $magentoOrder->setIsInProcess(true);
             $this->objectManager->get(OrderResource::class)->save($magentoOrder);
         }
@@ -404,31 +404,26 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Give every shipped fulfilment shipment its own Magento track: the barcode, and the MyParcel
+     * Give every shipped Order v1 shipment its own Magento track: the barcode, and the MyParcel
      * shipment id when the response carries one.
      *
-     * The shipment path gets both from updateMagentoTrack(), which refreshes by
-     * myparcel_consignment_id. A PPS order has no id until this runs, so without it the track keeps
-     * its placeholder and never joins the status or track & trace refresh at all.
+     * Without the id, the track never joins the status and track & trace refresh. The SDK model does
+     * not type the id (order_shipments is a raw array), so an absent id is logged.
      *
-     * The id is read defensively: it is not in the SDK's model (order_shipments passes through as
-     * a raw array), so an absent one is logged, because it is the one case where the status and the
-     * link can never arrive.
-     *
-     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilmentByIncrementId
+     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
      */
-    public function setFulfilmentTrackData(array $fulfilmentByIncrementId): self
+    public function setOrderV1TrackData(array $orderV1ShipmentsByIncrementId): self
     {
         $tracks = $this->tracksByShipmentId();
 
         foreach ($this->shipmentsByIncrementId() as $incrementId => $magentoShipments) {
-            $fulfilment = $fulfilmentByIncrementId[$incrementId] ?? null;
+            $orderV1Shipments = $orderV1ShipmentsByIncrementId[$incrementId] ?? null;
 
-            if (null === $fulfilment) {
+            if (null === $orderV1Shipments) {
                 continue;
             }
 
-            $this->allocateTracks((string) $incrementId, $magentoShipments, $fulfilment, $tracks);
+            $this->allocateTracks((string) $incrementId, $magentoShipments, $orderV1Shipments, $tracks);
         }
 
         return $this;
@@ -437,9 +432,8 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Get the collection's Magento shipments grouped by their order's increment id.
      *
-     * Allocation is per order, never per Magento shipment. An order shipped partly by hand before
-     * PPS ran has two Magento shipments, and looking the fulfilment data up once per shipment wrote
-     * the same barcode and the same shipment id onto a placeholder track of each.
+     * Allocate per order, never per Magento shipment: an order shipped partly by hand has two
+     * Magento shipments, and each would get the same barcode and shipment id.
      *
      * @return array<string,Shipment[]>
      */
@@ -466,20 +460,20 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * One track per fulfilment shipment, for one Magento order.
+     * Give each Order v1 shipment of one Magento order one track.
      *
      * A shipment already on a track is left alone. Otherwise it takes a free placeholder track, and
      * only then a new one. A new track needs an id or a real barcode: without either, the shipment
      * cannot be recognised again and gets another row on every run.
      *
      * @param Shipment[]                                              $magentoShipments all of one order's
-     * @param array<int,array{barcode: string, shipmentId: int|null}> $fulfilmentShipments
+     * @param array<int,array{barcode: string, shipmentId: int|null}> $orderV1Shipments
      * @param array<int,\Magento\Sales\Model\Order\Shipment\Track[]> $tracksByShipmentId the whole collection's
      */
     private function allocateTracks(
         string $incrementId,
         array $magentoShipments,
-        array $fulfilmentShipments,
+        array $orderV1Shipments,
         array $tracksByShipmentId
     ): void {
         $claimedIds = [];
@@ -493,10 +487,10 @@ class MagentoOrderCollection extends MagentoCollection
                 }
 
                 $host          = $host ?? $magentoShipment;
-                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $magentoTrack->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
-                if (0 !== $consignmentId) {
-                    $claimedIds[$consignmentId] = true;
+                if (0 !== $myParcelShipmentId) {
+                    $claimedIds[$myParcelShipmentId] = true;
                     continue;
                 }
 
@@ -509,15 +503,15 @@ class MagentoOrderCollection extends MagentoCollection
         $host    = $host ?? end($magentoShipments);
         $written = 0;
 
-        foreach ($fulfilmentShipments as $fulfilment) {
-            $shipmentId = $fulfilment['shipmentId'];
+        foreach ($orderV1Shipments as $orderV1Shipment) {
+            $shipmentId = $orderV1Shipment['shipmentId'];
 
             if (null !== $shipmentId && isset($claimedIds[$shipmentId])) {
                 continue;
             }
 
             $hasIdentity = null !== $shipmentId
-                || TrackAndTrace::isRealBarcode($fulfilment['barcode']);
+                || TrackAndTrace::isRealBarcode($orderV1Shipment['barcode']);
 
             if (! $free && ! $hasIdentity) {
                 continue;
@@ -525,18 +519,18 @@ class MagentoOrderCollection extends MagentoCollection
 
             $magentoTrack = $free ? array_shift($free) : $this->setNewMagentoTrack($host);
 
-            $magentoTrack->setTrackNumber($fulfilment['barcode']);
+            $magentoTrack->setTrackNumber($orderV1Shipment['barcode']);
 
             if (null !== $shipmentId) {
-                $magentoTrack->setData('myparcel_consignment_id', $shipmentId);
+                $magentoTrack->setData(Config::FIELD_MYPARCEL_SHIPMENT_ID, $shipmentId);
                 $claimedIds[$shipmentId] = true;
             } else {
                 // Without the id updateMagentoTrack() can never refresh this track, so it keeps
                 // this barcode and gets no status and no consumer portal link, ever.
                 Logger::warning(sprintf(
-                    'MyParcel: fulfilment order %s came back with no shipment id for barcode %s, so its track gets no status or track & trace link',
+                    'MyParcel: Order v1 order %s came back with no shipment id for barcode %s, so its track gets no status or track & trace link',
                     $incrementId,
-                    $fulfilment['barcode']
+                    $orderV1Shipment['barcode']
                 ));
             }
 

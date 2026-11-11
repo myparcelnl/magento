@@ -28,11 +28,7 @@ use MyParcelNL\Magento\Service\IdList;
  */
 class ShipmentExportService
 {
-    /**
-     * The shipments-per-request default, which Config owns because the PPS export chunks by the
-     * same setting. The SDK's generated request model throws above 100, and the admin field will
-     * not accept more, so the bound is enforced there rather than here.
-     */
+    /** Shipments per request by default. The SDK throws above 100; the admin field enforces that bound. */
     public const DEFAULT_CHUNK_SIZE = Config::DEFAULT_EXPORT_CHUNK_SIZE;
 
     /** Label ids per request. Same URL limit and multiple of four as ShipmentQuery::CHUNK_SIZE. */
@@ -472,7 +468,7 @@ class ShipmentExportService
 
     private function stamp(Track $track, int $shipmentId): void
     {
-        $track->setData('myparcel_consignment_id', $shipmentId);
+        $track->setData(Config::FIELD_MYPARCEL_SHIPMENT_ID, $shipmentId);
         $track->setData('myparcel_status', 1);
 
         if ($track->getId()) {
@@ -490,7 +486,7 @@ class ShipmentExportService
         $pending = [];
 
         foreach ($builtShipments as $built) {
-            $existing = (int) $built->getTrack()->getData('myparcel_consignment_id');
+            $existing = (int) $built->getTrack()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
             if (0 < $existing) {
                 $report->succeed($built->getIncrementId(), $existing);

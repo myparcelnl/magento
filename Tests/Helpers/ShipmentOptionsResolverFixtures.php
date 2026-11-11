@@ -72,7 +72,7 @@ function createShipmentOptions(
         $objectManager,
         $carrier,
         null,
-        // Production reads this off OrderShipmentOptions::packageType(). Defaulting to the stored
+        // Production reads this off OrderExportOptions::packageTypeToShip(). Defaulting to the stored
         // type keeps a test that varies only the checkout honest; a test about a different exported
         // type passes the two apart.
         $exportedPackageType ?? $deliveryOptions->getPackageType()

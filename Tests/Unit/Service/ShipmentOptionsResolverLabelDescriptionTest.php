@@ -14,7 +14,7 @@ it('reads shipment items by the shipment id, never the order id', function () {
         ->and($select->wheres)->toBe(['main_table.parent_id=?' => 42]);
 });
 
-it('reads the order items when there is no shipment yet, as on the PPS path', function () {
+it('reads the order items when there is no shipment yet, as on the Order v1 path', function () {
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         null,
         '%product_name%',
