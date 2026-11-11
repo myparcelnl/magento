@@ -13,9 +13,10 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Repairs the labels request on the way out and logs a bad answer on the way back (SDK issue 4).
+ * Repairs the labels request on the way out and logs a bad answer on the way back.
  *
- * Outbound it restores the `;` separators that the generated client encodes to `%3B`.
+ * Outbound it restores the `;` separators that the generated client encodes to `%3B` (SDK issue 4):
+ * the endpoint answers 500 to an encoded separator.
  * Inbound it logs only the shape of a non-PDF body: the values can quote recipient data.
  * It never copies a real PDF and never touches or logs the Authorization header.
  */

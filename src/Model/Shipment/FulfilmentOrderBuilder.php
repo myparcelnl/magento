@@ -170,7 +170,7 @@ class FulfilmentOrderBuilder
             return '';
         }
 
-        // Filtered, not interpolated: an empty middle name used to print as a double space.
+        // Filtered, not interpolated, so an empty middle name gives no double space.
         return implode(' ', array_filter([
             $billingAddress->getFirstname(),
             $billingAddress->getMiddlename(),
