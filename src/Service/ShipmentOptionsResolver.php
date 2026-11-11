@@ -19,8 +19,7 @@ use Throwable;
  * Decides what shipment options one shipment gets, from the posted options, the configured
  * defaults, the country, the carrier and per-product attributes. Answers with a ShipmentOptions.
  *
- * Takes the parsed DeliveryOptions on purpose: this class used to read the order column itself, and
- * read it two different ways, which is how the receipt code gate broke.
+ * Takes the parsed DeliveryOptions, never the order column: one parse keeps every reader in step.
  */
 class ShipmentOptionsResolver
 {
@@ -232,13 +231,11 @@ class ShipmentOptionsResolver
     }
 
     /**
-     * What the products say about the age check, or null when they say nothing. Read by
-     * DefaultOptions::hasOptionSet(), between the checkout's choice and the carrier setting.
+     * Get what the products say about the age check, or null when they say nothing. Read by
+     * DefaultOptions::hasOptionSet() before the checkout's choice and the carrier setting.
      *
-     * Null is the tier's "no opinion", and the caller depends on it: a false seed made an order with
-     * no items answer false, which is an opinion, so the carrier-default tier below it never ran.
-     *
-     * An explicit non-'1' value is still an opinion, and beats the carrier default.
+     * Null is "no opinion", so the carrier default decides; an order without items must answer null.
+     * An explicit non-'1' value is an opinion, and beats the carrier default.
      *
      * @param $products
      */
@@ -250,9 +247,7 @@ class ShipmentOptionsResolver
             $productIds[] = (int) $product['product_id'];
         }
 
-        // One read for the whole quote, through the request's shared reader. Building one here threw
-        // its memo away on every call, so an N-line quote paid 3N queries on the checkout path and
-        // the New Shipment modal paid one load per carrier and package type it offered.
+        // The request's shared reader: one load for the whole quote. A new reader per call loads again.
         $ageChecks   = ObjectManager::getInstance()
             ->get(ProductAttributes::class)
             ->getColumn($productIds, ShipmentOption::AGE_CHECK);

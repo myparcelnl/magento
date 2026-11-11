@@ -194,8 +194,8 @@ final class Rejection
     }
 
     /**
-     * Get the API's own wording, preferring `detail` or `message`, which name the offending value.
-     * `title` alone is a category ("Invalid postal code") and is used only as a fallback.
+     * Get the API's own wording: the `title` category, with `detail` or `message` in parentheses.
+     * The detail names the offending value; a title alone is only a category ("Invalid postal code").
      *
      * @param mixed $error
      */
@@ -216,7 +216,7 @@ final class Rejection
             return $title;
         }
 
-        return '' === $title || $title === $detail ? $detail : $title . ': ' . $detail;
+        return '' === $title || $title === $detail ? $detail : sprintf('%s (%s)', $title, $detail);
     }
 
     /** Append the refused field: `/data/shipments/0/recipient/postal_code` becomes `recipient.postal_code`. */

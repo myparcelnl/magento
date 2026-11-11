@@ -14,7 +14,8 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  * Without a package type, the API merges all package types of a carrier into one result with the
  * union of their options. Ask options, insurance and the collo maximum per package type.
  *
- * The memo is per instance: answeredPermissively() tells about what this instance asked.
+ * The memo is per instance: answeredPermissively() tells about what this instance asked. A caller
+ * that reads it needs its own instance, as Block\Sales\NewShipment does; the shared one mixes callers.
  */
 class CapabilitiesLookup
 {
