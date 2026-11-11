@@ -139,6 +139,28 @@ it('lets capabilities decide signature with only recipient on a BE shipment', fu
     'capabilities allow both' => [[], true],
 ]);
 
+it('lets capabilities decide large format on a US shipment', function (bool $offered) {
+    $notices = captureNotices();
+
+    $options = acceptanceOptionsFor('POSTNL');
+    if (! $offered) {
+        unset($options['oversizedPackage']);
+    }
+
+    $resolved = dependencyResolver($options, [], [ShipmentOption::LARGE_FORMAT => OptionSource::CONFIGURATION], 0, 'US')
+        ->resolve()->toArray();
+
+    expect($resolved[ShipmentOption::LARGE_FORMAT])->toBe($offered)
+        ->and(in_array(
+            'Shipment option large_format left off order 100000001: postnl does not offer it for this shipment.',
+            $notices->getArrayCopy(),
+            true
+        ))->toBe(! $offered);
+})->with([
+    'capabilities do not offer it' => [false],
+    'capabilities offer it'        => [true],
+]);
+
 it('insures a required companion at the contract minimum when nothing is configured', function () {
     captureNotices();
 
