@@ -62,7 +62,7 @@ it('writes the two grid columns without saving the order', function () {
     $collection = Mockery::mock(MagentoOrderCollection::class);
 
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
-    $gridColumns->shouldReceive('htmlForTracks')->andReturn($columns);
+    $gridColumns->shouldReceive('htmlForOrder')->andReturn($columns);
     $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
         $written[] = [$orderId, $values];
 
@@ -90,7 +90,7 @@ it('marks a PPS export exported rather than reading it off the tracks', function
 
     $written     = [];
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
-    $gridColumns->shouldReceive('htmlForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
+    $gridColumns->shouldReceive('htmlForOrder')->andReturn(['track_status' => '', 'track_number' => '']);
     $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
         $written = $values;
 

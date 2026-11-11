@@ -44,12 +44,9 @@ Three rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
-**When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
-a permissive set in five cases: a store with no API key, a request that will not serialise, a
-request that failed within the last 60 seconds, a failed fetch, and a request another one is already
-fetching. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
-concurrent render misses the same request at once, and making them wait for one call is the cost being
-avoided, not the fix.
+**When capabilities cannot be had, the module serves the last answer, else everything**
+(`Capabilities\Repository`). A cached answer lives three hours, which is the longest a capabilities
+change takes to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
 
 **The SDK decides which options exist.** `Capabilities\Client` sends the request that the generated
 `ShipmentApi` builds on its own Guzzle client and returns the raw response entries.
@@ -57,7 +54,7 @@ avoided, not the fix.
 read, so one malformed entry does not cost the whole answer. An option the SDK does not know is not
 offered until an SDK update; the export could not send it anyway. A new carrier, package type or
 delivery type reads as a plain string (`EnumFallback`), but a model that holds one throws on
-`json_encode()`. So the cache keeps the raw entries, never a model.
+`json_encode()`. So the cache and the stored answers keep the raw entries, never a model.
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a

@@ -142,11 +142,9 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     /**
      * Build the PDF response: inline for a new tab, an attachment otherwise.
      *
-     * A batch spanning several accounts can lose one of them and still merge a PDF. The body is the
-     * document, so the accounts that failed travel in a header the download reads out loud,
-     * url-encoded, because API error text is not header-safe.
+     * Partial failures go in a url-encoded header, because API error text is not header-safe.
      *
-     * @param string[] $errors one per account that returned no labels
+     * @param string[] $errors one per account or chunk that returned no labels
      */
     private function pdfResponse(string $pdf, array $errors): ResultInterface
     {

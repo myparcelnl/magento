@@ -18,7 +18,6 @@ use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
-use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\Settings;
@@ -90,9 +89,7 @@ class ConfigChange implements ObserverInterface
         $posted     = (array) $request->getParam('config', []);
         $validPaths = array_values(array_filter(
             $this->dynamicSettingsConfig->getAllFieldPaths($scope, $scopeId),
-            static function (string $path): bool {
-                return self::isWritable($path);
-            }
+            [Settings::class, 'isWritable']
         ));
         $configData = array_intersect_key($posted, array_flip($validPaths));
 
@@ -183,15 +180,6 @@ class ConfigChange implements ObserverInterface
         }
 
         return $changed;
-    }
-
-    /**
-     * The stored account row and a token hash sit under the general section, so a crafted post could
-     * otherwise overwrite them. The token button's own path is the hash path, so the form offers it.
-     */
-    private static function isWritable(string $path): bool
-    {
-        return 0 !== strpos($path, Config::XML_PATH_ACCOUNT_SETTINGS) && TokenService::CONFIG_PATH !== $path;
     }
 
     /**
