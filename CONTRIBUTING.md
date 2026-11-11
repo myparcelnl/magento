@@ -23,8 +23,11 @@ what each fact does.
 
 - **A label of its own:** `label`, and its translation in `i18n/`. Without one, the label is the
   name, translated through `i18n/`. The shipping method title shows the label when the option is on.
-- **A checkout fee:** `checkout`. The rate then adds the fee from `delivery/<name>_fee`.
-- **A mailbox option:** `mailbox`. The rate then adds the fee from `mailbox/<name>_fee`.
+  `settingsLabel` and `tooltip` give the settings form its own label and tooltip.
+- **A fee or a from-price:** `checkout` for an option with a checkout fee, `fromPrice` (and
+  `fromPriceTooltip`) for one that the settings automate above an order total.
+- **A mailbox option:** `mailbox`. Its settings then go in the mailbox group, not in the default
+  options group.
 - **A place in the fail-open form:** `toggle`. The New Shipment form shows these options when
   capabilities could not be read. Each toggle is also a key stored on every order.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
@@ -34,7 +37,7 @@ The row order is the order of the settings form.
 
 ### An option in the checkout
 
-`checkout` adds only the fee in the rate. The checkout widget must support the option, and
+`checkout` adds only the settings fields and the fee in the rate. The checkout widget must support the option, and
 `Model\Quote\Checkout` must pass it on: ask capabilities with `hasOption()`, and add the setting and
 its price from `delivery/<name>_fee`, as `signature` does.
 
