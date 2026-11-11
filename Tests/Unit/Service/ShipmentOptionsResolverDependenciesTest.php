@@ -20,7 +20,8 @@ function dependencyResolver(
     ?array $capabilityOptions,
     array  $posted = [],
     array  $sources = [],
-    int    $requiredInsurance = 0
+    int    $requiredInsurance = 0,
+    string $countryId = 'NL'
 ) {
     $repository = null;
 
@@ -39,7 +40,7 @@ function dependencyResolver(
     $defaultOptions->shouldReceive('getRequiredInsurance')->andReturn($requiredInsurance);
 
     return createShipmentOptions(
-        'NL',
+        $countryId,
         Carrier::POSTNL,
         $posted,
         false,
@@ -174,6 +175,24 @@ it('changes nothing when the capabilities cannot be read', function () {
         ->and($resolved[ShipmentOption::RECEIPT_CODE])->toBeTrue()
         ->and($resolved[ShipmentOption::SIGNATURE])->toBeFalse();
 });
+
+it('lets capabilities decide signature with only recipient on a BE shipment', function (array $overrides, bool $signature) {
+    captureNotices();
+
+    $resolved = dependencyResolver(
+        acceptanceOptionsFor('POSTNL', $overrides),
+        [],
+        [ShipmentOption::SIGNATURE => OptionSource::CONFIGURATION, ShipmentOption::ONLY_RECIPIENT => OptionSource::CHECKOUT],
+        0,
+        'BE'
+    )->resolve()->toArray();
+
+    expect($resolved[ShipmentOption::ONLY_RECIPIENT])->toBeTrue()
+        ->and($resolved[ShipmentOption::SIGNATURE])->toBe($signature);
+})->with([
+    'capabilities exclude it' => [['requiresSignature' => ['requires' => [], 'excludes' => ['recipientOnlyDelivery']]], false],
+    'capabilities allow both' => [[], true],
+]);
 
 it('insures a required companion at the contract minimum when nothing is configured', function () {
     captureNotices();
