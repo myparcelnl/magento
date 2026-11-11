@@ -1,7 +1,7 @@
 openapi: 3.1.0
 
 info:
-  title: MyParcelNL Magento — Delivery Options API
+  title: "MyParcelNL Magento: Delivery Options API"
   version: 1.0.0
   description: |
     REST API for retrieving delivery options associated with a Magento order.
@@ -14,7 +14,7 @@ info:
     API version. When no version is specified the server defaults to version 1.
 
     **Error format:** Error responses follow
-    [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+    [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
 
 servers:
   - url: /rest
@@ -217,33 +217,16 @@ components:
     ShipmentOptions:
       type: object
       description: |
-        Shipment options. Boolean options follow ADR-0013: an empty object `{}`
-        means enabled; the key is omitted when disabled. All properties are
-        optional — omitted means not enabled. Boolean field shapes are sourced
-        from the Order API's `ShipmentOptionsCommon` schema. The `insurance`
-        field diverges intentionally: this API uses an integer-micro amount
-        (Magento convention) instead of the Order API's Money object format.
+        Shipment options. Each option that is on is a key of the Order API's
+        `ShipmentOptionsCommon` schema with an empty object `{}` (ADR-0013); an
+        option that is off is omitted. Which options occur comes from the
+        carrier capabilities, so this schema does not list them. `insurance`
+        diverges from the Order API on purpose: it uses an integer-micro amount
+        (Magento convention) instead of the Money object format.
+      additionalProperties:
+        type: object
+        maxProperties: 0
       properties:
-        requiresAgeVerification:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresAgeVerification"
-        requiresSignature:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresSignature"
-        recipientOnlyDelivery:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/recipientOnlyDelivery"
-        oversizedPackage:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/oversizedPackage"
-        printReturnLabelAtDropOff:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/printReturnLabelAtDropOff"
-        hideSender:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/hideSender"
-        priorityDelivery:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/priorityDelivery"
-        requiresReceiptCode:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresReceiptCode"
-        sameDayDelivery:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/sameDayDelivery"
-        scheduledCollection:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/scheduledCollection"
         insurance:
           type: object
           description: Insurance details. Integer-micro amount (1 EUR = 1 000 000 units).
@@ -319,7 +302,7 @@ components:
       type: object
       description: |
         Error response following
-        [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+        [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
       required:
         - type
         - status

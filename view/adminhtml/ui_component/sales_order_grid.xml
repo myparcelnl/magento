@@ -1,13 +1,20 @@
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <listingToolbar name="listing_top">
         <massaction name="listing_massaction">
-            <action name="download_myparcel_a6_label">
+            <action name="download_myparcel_label_direct">
                 <argument name="data" xsi:type="array">
                     <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">download_myparcel_a6_label</item>
-                        <item name="id" xsi:type="string">download_myparcel_a6_label</item>
+                        <item name="type" xsi:type="string">download_myparcel_label_direct</item>
+                        <item name="id" xsi:type="string">download_myparcel_label_direct</item>
                         <item name="label" xsi:type="string" translate="true">Print MyParcel labels directly</item>
                         <item name="url" xsi:type="url" path="myparcel/order/CreateAndPrintMyParcelTrack"/>
+                        <!-- Without a callback the massaction submits a form at the controller, which
+                             now answers JSON. This hands the selection to the same export the modal
+                             uses, so the grid keeps it and reloads once. -->
+                        <item name="callback" xsi:type="array">
+                            <item name="provider" xsi:type="string">myparcel_grid_massaction</item>
+                            <item name="target" xsi:type="string">exportSelected</item>
+                        </item>
                     </item>
                 </argument>
             </action>
