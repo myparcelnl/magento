@@ -884,10 +884,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     abstract protected function getShipmentsCollection(): ShipmentCollection;
 
     /**
-     * @return array<string,int[]> MyParcel shipment ids grouped by resolved API key
-     */
-    /**
      * @param array<int,Track[]>|null $tracks the caller's own read, when it already holds one
+     *
+     * @return array<string,int[]> MyParcel shipment ids grouped by resolved API key
      */
     public function getMyparcelConsignmentIdsByApiKey(?array $tracks = null): array
     {
