@@ -15,32 +15,20 @@ use Throwable;
 /**
  * Gets capabilities through the cache, per API key and request. Three rules:
  *
- * The only class consumers touch. Three rules it must keep:
- *
- * - Fail open. Any failure (no API key, a transport error, a 429, a 500, an undecodable body)
- *   returns CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a
- *   label being created, and a store with no key must still render its admin form; export fails
- *   loudly on its own path instead.
- * - Serve stale. Successful entries are written with no expiry and removed only by cache:clean, an
- *   API key change or a settings import, so a failed refresh finds the previous answer still there.
- *   StoredAnswers keeps a copy outside the cache, so a request that cannot be fetched gets its last
- *   answer even after the cache was emptied, and permissive only when it was never answered.
- * - Do not hammer a failing endpoint. A request that failed is remembered as failed for
- *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
- *   entry, never before it, so a previous good answer always beats a recent failure.
+ * - Never throw. A failure gives the last answer from StoredAnswers, else CapabilitySet::permissive().
+ * - A good answer lives SUCCESS_LIFETIME_SECONDS. cache:clean, or an API key change through
+ *   Observer\ConfigChange, removes it sooner.
+ * - A failed request is not asked again for FAILURE_LIFETIME_SECONDS. A good cached answer wins.
  */
 class Repository
 {
     private const CACHE_ID_PREFIX   = 'myparcel_capabilities_';
     private const FAILURE_ID_PREFIX = 'myparcel_capabilities_failed_';
 
-    /**
-     * How long a failed request is remembered as failed.
-     *
-     * Successful entries never expire, but a failure must: without it, an admin form that fans out
-     * over several package types repeats the whole burst on every reload, which is exactly the load
-     * a 429 asks us to stop applying.
-     */
+    /** How long a good answer is cached: the longest a capabilities change takes to reach the shop. */
+    private const SUCCESS_LIFETIME_SECONDS = 10800;
+
+    /** How long a failed request is not asked again, so a reload does not repeat the burst. */
     private const FAILURE_LIFETIME_SECONDS = 60;
 
     private Client              $client;
@@ -119,8 +107,8 @@ class Repository
 
     private function lookup(string $apiKey, string $body, string $requestKey): CapabilitySet
     {
-        $cacheId    = self::CACHE_ID_PREFIX . $requestKey;
-        $failureId  = self::FAILURE_ID_PREFIX . $requestKey;
+        $cacheId   = self::CACHE_ID_PREFIX . $requestKey;
+        $failureId = self::FAILURE_ID_PREFIX . $requestKey;
 
         if (isset($this->memo[$cacheId])) {
             return $this->memo[$cacheId];
@@ -161,7 +149,7 @@ class Repository
         }
 
         $this->store($apiKey, $requestKey, $results);
-        $this->cache->save((string) json_encode($results), $cacheId, [], null);
+        $this->cache->save((string) json_encode($results), $cacheId, [], self::SUCCESS_LIFETIME_SECONDS);
 
         $set = CapabilitySet::fromApiResults($results);
         $this->logUnknownValues($set);
