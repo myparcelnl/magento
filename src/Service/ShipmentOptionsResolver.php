@@ -24,9 +24,6 @@ use Throwable;
  */
 class ShipmentOptionsResolver
 {
-    // Not a ShipmentOption: a label field, not a toggle the carrier offers.
-    private const LABEL_DESCRIPTION = 'label_description';
-
     /**
      * The checkboxes with a rule of their own; every other toggle in ShipmentOption::DEFINITIONS is
      * taken as chosen. Add an entry only when an option needs one.
@@ -196,11 +193,6 @@ class ShipmentOptionsResolver
         );
     }
 
-    public function hasCollect(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::COLLECT);
-    }
-
     /**
      * Standard delivery only, and only where the account carries it.
      *
@@ -219,19 +211,9 @@ class ShipmentOptionsResolver
         return $this->optionIsEnabled(ShipmentOption::RECEIPT_CODE);
     }
 
-    public function hasOnlyRecipient(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::ONLY_RECIPIENT);
-    }
-
     public function hasSameDayDelivery(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::SAME_DAY_DELIVERY);
-    }
-
-    public function hasReturn(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::RETURN);
     }
 
     /** No country gate: which carrier carries an age check where is a capabilities fact. */
@@ -409,9 +391,9 @@ class ShipmentOptionsResolver
     public function resolve(): ShipmentOptions
     {
         $values = [
-            ShipmentOption::INSURANCE         => $this->getInsurance(),
-            self::LABEL_DESCRIPTION           => $this->getLabelDescription(),
-            ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
+            ShipmentOption::INSURANCE          => $this->getInsurance(),
+            ShipmentOptions::LABEL_DESCRIPTION => $this->getLabelDescription(),
+            ShipmentOption::SAME_DAY_DELIVERY  => $this->hasSameDayDelivery(),
         ];
 
         foreach (ShipmentOption::having('toggle') as $option) {

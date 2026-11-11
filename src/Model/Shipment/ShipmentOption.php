@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\CapabilitiesOptionsV2;
+use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
+
 /**
  * Shipment option and extra option keys, and the facts the module owns about each option.
  *
@@ -12,8 +15,6 @@ namespace MyParcelNL\Magento\Model\Shipment;
  */
 final class ShipmentOption
 {
-    use MapsV2Names;
-
     public const AGE_CHECK          = 'age_check';
     public const HIDE_SENDER        = 'hide_sender';
     public const INSURANCE          = 'insurance';
@@ -31,9 +32,10 @@ final class ShipmentOption
 
     /**
      * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
-     * not be read, and a stored key.
+     * not be read, and a stored key. checkout: in the widget, with a fee. mailbox: its fee is in the
+     * mailbox group.
      */
-    private const FLAGS = ['toggle'];
+    private const FLAGS = ['toggle', 'checkout', 'mailbox'];
 
     /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
     private const TEXTS = ['label'];
@@ -41,12 +43,15 @@ final class ShipmentOption
     /** @var array<string,string[]> having() per flag */
     private static $having = [];
 
+    /** @var array<string,string|null> toV2Name() per name */
+    private static $v2Names = [];
+
     /** What the module knows about an option, one row per option, in settings form order. */
     public const DEFINITIONS
         = [
-            self::SIGNATURE          => ['toggle' => true, 'label' => 'Signature on receipt'],
-            self::RECEIPT_CODE       => ['toggle' => true, 'label' => 'Receipt code'],
-            self::ONLY_RECIPIENT     => ['toggle' => true, 'label' => 'Only recipient'],
+            self::SIGNATURE          => ['toggle' => true, 'checkout' => true, 'label' => 'Signature on receipt'],
+            self::RECEIPT_CODE       => ['toggle' => true, 'checkout' => true, 'label' => 'Receipt code'],
+            self::ONLY_RECIPIENT     => ['toggle' => true, 'checkout' => true, 'label' => 'Only recipient'],
             self::RETURN             => ['toggle' => true, 'label' => 'Return if no answer'],
             self::LARGE_FORMAT       => ['toggle' => true, 'label' => 'Large package'],
             self::COLLECT            => ['toggle' => true, 'label' => 'Collect package'],
@@ -54,7 +59,7 @@ final class ShipmentOption
             self::HIDE_SENDER        => ['toggle' => true, 'label' => 'Hide sender'],
             self::FRESH_FOOD         => ['toggle' => true, 'label' => 'Fresh food'],
             self::FROZEN             => ['toggle' => true, 'label' => 'Frozen'],
-            self::PRIORITY_DELIVERY  => ['toggle' => true, 'label' => 'Priority delivery'],
+            self::PRIORITY_DELIVERY  => ['toggle' => true, 'mailbox' => true, 'label' => 'Priority delivery'],
             self::SAME_DAY_DELIVERY  => ['label' => 'Same day delivery'],
             self::PRINTERLESS_RETURN => ['label' => 'Printerless return'],
         ];
@@ -134,29 +139,27 @@ final class ShipmentOption
         return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
     }
 
-    /**
-     * Module option name to the camelCase key a capabilities response uses.
-     *
-     * Mirrors CapabilitiesMapper's own request-side mapping, so the two sides cannot disagree on a
-     * wire key. V2NameMapTest asserts that agreement by round-tripping every entry through
-     * mapToCoreApi(). An option the request model gains no setter for is dropped silently, which
-     * is why Client logs what it dropped.
-     */
-    public const V2_NAMES_MAP
-        = [
-            self::AGE_CHECK          => 'requiresAgeVerification',
-            self::HIDE_SENDER        => 'hideSender',
-            self::INSURANCE          => 'insurance',
-            self::LARGE_FORMAT       => 'oversizedPackage',
-            self::ONLY_RECIPIENT     => 'recipientOnlyDelivery',
-            self::PRINTERLESS_RETURN => 'printReturnLabelAtDropOff',
-            self::RETURN             => 'returnOnFirstFailedDelivery',
-            self::SAME_DAY_DELIVERY  => 'sameDayDelivery',
-            self::SIGNATURE          => 'requiresSignature',
-            self::COLLECT            => 'scheduledCollection',
-            self::RECEIPT_CODE       => 'requiresReceiptCode',
-            self::PRIORITY_DELIVERY  => 'priorityDelivery',
-            self::FRESH_FOOD         => 'freshFood',
-            self::FROZEN             => 'frozen',
-        ];
+    /** Module option name to the camelCase key a capabilities response uses, or null when the SDK has none. */
+    public static function toV2Name(string $name): ?string
+    {
+        if (! array_key_exists($name, self::$v2Names)) {
+            $property = (new ShipmentOptionMapper())->v2PropertyFromName($name);
+
+            self::$v2Names[$name] = null === $property ? null : CapabilitiesOptionsV2::attributeMap()[$property];
+        }
+
+        return self::$v2Names[$name];
+    }
+
+    /** Null for a v2 name the module does not know; the caller logs it rather than inventing one. */
+    public static function fromV2Name(string $v2Name): ?string
+    {
+        foreach (array_merge(array_keys(self::DEFINITIONS), [self::INSURANCE]) as $name) {
+            if (self::toV2Name($name) === $v2Name) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
 }
