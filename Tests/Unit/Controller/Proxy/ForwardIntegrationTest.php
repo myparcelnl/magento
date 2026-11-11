@@ -39,7 +39,7 @@ function makeForwardStack(
     $forwarder    = new Forwarder($client, $rawFactory);
 
     return [
-        'controller' => new Forward($request, $forwarder, $cors),
+        'controller' => new Forward($request, mockProxyResponse()['response'], $forwarder, $cors),
         'history'    => &$http['history'],
         'bag'        => $bag,
     ];

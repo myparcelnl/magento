@@ -117,13 +117,35 @@ it('asks the parcel locker rule with no carrier when none is active', function (
 
     $store = Mockery::mock(StoreInterface::class);
     $store->shouldReceive('getCurrentCurrency->getCode')->andReturn('EUR');
-    $store->shouldReceive('getBaseUrl')->andReturn('https://shop.test/');
+    $store->shouldReceive('getUrl')->andReturn('https://shop.test/');
     $storeManager = Mockery::mock(StoreManagerInterface::class);
     $storeManager->shouldReceive('getStore')->andReturn($store);
     setPrivateProperty($c['checkout'], 'storeManager', $storeManager);
 
     expect($c['checkout']->getActiveCarriers())->toBe([])
         ->and(invokePrivateMethod($c['checkout'], 'getGeneralData')['excludeParcelLockers'])->toBeTrue();
+});
+
+it('sends the widget a capabilities proxy URL that names the store, so the proxy uses its api key', function () {
+    $c = createCheckoutWith(['' => CapabilitySet::permissive()]);
+    $c['cartRules']->shouldReceive('dropOffDelay')->andReturn(null)->byDefault();
+    $c['cartRules']->shouldReceive('excludesParcelLockers')->andReturn(false)->byDefault();
+
+    $store = Mockery::mock(StoreInterface::class);
+    $store->shouldReceive('getCurrentCurrency->getCode')->andReturn('EUR');
+    $store->shouldReceive('getUrl')
+        ->with('', [
+            '_direct'       => 'myparcel/proxy/core/shipments/capabilities',
+            '_scope_to_url' => true,
+            '_nosid'        => true,
+        ])
+        ->andReturn('https://shop.test/myparcel/proxy/core/shipments/capabilities?___store=ITA');
+    $storeManager = Mockery::mock(StoreManagerInterface::class);
+    $storeManager->shouldReceive('getStore')->andReturn($store);
+    setPrivateProperty($c['checkout'], 'storeManager', $storeManager);
+
+    expect(invokePrivateMethod($c['checkout'], 'getGeneralData')['proxyCapabilities'])
+        ->toBe('https://shop.test/myparcel/proxy/core/shipments/capabilities?___store=ITA');
 });
 
 it('leaves the decision to configuration when capabilities could not be reached', function () {
