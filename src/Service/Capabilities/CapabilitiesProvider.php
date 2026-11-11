@@ -16,10 +16,10 @@ use Throwable;
 /**
  * Gets capabilities through the cache, per API key and request.
  *
- * - Fail open: any failure returns CapabilitySet::permissive(), so a lookup never stops a label.
- * - Serve stale: success entries expire after SUCCESS_LIFETIME_SECONDS. StoredAnswers keeps a copy
- *   outside the cache, so a failed refresh still gets the last answer.
- * - A failure is remembered for FAILURE_LIFETIME_SECONDS, and is read after the success entry.
+ * - Never throw. A failure gives the last answer from StoredAnswers, else CapabilitySet::permissive().
+ * - A good answer lives SUCCESS_LIFETIME_SECONDS. cache:clean, or an API key change through
+ *   Observer\ConfigChange, removes it sooner.
+ * - A failed request is not asked again for FAILURE_LIFETIME_SECONDS. A good cached answer wins.
  */
 class CapabilitiesProvider
 {
@@ -29,12 +29,7 @@ class CapabilitiesProvider
     /** How long a good answer is cached: the longest a capabilities change takes to reach the shop. */
     private const SUCCESS_LIFETIME_SECONDS = 10800;
 
-    /**
-     * How long a failed request is remembered as failed.
-     *
-     * Without it, an admin form that fans out over several package types repeats the whole burst on
-     * every reload, which is exactly the load a 429 asks us to stop applying.
-     */
+    /** How long a failed request is not asked again, so a reload does not repeat the burst. */
     private const FAILURE_LIFETIME_SECONDS = 60;
 
     private Client              $client;
@@ -89,8 +84,8 @@ class CapabilitiesProvider
 
     private function lookup(string $apiKey, string $body, string $requestKey): CapabilitySet
     {
-        $cacheId    = self::CACHE_ID_PREFIX . $requestKey;
-        $failureId  = self::FAILURE_ID_PREFIX . $requestKey;
+        $cacheId   = self::CACHE_ID_PREFIX . $requestKey;
+        $failureId = self::FAILURE_ID_PREFIX . $requestKey;
 
         if (isset($this->memo[$cacheId])) {
             return $this->memo[$cacheId];
