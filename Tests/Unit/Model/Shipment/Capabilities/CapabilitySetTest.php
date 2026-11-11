@@ -116,3 +116,15 @@ it('offers everything when permissive, which is not the same as an empty respons
         ->and($empty->isPermissive())->toBeFalse()
         ->and($empty->hasOption('dpd', null, ShipmentOption::AGE_CHECK))->toBeFalse();
 });
+
+it('skips and logs only the entry that does not read, and keeps the others', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('notice')->once()->with(Mockery::pattern('/entry 0 skipped/'));
+
+    $set = CapabilitySet::fromApiResults([
+        capabilityResult(['carrier' => 'DPD', 'packageTypes' => 'PACKAGE']),
+        capabilityResult(),
+    ]);
+
+    expect($set->carriers())->toBe(['postnl']);
+});

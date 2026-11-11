@@ -12,7 +12,7 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 // Fixtures live in Tests/Helpers/{CapabilitiesFixtures,HttpMocks}.php.
 
-it('sends the request the API expects: v2 keys, version=2 accept, the given key', function () {
+it('sends the request the API expects: v2 keys, the SDK version=2.0 accept, the given key', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()]))]);
 
     $request = CapabilitiesRequest::forCountry('NL')
@@ -27,7 +27,7 @@ it('sends the request the API expects: v2 keys, version=2 accept, the given key'
 
     expect((string) $sent->getUri())->toBe('https://api.myparcel.nl/shipments/capabilities')
         ->and($sent->getMethod())->toBe('POST')
-        ->and($sent->getHeaderLine('Accept'))->toBe('application/json;charset=utf-8;version=2')
+        ->and($sent->getHeaderLine('Accept'))->toStartWith('application/json;charset=utf-8;version=2.0,')
         ->and($sent->getHeaderLine('Authorization'))->toBe('Bearer ' . base64_encode(CAPABILITIES_TEST_API_KEY))
         // This call builds its own header rather than going through the SDK trait, so it is the one
         // that silently drifts. It used to send a format of its own: MyParcelMagento/5.9.0; PHP/8.x.
@@ -95,8 +95,27 @@ it('names the decoding error for a 2xx body that is not JSON, not the status', f
         $message = $e->getMessage();
     }
 
-    expect($message)->toContain('Error JSON decoding')
+    expect($message)->toContain('capabilities response is not JSON')
         ->and($message)->not->toContain('responded 200');
+});
+
+it('returns a malformed entry verbatim next to a good one, so CapabilitySet can skip only that one', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([
+        capabilityResult(['packageTypes' => 'PACKAGE']),
+        capabilityResult(),
+    ]))]);
+
+    $results = $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+
+    expect($results)->toHaveCount(2)
+        ->and($results[0]['packageTypes'])->toBe('PACKAGE');
+});
+
+it('raises on a redirect, as on any other non-2xx status', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(302, ['Location' => 'https://example.test'], '')]);
+
+    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
+        ->toThrow(RuntimeException::class, 'capabilities responded 302');
 });
 
 it('raises on a body carrying no results array', function () {
@@ -128,7 +147,7 @@ it('waits at most two seconds for a connection, so a checkout does not hang on a
     expect($c['history'][0]['options']['connect_timeout'])->toBe(2);
 });
 
-it('refuses an empty API key before the SDK can read one from the environment', function () {
+it('refuses an empty API key without a request', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
 
     expect(fn () => $c['client']->send('', '{}'))->toThrow(RuntimeException::class, 'no API key')
@@ -170,7 +189,7 @@ it('asks contract definitions on their own path, unfiltered, in one call', funct
         // No carrier filter: one call answers for every carrier the account has, and each item
         // names its own. Filtering cost a request per carrier.
         ->and((string) $sent->getBody())->toBe('{}')
-        ->and($sent->getHeaderLine('Accept'))->toBe('application/json;charset=utf-8;version=2')
+        ->and($sent->getHeaderLine('Accept'))->toStartWith('application/json;charset=utf-8;version=2.0,')
         ->and($sent->getHeaderLine('Authorization'))
         ->toBe('Bearer ' . base64_encode(CAPABILITIES_TEST_API_KEY));
 });

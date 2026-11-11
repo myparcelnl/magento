@@ -104,13 +104,13 @@ final class CapabilitySet
     }
 
     /**
-     * Get every option offered that the SDK knows.
+     * Get every option offered that the SDK knows, in the order of ShipmentOption::DEFINITIONS.
      *
      * @return string[] module option names
      */
     public function optionsFor(string $carrier, ?string $packageType = null): array
     {
-        return $this->union($carrier, $packageType, static function (ModelInterface $result): array {
+        return ShipmentOption::ordered($this->union($carrier, $packageType, static function (ModelInterface $result): array {
             $options = $result->getOptions();
             $names   = [];
 
@@ -121,7 +121,7 @@ final class CapabilitySet
             }
 
             return $names;
-        });
+        }));
     }
 
     /**
@@ -164,11 +164,7 @@ final class CapabilitySet
         return $this->permissive || null !== $this->optionValue($carrier, $packageType, $option);
     }
 
-    /**
-     * Get the option's generated model from the first matching result that carries it.
-     *
-     * @return \MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface|null
-     */
+    /** Get the option's generated model from the first matching result that carries it. */
     public function optionValue(string $carrier, ?string $packageType, string $option): ?ModelInterface
     {
         foreach ($this->matching($carrier, $packageType) as $result) {
@@ -192,7 +188,7 @@ final class CapabilitySet
             $colloMax = null === $collo ? null : $collo->getMax();
 
             if (null !== $colloMax) {
-                $max = null === $max ? (int) $colloMax : max($max, (int) $colloMax);
+                $max = null === $max ? $colloMax : max($max, $colloMax);
             }
         }
 
@@ -223,23 +219,25 @@ final class CapabilitySet
         $results = [];
 
         foreach ($entries as $index => $entry) {
-            try {
-                if (! is_array($entry)) {
-                    throw new \InvalidArgumentException(sprintf('a %s, not an object', gettype($entry)));
-                }
+            if (! is_array($entry)) {
+                self::logSkipped($index, sprintf('a %s, not an object', gettype($entry)));
+                continue;
+            }
 
+            try {
                 $results[] = ObjectSerializer::deserialize($entry, $class);
             } catch (Throwable $e) {
-                // Logged, so a changed API answer does not look like a lost carrier.
-                Logger::notice(sprintf(
-                    'MyParcel capabilities: entry %s skipped: %s',
-                    (string) $index,
-                    $e->getMessage()
-                ));
+                self::logSkipped($index, $e->getMessage());
             }
         }
 
         return new self($results, false);
+    }
+
+    /** Logged, so a changed API answer does not look like a lost carrier. */
+    private static function logSkipped($index, string $reason): void
+    {
+        Logger::notice(sprintf('MyParcel capabilities: entry %s skipped: %s', (string) $index, $reason));
     }
 
     /** @return string[] module option names, without a name the SDK does not know */

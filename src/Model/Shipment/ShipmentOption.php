@@ -142,6 +142,19 @@ final class ShipmentOption
         );
     }
 
+    /**
+     * Put options in row order; an option without a row keeps its place after them.
+     *
+     * @param  string[] $options
+     * @return string[]
+     */
+    public static function ordered(array $options): array
+    {
+        $known = array_values(array_intersect(array_keys(self::DEFINITIONS), $options));
+
+        return array_merge($known, array_values(array_diff($options, $known)));
+    }
+
     /** A text fact of an option, or null when its row does not set it. */
     public static function fact(string $option, string $text): ?string
     {

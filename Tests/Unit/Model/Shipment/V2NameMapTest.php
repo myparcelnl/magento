@@ -84,34 +84,35 @@ it('derives an option name in both directions for a wire key it has never seen',
         ->and(ShipmentOption::toV2Name('requires_foo'))->toBe('requiresFoo');
 });
 
-it('maps every package type to a v2 enum value the SDK allows', function () {
-    $allowed = RefShipmentPackageTypeV2::getAllowableEnumValues();
-
-    expect(PackageType::V2_NAMES_MAP)->toHaveCount(7);
-
+it('maps every package type to a v2 enum value the SDK allows, and back', function () {
     foreach (PackageType::V2_NAMES_MAP as $name => $v2Name) {
-        expect($allowed)->toContain($v2Name)
+        expect(RefShipmentPackageTypeV2::getAllowableEnumValues())->toContain($v2Name)
             ->and(PackageType::fromV2Name($v2Name))->toBe($name);
     }
 });
 
-it('maps every delivery type to a v2 enum value the SDK allows', function () {
-    $allowed = RefTypesDeliveryTypeV2::getAllowableEnumValues();
+// An SDK update that adds a value fails here, not as a package type the checkout drops without a log.
+it('has a module name for every package type the SDK allows', function () {
+    expect(array_values(array_diff(RefShipmentPackageTypeV2::getAllowableEnumValues(), PackageType::V2_NAMES_MAP)))->toBe([]);
+});
 
-    expect(DeliveryType::V2_NAMES_MAP)->toHaveCount(7);
-
+it('maps every delivery type to a v2 enum value the SDK allows, and back', function () {
     foreach (DeliveryType::V2_NAMES_MAP as $name => $v2Name) {
-        expect($allowed)->toContain($v2Name)
+        expect(RefTypesDeliveryTypeV2::getAllowableEnumValues())->toContain($v2Name)
             ->and(DeliveryType::fromV2Name($v2Name))->toBe($name);
     }
+});
+
+// An SDK update that adds a value fails here, not as a delivery type the checkout drops without a log.
+it('has a module name for every delivery type the SDK allows', function () {
+    expect(array_values(array_diff(RefTypesDeliveryTypeV2::getAllowableEnumValues(), DeliveryType::V2_NAMES_MAP)))->toBe([]);
 });
 
 it('round-trips every carrier the SDK knows through its module name', function () {
     $allowed = RefCapabilitiesSharedCarrierV2::getAllowableEnumValues();
 
     foreach ($allowed as $v2Name) {
-        expect(Carrier::toV2Name(Carrier::fromV2Name($v2Name)))->toBe($v2Name)
-            ->and(Carrier::knowsV2Name($v2Name))->toBeTrue();
+        expect(Carrier::toV2Name(Carrier::fromV2Name($v2Name)))->toBe($v2Name);
     }
 });
 
@@ -130,7 +131,6 @@ it('resolves the id of a carrier the module has no code for', function () {
 it('derives a carrier name from any v2 name, and knows only the SDK\'s', function () {
     expect(Carrier::fromV2Name('HOOPLA'))->toBe('hoopla')
         ->and(Carrier::fromV2Name('UPS_EXPRESS_SAVER'))->toBe('upsexpresssaver')
-        ->and(Carrier::knowsV2Name('HOOPLA'))->toBeFalse()
         ->and(Carrier::toV2Name('hoopla'))->toBeNull()
         ->and(Carrier::idFor('hoopla'))->toBeNull();
 });

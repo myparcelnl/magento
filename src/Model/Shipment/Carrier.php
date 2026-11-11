@@ -46,11 +46,6 @@ final class Carrier
         return self::$v2Names[$name] ?? null;
     }
 
-    public static function knowsV2Name(string $v2Name): bool
-    {
-        return $v2Name === self::toV2Name(self::fromV2Name($v2Name));
-    }
-
     /** The carrier's v1 id, which a shipment carries. Null for a carrier the SDK does not know. */
     public static function idFor(string $name): ?int
     {

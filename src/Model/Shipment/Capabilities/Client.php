@@ -6,36 +6,31 @@ namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
 use InvalidArgumentException;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
-use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Configuration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\CapabilitiesPostContractDefinitionsRequestV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesMapper;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
+use MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 use Throwable;
 
 /**
- * Calls the capabilities and contract definitions endpoints through the SDK's generated ShipmentApi.
+ * Calls the capabilities and contract definitions endpoints with requests built by the SDK's ShipmentApi.
  *
- * Returns the raw response arrays, never a model: the cache and the stored answers json_encode()
- * them, and a model with an enum value the SDK does not know throws there. CapabilitySet reads them.
+ * Sends them on its own Guzzle client and returns the raw response arrays, never a model: the cache
+ * and the stored answers json_encode() them, and a model with an enum value the SDK does not know
+ * throws there. One malformed entry must not fail the whole answer; CapabilitySet skips it.
  */
 class Client
 {
-    private const ACCEPT          = 'application/json;charset=utf-8;version=2';
-    private const TIMEOUT_SECONDS = 10;
-
-    /** Shorter than the read timeout: a checkout waits this long per request on an unreachable host. */
+    /** A checkout waits this long per request on an unreachable host. */
     private const CONNECT_TIMEOUT_SECONDS = 2;
 
     private UserAgent          $userAgent;
@@ -51,9 +46,6 @@ class Client
 
     /** Null is the SDK's default host. */
     private ?string $host;
-
-    /** The body of the last response, kept by a middleware because ShipmentApi returns only a model. */
-    private ?string $lastBody = null;
 
     public function __construct(
         UserAgent           $userAgent,
@@ -86,9 +78,9 @@ class Client
      */
     public function send(string $apiKey, string $body): array
     {
-        return $this->call($apiKey, 'results', 'capabilities', static function (ShipmentApi $api) use ($body): void {
+        return $this->call($apiKey, 'results', 'capabilities', static function (ShipmentApi $api) use ($body): RequestInterface {
             // The decoded body as is: a model round trip turns an option's {} into [].
-            $api->postCapabilities(json_decode($body));
+            return $api->postCapabilitiesRequest(json_decode($body));
         });
     }
 
@@ -100,36 +92,36 @@ class Client
      */
     public function sendContractDefinitions(string $apiKey): array
     {
-        return $this->call($apiKey, 'items', 'contract definitions', static function (ShipmentApi $api): void {
-            $api->postCapabilitiesContractDefinitions(new CapabilitiesPostContractDefinitionsRequestV2());
+        return $this->call($apiKey, 'items', 'contract definitions', static function (ShipmentApi $api): RequestInterface {
+            return $api->postCapabilitiesContractDefinitionsRequest(new CapabilitiesPostContractDefinitionsRequestV2());
         });
     }
 
     /**
-     * @param  string                     $envelope the response key carrying the entries
-     * @param  string                     $label    what to call this endpoint in an error
-     * @param  callable(ShipmentApi):void $post
+     * @param  string                                 $envelope the response key carrying the entries
+     * @param  string                                 $label    what to call this endpoint in an error
+     * @param  callable(ShipmentApi):RequestInterface $build
      * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
      */
-    private function call(string $apiKey, string $envelope, string $label, callable $post): array
+    private function call(string $apiKey, string $envelope, string $label, callable $build): array
     {
-        $this->lastBody = null;
-
         try {
-            $post($this->apiFor($apiKey));
-        } catch (ApiException $e) {
-            // The SDK throws this for a transport failure (code 0) and an undecodable 2xx body (code 2xx) too.
-            $status  = $e->getCode();
-            $message = 0 !== $status && ($status < 200 || $status >= 300)
-                ? sprintf('%s responded %d', $label, $status)
-                : sprintf('%s request failed: %s', $label, $e->getMessage());
-
-            throw new RuntimeException($message, 0, $e);
+            $response = $this->http()->send($build($this->apiFor($apiKey)));
         } catch (Throwable $e) {
             throw new RuntimeException(sprintf('%s request failed: %s', $label, $e->getMessage()), 0, $e);
         }
 
-        $decoded = json_decode((string) $this->lastBody, true);
+        $status = $response->getStatusCode();
+
+        if ($status < 200 || $status >= 300) {
+            throw new RuntimeException(sprintf('%s responded %d', $label, $status));
+        }
+
+        $decoded = json_decode((string) $response->getBody(), true);
+
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            throw new RuntimeException(sprintf('%s response is not JSON: %s', $label, json_last_error_msg()));
+        }
 
         if (! is_array($decoded) || ! is_array($decoded[$envelope] ?? null)) {
             throw new RuntimeException(sprintf('%s response carried no %s array', $label, $envelope));
@@ -138,7 +130,7 @@ class Client
         return $decoded[$envelope];
     }
 
-    /** Built here: ShipmentApiFactory takes no middleware or connect timeout, and reads getenv('API_KEY') for an empty key. */
+    /** Built here: ShipmentApiFactory takes no connect timeout. */
     private function apiFor(string $apiKey): ShipmentApi
     {
         if ('' === $apiKey) {
@@ -163,25 +155,13 @@ class Client
     private function http(): GuzzleClient
     {
         if (null === $this->http) {
-            $stack = HandlerStack::create($this->handler);
-
-            // The generated client asks for version=2.0; keep the v2 header this module and the PDK send.
-            $stack->push(Middleware::mapRequest(static function (RequestInterface $request): RequestInterface {
-                return $request->withHeader('Accept', self::ACCEPT);
-            }));
-
-            $stack->push(Middleware::mapResponse(function (ResponseInterface $response): ResponseInterface {
-                $this->lastBody = (string) $response->getBody();
-
-                return $response->withBody(Utils::streamFor($this->lastBody));
-            }));
-
             $this->http = new GuzzleClient([
-                'handler'                       => $stack,
+                'handler'                       => HandlerStack::create($this->handler),
                 RequestOptions::HEADERS         => Config::API_FEATURE_FLAGS,
-                RequestOptions::TIMEOUT         => self::TIMEOUT_SECONDS,
+                RequestOptions::TIMEOUT         => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT,
                 RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
                 RequestOptions::ALLOW_REDIRECTS => false,
+                RequestOptions::HTTP_ERRORS     => false,
             ]);
         }
 

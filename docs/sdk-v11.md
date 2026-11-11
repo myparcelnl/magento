@@ -50,12 +50,13 @@ Three rules run through the result:
 (`Capabilities\Repository`). A cached answer lives three hours, which is the longest a capabilities
 change takes to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
 
-**The SDK decides which options exist.** `Capabilities\Client` calls the generated `ShipmentApi` on
-its own Guzzle client, as the PDK does, and `CapabilitySet` reads the generated response models. An
-option the SDK does not know is not offered until an SDK update; the export could not send it anyway.
-A new carrier, package type or delivery type reads as a plain string (`EnumFallback`), but a model
-that holds one throws on `json_encode()`. So the cache and the stored answers keep the raw response
-body, never a model.
+**The SDK decides which options exist.** `Capabilities\Client` sends the request that the generated
+`ShipmentApi` builds on its own Guzzle client and returns the raw response entries.
+`CapabilitySet` reads each entry into the generated response model and skips an entry that does not
+read, so one malformed entry does not cost the whole answer. An option the SDK does not know is not
+offered until an SDK update; the export could not send it anyway. A new carrier, package type or
+delivery type reads as a plain string (`EnumFallback`), but a model that holds one throws on
+`json_encode()`. So the cache and the stored answers keep the raw entries, never a model.
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
@@ -142,6 +143,7 @@ Each workaround names what to delete once the fix lands.
 
 | # | Defect | Workaround, delete when fixed |
 |---|---|---|
+| 2 | `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | `ShipmentApiProvider` raises before any factory sees an empty key. `Capabilities\Client` uses no factory |
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. Each step of `query()` is public, so the module could build the request itself, but that copies SDK internals. Fix it in the SDK: let `query()` take user agents |
@@ -149,7 +151,7 @@ Each workaround names what to delete once the fix lands.
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 | 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
 
-Defects 1 to 3 were capabilities defects. The module now calls the generated `ShipmentApi` and reads
+Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
 the generated models, so it has no workaround for them; the numbers stay so references to the others
 hold.
 
