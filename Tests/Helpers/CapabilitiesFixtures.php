@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-use GuzzleHttp\Client as RealGuzzleClient;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Middleware;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesResponseOptionsInsuranceOptionV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client as CapabilitiesClient;
 use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
@@ -103,13 +106,29 @@ function accountSettingsRow(array $items, array $overrides = []): string
  */
 function makeCapabilitiesClient(array $responses = []): array
 {
-    $http = makeGuzzleWithHistory($responses);
+    $history = [];
+    $mock    = new MockHandler($responses);
+
+    // Innermost, so the history holds the request as sent, after the client's own middleware.
+    $handler = Middleware::history($history)($mock);
 
     return [
-        'client'  => new CapabilitiesClient($http['client'], createUserAgent()),
-        'history' => &$http['history'],
-        'handler' => $http['handler'],
+        'client'  => new CapabilitiesClient(createUserAgent(), null, $handler),
+        'history' => &$history,
+        'handler' => $mock,
     ];
+}
+
+/** The insurance option model the SDK reads from this raw option value. */
+function insuranceOption(array $raw): RefCapabilitiesResponseOptionsInsuranceOptionV2
+{
+    return ObjectSerializer::deserialize($raw, RefCapabilitiesResponseOptionsInsuranceOptionV2::class);
+}
+
+/** The range InsuranceRange reads from this raw insurance option value, as the SDK models it. */
+function insuranceRangeOf(?array $raw): ?InsuranceRange
+{
+    return InsuranceRange::fromOptionValue(null === $raw ? null : insuranceOption($raw));
 }
 
 function failCapabilitiesBackendIfAsked(object $store, string $call): void
@@ -191,7 +210,7 @@ function acceptanceCapabilitiesFixturePath(): string
 }
 
 /**
- * A real response reduced to the five keys CarrierCapability::fromResult() reads. An allow-list, so a
+ * A real response reduced to the five keys CapabilitySet reads. An allow-list, so a
  * key naming the account it came from cannot reach the committed fixture.
  */
 function scrubCapabilitiesResults(array $results): array
@@ -212,8 +231,8 @@ function scrubCapabilitiesResults(array $results): array
 function makeAcceptanceCapabilitiesClient(): CapabilitiesClient
 {
     return new CapabilitiesClient(
-        new RealGuzzleClient(),
         createUserAgent(),
+        null,
         null,
         ProxyConfig::HOSTS[ProxyConfig::HOST_CORE][ProxyConfig::KEY_ACCEPTANCE_URL]
     );
@@ -261,7 +280,7 @@ function assertFlatInsuranceShape(array $results): void
 
         // The assertion that matters: the wire shape and the parser still agree.
         Assert::assertNotNull(
-            InsuranceRange::fromOptionValue($insurance),
+            insuranceRangeOf($insurance),
             "InsuranceRange read no range from this shape. $where"
         );
     }

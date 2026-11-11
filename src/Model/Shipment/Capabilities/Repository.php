@@ -161,13 +161,13 @@ class Repository
         return $this->memo[$cacheId] = $set;
     }
 
-    /** Log the values the module does not know, once per fetch, as a sign that it needs an update. */
+    /** Log the values the SDK does not know, once per fetch, as a sign that it needs an update. */
     private function logUnknownValues(CapabilitySet $set): void
     {
         foreach ($set->unknownValues() as $kind => $values) {
             if ($values) {
                 Logger::notice(sprintf(
-                    'Capabilities reported %s value(s) this module does not know: %s',
+                    'Capabilities reported %s value(s) the SDK does not know: %s',
                     $kind,
                     implode(', ', $values)
                 ));
