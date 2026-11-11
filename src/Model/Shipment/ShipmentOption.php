@@ -211,6 +211,12 @@ final class ShipmentOption
         return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
     }
 
+    /** A snake_case module name. Request input that is not one is dropped, never guessed at. */
+    public static function isOptionName($value): bool
+    {
+        return is_string($value) && 1 === preg_match('/^[a-z][a-z0-9_]*$/', $value);
+    }
+
     /** Module option name to the camelCase key a capabilities response uses. The SDK names the aliases. */
     public static function toV2Name(string $name): string
     {

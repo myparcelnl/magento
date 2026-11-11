@@ -63,3 +63,22 @@ it('formats label description as customLabelText object', function () {
 it('ignores empty label description', function () {
     expect((new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture(['label_description' => ''])))->toBeNull();
 });
+
+it('shows an option a merchant switched on, and leaves out one switched off or inheriting', function () {
+    $stored = \MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions::fromCheckoutData([
+        'deliveryType'    => 'standard',
+        'shipmentOptions' => ['signature' => true, 'only_recipient' => false, 'age_check' => null],
+    ])->getShipmentOptions();
+
+    $result = (new ShipmentOptionsTransformer())->transform($stored);
+    $fields = OrderApiShipmentOptions::attributeMap();
+
+    expect(array_keys((array) $result))->toBe([$fields['requires_signature']]);
+});
+
+it('leaves out an option the Order API does not know', function () {
+    $options = \MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions::of(['signature' => true, 'requires_foo' => true]);
+
+    expect(array_keys((array) (new ShipmentOptionsTransformer())->transform($options)))
+        ->toBe([OrderApiShipmentOptions::attributeMap()['requires_signature']]);
+});

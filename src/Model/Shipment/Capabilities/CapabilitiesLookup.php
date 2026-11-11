@@ -15,7 +15,7 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  * union of their options. Ask options, insurance and the collo maximum per package type.
  *
  * The memo is per instance: answeredPermissively() tells about what this instance asked. A caller
- * that reads it needs its own instance, as Block\Sales\NewShipment does; the shared one mixes callers.
+ * that reads it needs its own instance, as ShipmentOptionsForm does; the shared one mixes callers.
  */
 class CapabilitiesLookup
 {

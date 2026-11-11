@@ -18,6 +18,7 @@ use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
+use MyParcelNL\Magento\Service\Config;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {
@@ -256,6 +257,24 @@ class UpgradeSchema implements UpgradeSchemaInterface
             }
 
             $this->addUuidPrefixIndex($setup, $tableSalesOrder);
+
+            // Why the API refused the order's last export. Cleared by the next export that succeeds.
+            foreach ([$tableSalesOrder, $setup->getTable('sales_order_grid')] as $table) {
+                if (! $setup->getConnection()->isTableExists($table)
+                    || $setup->getConnection()->tableColumnExists($table, Config::FIELD_EXPORT_ERROR)) {
+                    continue;
+                }
+
+                $setup->getConnection()->addColumn(
+                    $table,
+                    Config::FIELD_EXPORT_ERROR,
+                    [
+                        'type'     => Table::TYPE_TEXT,
+                        'nullable' => true,
+                        'comment'  => 'Why MyParcel refused the last export',
+                    ]
+                );
+            }
         }
 
         $setup->endSetup();

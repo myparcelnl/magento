@@ -2,14 +2,8 @@
 /** @var \MyParcelNL\Magento\Block\Sales\NewShipment $block */
 /** @var \Magento\Framework\Escaper $escaper */
 
-// Resolved first: the notice below reports on it, and every loop reads from it.
-$carriers = $block->getFormCarriers();
-$form     = $block->getNewShipmentForm();
-
-// Do not change the nesting depth of the carrier and package-type wrappers. new-shipment.js walks
-// element.parentNode.parentNode to find the data-for_mypa_carrier element it belongs to.
+$form = $block->getOptionsForm();
 ?>
-<input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
 <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
     <input
         id="mypa_create_from_observer"
@@ -19,156 +13,33 @@ $form     = $block->getNewShipmentForm();
         type="checkbox"
         checked="checked" />
     <label class="admin__field-label" for="mypa_create_from_observer">
-        <span><?= $block->hasOrderV1() ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
+        <span><?= $form->hasOrderV1() ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
     </label>
 </div>
-<?php if ($block->hasUnverifiedCapabilities()): ?>
-    <div class="message message-warning warning js--mypa-options" style="margin: 10px 0;">
-        <div><?= [] === $carriers
-            ? __('MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.')
-            : __(
-                'MyParcel could not confirm which options this account has, so every option is shown. '
-                . 'An option the account does not carry is refused when the shipment is exported.'
-            ) ?></div>
-    </div>
-<?php endif; ?>
-<?php foreach ($carriers as $carrier): ?>
-    <div
-        class="field field-mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?> mypa_carrier-toggle js--mypa-options"
-        style="margin-top: 10px;">
-        <div class="admin__field-control">
-            <div class="admin__field admin__field-option">
-                <input
-                    type="radio"
-                    class="admin__control-radio"
-                    id="mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
-                    name="mypa_carrier"
-                    value="<?= $escaper->escapeHtmlAttr($carrier['name']) ?>">
-                <label
-                    class="admin__field-label"
-                    for="mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= __($carrier['human']) ?></label>
-            </div>
+<div class="js--mypa-options" style="margin: 10px 0;">
+    <?php if (null !== $form->getExportError()): ?>
+        <div class="message message-error error">
+            <div><?= $escaper->escapeHtml(__('MyParcel refused the last export: %1', $form->getExportError())) ?></div>
         </div>
-    </div>
-    <div
-        class="field field-mypa_package_type js--mypa-options"
-        data-for_mypa_carrier="<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
-        style="margin: 10px 0 0 30px;">
-        <div class="admin__field-control">
-            <?php foreach ($carrier['packageTypes'] as $packageType):
-                $suffix = $escaper->escapeHtmlAttr($carrier['name'] . '_' . $packageType['id']);
-                $ptName = $escaper->escapeHtmlAttr($packageType['name']);
-                ?>
-                <div class="admin__field admin__field-option">
-                    <input
-                        type="radio"
-                        class="admin__control-radio"
-                        id="mypa_package_type-<?= $ptName ?>_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
-                        name="mypa_package_type"
-                        value="<?= $ptName ?>">
-                    <label
-                        class="admin__field-label"
-                        for="mypa_package_type-<?= $ptName ?>_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= __($packageType['human']) ?></label>
-                    <?php if (null !== $packageType['weights']): ?>
-                        <span data-for_mypa_package_type="<?= $ptName ?>" data-weight="<?= (int) $block->getDigitalStampWeight() ?>">
-                            <select
-                                name="mypa_digital_stamp_weight"
-                                id="mypa_digital_stamp_weight_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
-                                class="required product-custom-option admin__control-select"
-                                style="margin: 10px 0 0 30px"
-                                title="">
-                                <?php foreach ($packageType['weights'] as $weight): ?>
-                                    <option
-                                        value="<?= (int) $weight['value'] ?>"
-                                        <?= $weight['selected'] ? 'selected="selected"' : '' ?>><?= $escaper->escapeHtml($weight['label']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </span>
-                    <?php endif; ?>
-                </div>
-
-                <div
-                    class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle mypa-option-toggle"
-                    style="padding-left: 30px;"
-                    data-for_mypa_package_type="<?= $ptName ?>">
-                    <label class="admin__field-label" for="mypa_label_amount_<?= $suffix ?>" style="display: block">
-                        <span><?= __('Label amount:') ?></span>
-                    </label>
-                    <select
-                        name="mypa_label_amount"
-                        id="mypa_label_amount_<?= $suffix ?>"
-                        class="required product-custom-option admin__control-select"
-                        title="">
-                        <?php for ($amount = 1; $amount <= 10; $amount++): ?>
-                            <option value="<?= $amount ?>"><?= __((string) $amount) ?></option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
-
-                <?php foreach ($packageType['options'] as $option):
-                    $optionId = 'mypa_' . $escaper->escapeHtmlAttr($option) . '_' . $suffix;
-                    ?>
-                    <div
-                        class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
-                        data-for_mypa_package_type="<?= $ptName ?>"
-                        style="padding-left:30px;">
-                        <input type="hidden" name="mypa_rendered_options[]" value="<?= $escaper->escapeHtmlAttr($option) ?>" />
-                        <input
-                            id="<?= $optionId ?>"
-                            class="admin__control-checkbox"
-                            name="mypa_<?= $escaper->escapeHtmlAttr($option) ?>"
-                            value="1"
-                            type="checkbox"
-                            <?= $block->hasDefaultOption($option, $carrier['name']) ? 'checked="checked"' : '' ?> />
-                        <label class="admin__field-label" for="<?= $optionId ?>">
-                            <span><?= $escaper->escapeHtml($form->labelFor($option)) ?></span>
-                        </label>
-                    </div>
-                <?php endforeach; ?>
-
-                <?php if (null !== $packageType['insurance']): ?>
-                    <div
-                        class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
-                        data-for_mypa_package_type="<?= $ptName ?>"
-                        style="padding-left:30px;">
-                        <label class="admin__field-label" for="mypa_insurance" style="display: block">
-                            <span><?= $escaper->escapeHtml(__('Insured up to:')) ?></span>
-                        </label>
-                        <input
-                            type="number"
-                            name="mypa_insurance"
-                            id="mypa_insurance"
-                            step="1"
-                            min="<?= (int) $packageType['insurance']['floor'] ?>"
-                            <?php if (null !== $packageType['insurance']['max']): ?>
-                                max="<?= (int) $packageType['insurance']['max'] ?>"
-                            <?php endif; ?>
-                            value="<?= (int) $packageType['insurance']['default'] ?>"
-                            class="required product-custom-option admin__control-text"
-                            title=""/>
-                        <?php if (null !== $packageType['insurance']['max']): ?>
-                            <p class="note admin__field-note">
-                                <span><?= $escaper->escapeHtml(__(
-                                    $packageType['insurance']['required']
-                                        ? 'Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.'
-                                        : 'Your contract allows € %1 to € %2. Enter 0 to switch insurance off.',
-                                    (int) $packageType['insurance']['min'],
-                                    (int) $packageType['insurance']['max']
-                                )) ?></span>
-                            </p>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </div>
-    </div>
-<?php endforeach; ?>
+    <?php endif; ?>
+    <dl class="mypa-options-summary" data-mypa-summary>
+        <?php foreach ($form->summary() as $label => $value): ?>
+            <dt><?= $escaper->escapeHtml($label) ?></dt>
+            <dd><?= $escaper->escapeHtml($value) ?></dd>
+        <?php endforeach; ?>
+    </dl>
+    <button type="button" class="action-secondary" data-mypa-change-options>
+        <span><?= $escaper->escapeHtml(__('Change MyParcel options')) ?></span>
+    </button>
+</div>
 <script type="text/x-magento-init">
 {
     ".page-footer": {
         "myparcelnl_newshipment": {
-            "carrier": "<?= $escaper->escapeJs($block->getCarrier()) ?>",
-            "packageType": "<?= $escaper->escapeJs($block->getPackageTypeName()) ?>"}
+            "formUrl": "<?= $escaper->escapeJs($block->getOptionsFormUrl()) ?>",
+            "saveUrl": "<?= $escaper->escapeJs($block->getOptionsSaveUrl()) ?>",
+            "orderId": <?= (int) $block->getOrderId() ?>
+        }
     }
 }
 </script>
