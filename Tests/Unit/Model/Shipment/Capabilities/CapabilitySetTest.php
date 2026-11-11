@@ -50,7 +50,7 @@ it('answers nothing for a carrier the account has no contract for', function () 
         ->and($set->hasOption(Carrier::DPD, null, ShipmentOption::SIGNATURE))->toBeFalse();
 });
 
-it('keeps an unrecognised value and reports it instead of dropping it', function () {
+it('reports a value the SDK does not know, and offers no option the SDK does not know', function () {
     $set = CapabilitySet::fromApiResults([
         capabilityResult([
             'packageTypes'  => ['PACKAGE', 'HOVERCRAFT'],
@@ -64,9 +64,9 @@ it('keeps an unrecognised value and reports it instead of dropping it', function
 
     expect($unknown['packageType'])->toBe(['HOVERCRAFT'])
         ->and($unknown['deliveryType'])->toBe(['TELEPORT_DELIVERY'])
-        ->and($unknown['option'])->toBe(['aBrandNewOption'])
         ->and($unknown['carrier'])->toBe(['FUTURE_CARRIER'])
-        ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME]);
+        ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME])
+        ->and($set->optionsFor(Carrier::POSTNL))->toBe([ShipmentOption::SIGNATURE]);
 });
 
 it('reads an option value verbatim, so insurance bounds survive', function () {
@@ -108,4 +108,16 @@ it('offers everything when permissive, which is not the same as an empty respons
         ->and($permissive->colloMaxFor(Carrier::DPD))->toBeNull()
         ->and($empty->isPermissive())->toBeFalse()
         ->and($empty->hasOption(Carrier::DPD, null, ShipmentOption::AGE_CHECK))->toBeFalse();
+});
+
+it('skips and logs only the entry that does not read, and keeps the others', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('notice')->once()->with(Mockery::pattern('/entry 0 skipped/'));
+
+    $set = CapabilitySet::fromApiResults([
+        capabilityResult(['carrier' => 'DPD', 'packageTypes' => 'PACKAGE']),
+        capabilityResult(),
+    ]);
+
+    expect($set->carriers())->toBe(['postnl']);
 });
