@@ -3,32 +3,28 @@
 declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
-// A new carrier, package type, delivery type and option, through the real Client and cache.
+// A new carrier, package type, delivery type and option, through the real Client, cache and stored answers.
 
-/** @return array[] */
-function unknownValuesResults(): array
+function unknownValuesResult(): array
 {
-    return [
-        capabilityResult([
-            'packageTypes'  => ['PACKAGE', 'HOVERCRATE'],
-            'deliveryTypes' => ['STANDARD_DELIVERY', 'DRONE_DELIVERY'],
-            'options'       => capabilityOptions([
-                'requiresSignature' => ['isRequired' => false, 'requires' => ['teleport'], 'excludes' => []],
-                'teleport'          => ['isRequired' => true],
-            ]),
+    return capabilityResult([
+        'carrier'       => 'HOOPLA',
+        'packageTypes'  => ['PACKAGE', 'HOVERCRATE'],
+        'deliveryTypes' => ['STANDARD_DELIVERY', 'DRONE_DELIVERY'],
+        'options'       => capabilityOptions([
+            'requiresSignature' => ['isRequired' => false, 'requires' => ['teleport'], 'excludes' => []],
+            'teleport'          => ['isRequired' => true],
         ]),
-        capabilityResult(['carrier' => 'HOOPLA']),
-    ];
+    ]);
 }
 
-it('caches an answer with values the SDK does not know, and reads it back', function () {
+it('caches and stores an answer with values the SDK does not know, and reads it back', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r       = makeCapabilitiesRepository([new GuzzleResponse(200, [], capabilitiesBody(unknownValuesResults()))]);
+    $r       = makeCapabilitiesRepository([new GuzzleResponse(200, [], capabilitiesBody([unknownValuesResult()]))]);
     $request = CapabilitiesRequest::forCountry('NL');
 
     $fresh = $r['repository']->forStore(1, $request);
@@ -42,21 +38,43 @@ it('caches an answer with values the SDK does not know, and reads it back', func
     }));
 
     expect($r['history'])->toHaveCount(1)
-        // The raw answer, unknown values included.
-        ->and(json_decode($cacheEntries[0], true))->toBe(unknownValuesResults());
+        // The raw answer, unknown values included, in both the cache and the stored answers.
+        ->and(json_decode($cacheEntries[0], true))->toBe([unknownValuesResult()])
+        ->and(array_values($r['store']->stored))->toBe([[unknownValuesResult()]]);
 
     foreach ([$fresh, $cached] as $set) {
         expect($set->isPermissive())->toBeFalse()
-            ->and($set->carriers())->toBe(['postnl', 'hoopla'])
+            ->and($set->carriers())->toBe(['hoopla'])
             ->and($set->unknownValues())->toBe([
                 'carrier'      => ['HOOPLA'],
                 'packageType'  => ['HOVERCRATE'],
                 'deliveryType' => ['DRONE_DELIVERY'],
             ])
-            ->and($set->packageTypesFor('postnl'))->toBe([PackageType::PACKAGE_NAME])
             // Not offered until an SDK update: the module cannot send it.
-            ->and($set->optionsFor('postnl'))->not->toContain('teleport')
-            ->and($set->hasOption('postnl', null, ShipmentOption::SIGNATURE))->toBeTrue()
-            ->and($set->requiresFor('postnl', null, ShipmentOption::SIGNATURE))->toBe([]);
+            ->and($set->optionsFor('hoopla'))->not->toContain('teleport')
+            ->and($set->hasOption('hoopla', null, ShipmentOption::SIGNATURE))->toBeTrue()
+            ->and($set->requiresFor('hoopla', null, ShipmentOption::SIGNATURE))->toBe([]);
     }
+});
+
+it('serves the stored answer with values the SDK does not know when the API fails', function () {
+    mockLoggerFacade()->shouldReceive('notice', 'warning')->byDefault();
+
+    $r       = makeCapabilitiesRepository([
+        new GuzzleResponse(200, [], capabilitiesBody([unknownValuesResult()])),
+        new GuzzleResponse(500, [], ''),
+    ]);
+    $request = CapabilitiesRequest::forCountry('NL');
+
+    $r['repository']->forStore(1, $request);
+
+    // A new request: the cache is gone, the API fails, the stored answer remains.
+    setPrivateProperty($r['repository'], 'memo', []);
+    $r['store']->entries = [];
+
+    $set = $r['repository']->forStore(1, $request);
+
+    expect($r['history'])->toHaveCount(2)
+        ->and($set->isPermissive())->toBeFalse()
+        ->and($set->carriers())->toBe(['hoopla']);
 });
