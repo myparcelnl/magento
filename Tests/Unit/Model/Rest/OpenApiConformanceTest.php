@@ -128,6 +128,14 @@ it('rejects an unknown carrier enum value', function () {
     expect($errors)->not->toBeEmpty('Schema should reject an unknown carrier enum value');
 });
 
+it('rejects a boolean shipment option that is not an empty object', function () {
+    $response = buildRequestHandler()->transform(fullDeliveryOptions(['signature' => true]));
+
+    $response['shipmentOptions']->requiresSignature = (object) ['enabled' => true];
+
+    expect(validateAgainstSpec($response))->not->toBeEmpty('Schema should reject a non-empty option object');
+});
+
 it('rejects a ProblemDetails response missing a required field', function () {
     $problem = new ProblemDetails(null, 400, ProblemDetails::titleForStatus(400), 'Test detail');
     $data    = $problem->jsonSerialize();
