@@ -10,29 +10,36 @@ use Magento\Framework\ObjectManagerInterface;
 /**
  * Reads the module's own `myparcel_*` product attributes for a batch of products, all in one load.
  *
- * Through the product collection, never the EAV value tables directly. Adobe Commerce keys those
- * tables on `row_id` and holds one row per scheduled update, so a hand-built query needs both an
- * entity-id mapping and a live-version window to answer correctly; the collection does both. It
- * also knows each attribute's backend type, which retires the varchar-then-int probing the raw
- * reader needed.
- *
- * One load covers every attribute: asking for eight columns costs barely more than one, and the
- * callers read several per product.
+ * Read through the product collection, never the EAV value tables directly: Adobe Commerce keys
+ * those on `row_id` with one row per scheduled update, and the collection handles both.
  */
 class ProductAttributes
 {
     private const PREFIX = 'myparcel_';
 
+    // Column names without the prefix. Setup code keeps its own literals: a setup step installs the
+    // name of its own version, and a rename needs a migration of its own.
+    public const AGE_CHECK                  = 'age_check';
+    public const CLASSIFICATION             = 'classification';
+    public const DIGITAL_STAMP              = 'digital_stamp';
+    public const DISABLE_CHECKOUT           = 'disable_checkout';
+    public const DROPOFF_DELAY              = 'dropoff_delay';
+    public const EXCLUDE_PARCEL_LOCKERS     = 'exclude_parcel_lockers';
+    public const EXTERNAL_PRODUCT_REFERENCE = 'external_product_reference';
+    public const FIT_IN_MAILBOX             = 'fit_in_mailbox';
+    public const PRIORITY_DELIVERY          = 'priority_delivery';
+
     /** Every product attribute UpgradeData installs. Fetched together. */
     private const ATTRIBUTES = [
-        'age_check',
-        'classification',
-        'digital_stamp',
-        'disable_checkout',
-        'dropoff_delay',
-        'exclude_parcel_lockers',
-        'fit_in_mailbox',
-        'priority_delivery',
+        self::AGE_CHECK,
+        self::CLASSIFICATION,
+        self::DIGITAL_STAMP,
+        self::DISABLE_CHECKOUT,
+        self::DROPOFF_DELAY,
+        self::EXCLUDE_PARCEL_LOCKERS,
+        self::EXTERNAL_PRODUCT_REFERENCE,
+        self::FIT_IN_MAILBOX,
+        self::PRIORITY_DELIVERY,
     ];
 
     private ObjectManagerInterface $objectManager;
