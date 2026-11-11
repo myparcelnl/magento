@@ -5,34 +5,51 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use DateTimeImmutable;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Sales\Model\Order;
+use Throwable;
 
+/**
+ * Delivery dates against a store's own calendar day.
+ *
+ * Magento runs PHP in UTC, so date('Y-m-d') is yesterday in the Netherlands until 02:00. Every
+ * "today" or "tomorrow" comes from here, in the timezone of the order's store.
+ */
 class Dating
 {
-    /**
-     * Get date in YYYY-MM-DD HH:MM:SS format
-     *
-     * @param string|null $date
-     * @param string $format
-     * @return string|null
-     */
-    public static function convertDeliveryDate(?string $date, string $format = 'Y-m-d H:i:s'): ?string
+    private TimezoneInterface $timezone;
+
+    public function __construct(TimezoneInterface $timezone)
     {
-        if (null === $date) {
+        $this->timezone = $timezone;
+    }
+
+    /** Tomorrow in the timezone of the order's store, at the start of the day. */
+    public function tomorrow(Order $order, string $format = 'Y-m-d'): string
+    {
+        return $this->timezone->scopeDate((int) $order->getStoreId())->modify('+1 day')->format($format);
+    }
+
+    /**
+     * The delivery date to send, in $format, or null for none. An empty or unreadable date is none;
+     * a date before tomorrow becomes tomorrow.
+     */
+    public function convertDeliveryDate(?string $date, Order $order, string $format = 'Y-m-d H:i:s'): ?string
+    {
+        if (null === $date || '' === trim($date)) {
             return null;
         }
 
         try {
-            $deliveryDate = strtotime((new DateTimeImmutable($date))->format('Y-m-d'));
+            $day = (new DateTimeImmutable($date))->format('Y-m-d');
         } catch (Throwable $e) {
             return null;
         }
 
-        $currentDate = strtotime(date('Y-m-d'));
-
-        if ($deliveryDate <= $currentDate) {
-            return date($format, strtotime('now +1 day'));
+        if ($day < $this->tomorrow($order)) {
+            return $this->tomorrow($order, $format);
         }
 
-        return date($format, $deliveryDate);
+        return (new DateTimeImmutable($day))->format($format);
     }
 }
