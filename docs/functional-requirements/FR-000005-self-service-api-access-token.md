@@ -2,14 +2,14 @@
 
 ## Parent Requirement
 
-- **Business Requirement:** [BR-000002: MyParcel backoffice authenticates against customer Magento REST API](../business-requirements/BR-000002-myparcel-backoffice-rest-auth.md)
+- **Business Requirement:** [BR-000002 — MyParcel backoffice authenticates against customer Magento REST API](../business-requirements/BR-000002-myparcel-backoffice-rest-auth.md)
 - **Related User Stories:**
-    - [US-000001: Admin generates API access token](../user-stories/US-000001-admin-generates-api-access-token.md)
-    - [US-000002: Admin rotates API access token](../user-stories/US-000002-admin-rotates-api-access-token.md)
-    - [US-000003: Admin revokes API access token](../user-stories/US-000003-admin-revokes-api-access-token.md)
-    - [US-000004: REST caller authenticates with token](../user-stories/US-000004-rest-caller-authenticates-with-token.md)
-    - [US-000005: Admin generates store-scoped API access token](../user-stories/US-000005-admin-generates-store-scoped-api-access-token.md)
-    - [US-000006: Admin generates website-scoped API access token](../user-stories/US-000006-admin-generates-website-scoped-api-access-token.md)
+    - [US-000001 — Admin generates API access token](../user-stories/US-000001-admin-generates-api-access-token.md)
+    - [US-000002 — Admin rotates API access token](../user-stories/US-000002-admin-rotates-api-access-token.md)
+    - [US-000003 — Admin revokes API access token](../user-stories/US-000003-admin-revokes-api-access-token.md)
+    - [US-000004 — REST caller authenticates with token](../user-stories/US-000004-rest-caller-authenticates-with-token.md)
+    - [US-000005 — Admin generates store-scoped API access token](../user-stories/US-000005-admin-generates-store-scoped-api-access-token.md)
+    - [US-000006 — Admin generates website-scoped API access token](../user-stories/US-000006-admin-generates-website-scoped-api-access-token.md)
 
 ## Description
 
@@ -23,26 +23,26 @@ A token, once generated, authenticates incoming Magento REST requests that prese
 
 The system supports three scope levels: **default**, **website**, and **store-view**. Each `(scopeType, scopeId)` coordinate holds at most one active token. Other Magento scope codes (custom group scopes, typos, future additions) are rejected at the controller with `400`.
 
-The scoping model is partition-based, not cascade-based: but it borrows Magento's precedence order (`stores > websites > default`) to assign **one owning row per store**:
+The scoping model is partition-based, not cascade-based — but it borrows Magento's precedence order (`stores > websites > default`) to assign **one owning row per store**:
 
 - A token issued at a **store-view** scope authenticates calls only for that single store-view's data.
 - A token issued at a **website** scope authenticates calls for every store-view in that website that does **not** have its own dedicated store-view token. Issuing a store-view token within a website *carves* that store-view out of the website token's view; revoking it rejoins.
 - The **default-scope** token authenticates calls for every store that has neither a dedicated store-view token nor a parent-website token. Issuing a website-scope or store-view-scope token *removes* the affected stores from the default token's view; revoking finer tokens releases their stores back to the next-coarsest tier that still has a token.
-- Membership is determined by **row coordinates** (which row owns each store), not by hash equality at the membership step: duplicate hashes across rows cannot conflate ownership. A defensive `409 Conflict` at write time still rejects any attempt to persist a hash that already exists at another scope coordinate.
-- The `/rest/{store_code}/V1/...` URL prefix is **decorative** for token-authenticated calls: the token alone determines which stores' data is returned.
+- Membership is determined by **row coordinates** (which row owns each store), not by hash equality at the membership step — duplicate hashes across rows cannot conflate ownership. A defensive `409 Conflict` at write time still rejects any attempt to persist a hash that already exists at another scope coordinate.
+- The `/rest/{store_code}/V1/...` URL prefix is **decorative** for token-authenticated calls — the token alone determines which stores' data is returned.
 
 Token-authenticated calls succeed only against REST resources for which the module has installed a per-store filter plugin (the *scoped-resource allow-list*). Resources granted to the integration but not in the allow-list return `401` for token-authenticated callers. Admin and customer auth paths are unaffected.
 
 ## User Impact
 
 - **Magento shop admin (primary):** Connects their store to MyParcel via a single button click. No CLI knowledge required, no OAuth handshake to step through, no risk of misconfiguring the wrong integration. On a multi-website / multi-store install, the admin can switch the scope selector to a specific website or store-view and issue a separate token bound to that scope coordinate; finer-grained tokens automatically carve their stores out of any parent token's view. Can rotate or revoke any of these tokens independently from the same screen.
-- **MyParcel backoffice service (consumer):** Authenticates to the customer's Magento REST API using the token in the `Authorization` header: no OAuth flow, no token refresh, no per-customer wiring. The scope of returned data is implicit in the token and requires no extra request parameters.
+- **MyParcel backoffice service (consumer):** Authenticates to the customer's Magento REST API using the token in the `Authorization` header — no OAuth flow, no token refresh, no per-customer wiring. The scope of returned data is implicit in the token and requires no extra request parameters.
 
 ## Acceptance Criteria
 
 ### Provisioning & generation
 
-- [ ] Running `bin/magento setup:upgrade` on a fresh install auto-provisions the supporting integration record and ACL grants: no further admin action is required before token generation.
+- [ ] Running `bin/magento setup:upgrade` on a fresh install auto-provisions the supporting integration record and ACL grants — no further admin action is required before token generation.
 - [ ] The MyParcel admin config screen exposes an *API Access* group with a single *Generate* button. The group is visible at **default**, **website**, and **store-view** scope.
 - [ ] Clicking *Generate* in the current scope displays a freshly issued plaintext token exactly once. After navigating away or reloading, the field shows a masked placeholder; the plaintext is no longer recoverable from the UI or storage.
 - [ ] Clicking *Generate* a second time at the same scope issues a new token; the previous token at that same scope is rejected on its very next REST call. Tokens at other scope coordinates are unaffected.
@@ -80,7 +80,7 @@ Token-authenticated calls succeed only against REST resources for which the modu
 
 ### Referenced Technical Requirements
 
-- [TR-000004: REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md): defines the security/compatibility/performance criteria, the verification scenarios, and the cross-cutting design rationale (custom UserContext bypassing the bearer gate; three-tier partition scoping).
+- [TR-000004 — REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md) — defines the security/compatibility/performance criteria, the verification scenarios, and the cross-cutting design rationale (custom UserContext bypassing the bearer gate; three-tier partition scoping).
 
 ### Referenced Architectural Decisions
 
@@ -108,7 +108,7 @@ Per-store filtering is layered on top of native auth, after `RequestValidator` a
 
 ## Cross-References
 
-- **Also enables:** future REST endpoints declared by the module: granting a new ACL resource in `etc/integration.xml` (and bumping module version to re-run `grantPermissions`) is sufficient to extend access without re-issuing tokens.
+- **Also enables:** future REST endpoints declared by the module — granting a new ACL resource in `etc/integration.xml` (and bumping module version to re-run `grantPermissions`) is sufficient to extend access without re-issuing tokens.
 
 ## Implementation Notes
 

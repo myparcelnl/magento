@@ -2,12 +2,12 @@
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin**,
-I want **to generate a MyParcel API access token from a single button in the MyParcel admin config: at default scope, at a website scope, or at a specific store-view scope on a multi-store install**,
+I want **to generate a MyParcel API access token from a single button in the MyParcel admin config — at default scope, at a website scope, or at a specific store-view scope on a multi-store install**,
 So that **I can connect MyParcel to my store without using the CLI or activating an integration, and so I can issue separate tokens at any of the three supported scope tiers when I need to keep data partitioned across websites or store-views**.
 
 ## Acceptance Criteria
@@ -24,7 +24,7 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 **Given** I am viewing the *API Access* group at the current admin scope (default OR a specific website OR a specific store-view),
 **When** I click *Generate*,
 **Then** the page displays a 64-character lowercase hex token in full,
-**And** a notice instructs me to copy it now ("Token generated. Copy it now: it will not be shown again."),
+**And** a notice instructs me to copy it now ("Token generated. Copy it now — it will not be shown again."),
 **And** a `core_config_data` row at path `myparcelnl_magento_general/api_access_token` exists for that exact `(scope, scopeId)` pair (`('default',0)`, `('websites',<websiteId>)`, or `('stores',<storeId>)`) with a 64-char hex SHA-256 hash value that is NOT equal to the displayed token.
 
 ### Scenario 3: Plaintext is not recoverable after page reload
@@ -50,7 +50,7 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 ### Scenario 5: Direct controller request at an unsupported scope is rejected
 
 **Given** I have a valid admin session and CSRF/form key,
-**When** I POST to the Generate controller with `scope=group&scopeId=<any>` (Magento group scope is not a supported scope tier for this feature), or any other scope value outside `default` / `websites` / `stores`,
+**When** I POST to the Generate controller with `scope=group&scopeId=<any>` (Magento group scope is not a supported scope tier for this feature) — or any other scope value outside `default` / `websites` / `stores`,
 **Then** the response is `400 Bad Request`,
 **And** no row is written to `core_config_data`.
 
