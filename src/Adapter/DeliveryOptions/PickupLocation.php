@@ -142,6 +142,7 @@ final class PickupLocation
         return $this->cc;
     }
 
+    /** Get the format that is stored on the order. Do not rename a key. */
     public function toArray(): array
     {
         return [

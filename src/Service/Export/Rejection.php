@@ -142,17 +142,23 @@ final class Rejection
         return implode('; ', $parts);
     }
 
+    /** Check whether the API named this order in its errors. */
     public function blames(string $incrementId): bool
     {
         return isset($this->reasons[$incrementId]);
     }
 
-    /** @return array<string,string[]> increment id => its reasons */
+    /**
+     * Get every reason the API gave, per order.
+     *
+     * @return array<string,string[]> increment id => its reasons
+     */
     public function reasons(): array
     {
         return $this->reasons;
     }
 
+    /** Get the API's own message, plus the errors it named no order for. Orders it did not blame fail with this. */
     public function summary(): string
     {
         return $this->summary;

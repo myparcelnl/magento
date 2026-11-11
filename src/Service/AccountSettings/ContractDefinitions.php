@@ -37,6 +37,7 @@ class ContractDefinitions
         $this->config      = $config;
     }
 
+    /** Get the contract definitions of the account with this API key. An empty key answers permissive. */
     public function forApiKey(string $apiKey): CapabilitySet
     {
         if ('' === $apiKey) {
