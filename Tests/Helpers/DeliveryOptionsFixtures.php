@@ -7,6 +7,7 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\PickupLocation;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 /**
  * Delivery options fixtures for the REST layer tests. Real value objects, not doubles, so a fixture
@@ -41,21 +42,10 @@ function withStoredOverrides(array $data, array $overrides): array
  */
 function shipmentOptionsData(array $overrides = []): array
 {
-    $data = [
-        'age_check'         => false,
-        'signature'         => false,
-        'only_recipient'    => false,
-        'large_format'      => false,
-        'return'            => false,
-        'hide_sender'       => false,
-        'priority_delivery' => false,
-        'receipt_code'      => false,
-        'same_day_delivery' => false,
-        'collect'           => false,
-        'fresh_food'        => false,
-        'frozen'            => false,
-        'insurance'         => null,
-        'label_description' => null,
+    $data = array_fill_keys(ShipmentOption::having('toggle'), false) + [
+        ShipmentOption::SAME_DAY_DELIVERY  => false,
+        ShipmentOption::INSURANCE          => null,
+        ShipmentOptions::LABEL_DESCRIPTION => null,
     ];
 
     return withStoredOverrides($data, $overrides);
