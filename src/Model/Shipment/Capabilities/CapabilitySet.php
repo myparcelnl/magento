@@ -104,7 +104,7 @@ final class CapabilitySet
     }
 
     /**
-     * Get every option offered that the SDK and the module know, in the order of ShipmentOption::DEFINITIONS.
+     * Get every option offered that the SDK knows, in the order of ShipmentOption::DEFINITIONS.
      *
      * @return string[] module option names
      */
@@ -115,15 +115,34 @@ final class CapabilitySet
             $names   = [];
 
             foreach (null === $options ? [] : $options::getters() as $property => $getter) {
-                $v2Name = $options::attributeMap()[$property];
-
-                if (null !== $options->$getter() && ShipmentOption::knowsV2Name($v2Name)) {
-                    $names[] = ShipmentOption::fromV2Name($v2Name);
+                if (null !== $options->$getter()) {
+                    $names[] = ShipmentOption::fromV2Name($options::attributeMap()[$property]);
                 }
             }
 
             return $names;
         }));
+    }
+
+    /**
+     * Single level: the caller must not follow a companion's own requires, see docs/sdk-v11.md.
+     * Empty when permissive: an account we could not read forces no companion on.
+     *
+     * @return string[] module option names
+     */
+    public function requiresFor(string $carrier, ?string $packageType, string $option): array
+    {
+        return $this->dependencies($carrier, $packageType, $option, 'getRequires');
+    }
+
+    /**
+     * Empty when permissive, for the same reason requiresFor() is.
+     *
+     * @return string[] module option names
+     */
+    public function excludesFor(string $carrier, ?string $packageType, string $option): array
+    {
+        return $this->dependencies($carrier, $packageType, $option, 'getExcludes');
     }
 
     /** Permissive answers yes, for the same reason hasOption() does. */
@@ -219,6 +238,30 @@ final class CapabilitySet
     private static function logSkipped($index, string $reason): void
     {
         Logger::notice(sprintf('MyParcel capabilities: entry %s skipped: %s', (string) $index, $reason));
+    }
+
+    /** @return string[] module option names, without a name the SDK does not know */
+    private function dependencies(string $carrier, ?string $packageType, string $option, string $getter): array
+    {
+        return $this->union($carrier, $packageType, static function (ModelInterface $result) use ($option, $getter): array {
+            $value   = self::optionOf($result, $option);
+            $options = $result->getOptions();
+
+            if (null === $value || ! method_exists($value, $getter)) {
+                return [];
+            }
+
+            $known = array_values($options::attributeMap());
+            $names = [];
+
+            foreach ($value->$getter() ?? [] as $v2Name) {
+                if (is_string($v2Name) && in_array($v2Name, $known, true)) {
+                    $names[] = ShipmentOption::fromV2Name($v2Name);
+                }
+            }
+
+            return $names;
+        });
     }
 
     private static function optionOf(ModelInterface $result, string $option): ?ModelInterface

@@ -166,27 +166,15 @@ final class ShipmentOption
         return self::$v2Names[$name];
     }
 
-    /** A wire key back to the module name: a known option by its alias, any other by snake_case. */
+    /** A wire key back to the module name: an option with a row by its alias, any other by snake_case. */
     public static function fromV2Name(string $v2Name): string
     {
-        foreach (self::knownNames() as $name) {
+        foreach (array_keys(self::DEFINITIONS) as $name) {
             if (self::toV2Name($name) === $v2Name) {
                 return $name;
             }
         }
 
         return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Name));
-    }
-
-    /** Whether the wire key names an option the module supports, rather than one it only derives. */
-    public static function knowsV2Name(string $v2Name): bool
-    {
-        return in_array(self::fromV2Name($v2Name), self::knownNames(), true);
-    }
-
-    /** @return string[] the options with a row, and insurance */
-    private static function knownNames(): array
-    {
-        return array_merge(array_keys(self::DEFINITIONS), [self::INSURANCE]);
     }
 }

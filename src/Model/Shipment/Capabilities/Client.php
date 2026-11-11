@@ -8,6 +8,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use InvalidArgumentException;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Configuration;
@@ -156,6 +157,7 @@ class Client
         if (null === $this->http) {
             $this->http = new GuzzleClient([
                 'handler'                       => HandlerStack::create($this->handler),
+                RequestOptions::HEADERS         => Config::API_FEATURE_FLAGS,
                 RequestOptions::TIMEOUT         => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT,
                 RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
                 RequestOptions::ALLOW_REDIRECTS => false,
