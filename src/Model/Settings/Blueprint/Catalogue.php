@@ -210,7 +210,7 @@ final class Catalogue
         $path   = Config::carrierPath($carrier) . 'default_options/';
         $fields = [];
 
-        foreach (self::ordered($shape->defaultOptions()) as $option) {
+        foreach (ShipmentOption::ordered($shape->defaultOptions()) as $option) {
             if (ShipmentOption::INSURANCE !== $option) {
                 array_push($fields, ...self::automateToggle($path, $option));
             }
@@ -226,17 +226,6 @@ final class Catalogue
             $fields,
             'Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.'
         );
-    }
-
-    /**
-     * @param  string[] $options
-     * @return string[]
-     */
-    private static function ordered(array $options): array
-    {
-        $known = array_values(array_intersect(array_keys(ShipmentOption::DEFINITIONS), $options));
-
-        return array_merge($known, array_values(array_diff($options, $known)));
     }
 
     /** @return Field[] */
