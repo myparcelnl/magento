@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
-/** Today and tomorrow are the store's, not UTC's; an empty or unreadable date sends no delivery date. */
+/** Today and tomorrow are the store's, not UTC's; an empty, unreadable or past date sends no delivery date. */
+it('gives the calendar day of the order store', function () {
+    expect(datingOn('2026-10-26', 7)->today(createOrder(['getStoreId' => 7]), 'w'))->toBe('1');
+});
+
 it('gives the day after the calendar day of the order store', function () {
     expect(datingOn('2026-10-24', 7)->tomorrow(createOrder(['getStoreId' => 7])))->toBe('2026-10-25');
 });
@@ -22,8 +26,8 @@ it('keeps a date from tomorrow on, at the start of that day', function (string $
     'later'    => ['2026-10-29 14:00:00', '2026-10-29 00:00:00'],
 ]);
 
-it('moves a date before tomorrow to tomorrow', function (string $date) {
-    expect(datingOn('2026-10-24')->convertDeliveryDate($date, createOrder(), 'Y-m-d'))->toBe('2026-10-25');
+it('sends no date for a date before tomorrow', function (string $date) {
+    expect(datingOn('2026-10-24')->convertDeliveryDate($date, createOrder()))->toBeNull();
 })->with([
     'today'  => ['2026-10-24'],
     'passed' => ['2020-01-01'],

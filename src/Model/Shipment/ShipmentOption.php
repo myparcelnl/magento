@@ -33,9 +33,11 @@ final class ShipmentOption
     /**
      * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
      * not be read, and a stored key. checkout: in the widget, with a fee. fromPrice(Tooltip): automated
-     * above an order total. mailbox: set in the mailbox group.
+     * above an order total. mailbox: set in the mailbox group. keepAtCheckout: a forced cart option the
+     * checkout sends to capabilities as a filter; never a default such as signature, which the PostNL
+     * mailbox excludes.
      */
-    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox'];
+    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox', 'keepAtCheckout'];
 
     /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
     private const TEXTS = ['label', 'settingsLabel', 'tooltip'];
@@ -91,9 +93,10 @@ final class ShipmentOption
                 'label'     => 'Collect package',
             ],
             self::AGE_CHECK          => [
-                'toggle'  => true,
-                'label'   => 'Age check 18+',
-                'tooltip' => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
+                'toggle'         => true,
+                'keepAtCheckout' => true,
+                'label'          => 'Age check 18+',
+                'tooltip'        => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
             ],
             self::HIDE_SENDER        => [
                 'toggle'  => true,
@@ -166,49 +169,6 @@ final class ShipmentOption
     public static function labelFor(string $option): string
     {
         return self::fact($option, 'label') ?? ucfirst(str_replace('_', ' ', $option));
-    }
-
-    /**
-     * Options that rule out a package type when the merchant has forced them on.
-     *
-     * Stated, not derived from the config shape: a forced option only narrows the choice when it
-     * applies to the whole order. Priority delivery is the counter-example: it is a mailbox
-     * option, so treating it as limiting would rule out every package type but mailbox, backwards.
-     *
-     * Which types can carry one is the capabilities API's answer, per carrier: DPD may offer an
-     * age check on a mailbox where PostNL does not.
-     *
-     * @var string[]
-     */
-    public const LIMIT_PACKAGE_TYPE = [self::AGE_CHECK];
-
-    /**
-     * Options the API accepts on some delivery types only.
-     *
-     * Not a capabilities fact: the capabilities response answers per carrier and package type, not
-     * per delivery type, so this rule is the module's own. Stating it here keeps the export and the
-     * admin form from disagreeing, which they did, one gated on country and carrier as well.
-     *
-     * The checkout cannot use this: it builds one config per carrier before the customer has picked
-     * a delivery type, and the widget decides what to render under each.
-     *
-     * @var array<string,string[]>
-     */
-    public const LIMIT_DELIVERY_TYPE = [self::RECEIPT_CODE => [DeliveryType::STANDARD_NAME]];
-
-    /**
-     * Whether the option may be set alongside this delivery type. An unknown delivery type counts
-     * as standard, so an order stored without one keeps working.
-     */
-    public static function allowedForDeliveryType(string $option, ?string $deliveryType): bool
-    {
-        $allowed = self::LIMIT_DELIVERY_TYPE[$option] ?? null;
-
-        if (null === $allowed) {
-            return true;
-        }
-
-        return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
     }
 
     /** A snake_case module name. Request input that is not one is dropped, never guessed at. */
