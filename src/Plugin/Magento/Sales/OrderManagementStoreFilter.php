@@ -62,7 +62,7 @@ class OrderManagementStoreFilter
      */
     private function assertOrderInScope($id): void
     {
-        // Non-token request (admin/Bearer/guest): no scope to enforce.
+        // Non-token request (admin/Bearer/guest) — no scope to enforce.
         if ($this->tokenScopeContext->permittedStoreIds() === null) {
             return;
         }

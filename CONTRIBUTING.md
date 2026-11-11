@@ -18,12 +18,16 @@ Add code only for what capabilities cannot say.
 ### A row in `ShipmentOption::DEFINITIONS`
 
 Everything else the module knows about an option is one row in `ShipmentOption::DEFINITIONS`. Set
-only the facts the option needs; the docblock of the table says what each fact does.
+only the facts the option needs. The docblocks of `ShipmentOption::FLAGS` and `ShipmentOption::TEXTS`
+say what each fact does.
 
 - **A label of its own:** `label`, and its translation in `i18n/`. Without one, the label is the
-  name, translated through `i18n/`.
-- **A fee or a from-price:** `checkout` for an option that the checkout renders with a fee,
-  `fromPrice` for one that the settings automate above an order total.
+  name, translated through `i18n/`. `settingsLabel` and `tooltip` give the settings form its own
+  label and tooltip.
+- **A fee or a from-price:** `checkout` for an option with a checkout fee, `fromPrice` (and
+  `fromPriceTooltip`) for one that the settings automate above an order total.
+- **A mailbox option:** `mailbox`. Its settings then go in the mailbox group, not in the default
+  options group.
 - **A place in the fail-open form:** `toggle`. Each toggle is also a key stored on every order.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
   shipment that the API receives.
@@ -33,11 +37,22 @@ only the facts the option needs; the docblock of the table says what each fact d
 
 The row order is the order of the settings form.
 
+### An option in the checkout
+
+`checkout` adds only the settings fields. The checkout widget must support the option, and
+`Model\Quote\Checkout` must pass it on:
+
+1. In `carrierSettings`, add `allow<Option>` (capabilities offer it and the setting is on) and its
+   price from `delivery/<name>_fee`, as `signature` does.
+2. Add a `<name>_title` row to `Catalogue::TITLES` with the fact `option:<name>`, and pass the title
+   to the widget with the other titles.
+
 ### A rule that capabilities do not give
 
-For a country rule, for example, add a method on `ShipmentOptionsResolver`, called from `resolve()`
-for that option. A delivery type rule needs no code, because the capabilities lookup sends the delivery
-type.
+Read the rule in `Model\Source\DefaultOptions::sourceOf()`, as for a product toggle. The New
+Shipment form and the export both read `DefaultOptions`, so they agree. A rule in
+`ShipmentOptionsResolver` is not enough: only the export calls `resolve()`. A delivery type rule needs
+no code, because the capabilities lookup sends the delivery type.
 
 ### A toggle on the product
 
@@ -58,13 +73,14 @@ steps in this order:
 5. **Read it where it applies:**
    - For the shipment, the attribute sets the order's default for the option: read it in
      `Model\Source\DefaultOptions::sourceOf()` and return `OptionSource::PRODUCT`, as `age_check`
-     does. The New Shipment form and the export both read `DefaultOptions`, so they show the same
+     does. `age_check` is a select with three values, not a boolean; read a boolean attribute as
+     `CartShippingRules` reads `priority_delivery`. The New Shipment form and the export both read `DefaultOptions`, so they show the same
      default, and the exclusion ranking sees the product as the source. A rule on
      `ShipmentOptionsResolver` is not enough: the form does not read it.
    - At checkout, the attribute decides what the consumer may choose: read it in
      `Service\CartShippingRules`. `priority_delivery` is the example.
 6. **Test it.** Test the reader with a product that has the attribute on, and with one that has it
-   off.
+   off. `Tests/Helpers/DeliveryOptionsFixtures.php` takes every toggle from `ShipmentOption::DEFINITIONS`.
 
 Use `ProductAttributes` to read the attribute, never the EAV tables: Adobe Commerce keys those tables
 on `row_id`.

@@ -17,7 +17,7 @@ use Magento\Store\Model\ScopeInterface;
  *
  * Persists SHA-256 hashes in core_config_data at myparcelnl_magento_general/api_access_token.
  * Plaintext is returned once at generation and never re-readable. Hash uniqueness is
- * enforced across all (scope, scopeId) coordinates: a colliding hash raises
+ * enforced across the (scope, scopeId) coordinate space — colliding hashes raise
  * AlreadyExistsException. Allowed scopes: default / websites / stores.
  */
 class TokenService
@@ -76,7 +76,7 @@ class TokenService
     }
 
     /**
-     * Clear the token row at ($scope, $scopeId). Idempotent: a row that does not exist is a no-op.
+     * Clears the token row at ($scope, $scopeId). Idempotent — deleting a non-existent row is a no-op.
      *
      * @throws InputException when $scope is not one of default, websites, stores.
      */

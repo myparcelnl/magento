@@ -15,8 +15,9 @@ use Throwable;
 /**
  * Gets capabilities through the cache, per API key and request. Three rules:
  *
- * - Never throw. A failure gives the last stored answer, else CapabilitySet::permissive().
- * - A request whose refresh fails gets its last answer from StoredAnswers.
+ * - Never throw. A failure gives the last answer from StoredAnswers, else CapabilitySet::permissive().
+ * - A good answer lives SUCCESS_LIFETIME_SECONDS. cache:clean, or an API key change through
+ *   Observer\ConfigChange, removes it sooner.
  * - A failed request is not asked again for FAILURE_LIFETIME_SECONDS. A good cached answer wins.
  */
 class Repository

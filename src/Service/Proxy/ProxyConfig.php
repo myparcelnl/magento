@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service\Proxy;
 
 /**
- * Lists the upstream hosts the storefront API proxy forwards to, and the paths each host exposes.
- * Pure data: {@see Client} enforces it.
+ * Static configuration for the storefront API proxy: which upstream
+ * hosts the proxy can forward to and which paths each host exposes.
+ * Pure data — enforcement lives in {@see Client}.
  *
- * `/myparcel/proxy/<host>/<path>` hits production, `/myparcel/proxy/<host>/acceptance/<path>` hits
- * acceptance. A new host needs both its production and its acceptance URL.
+ * Every host has a production URL and a fixed acceptance counterpart;
+ * callers pick between them with the optional `/acceptance` URL
+ * segment, so `/myparcel/proxy/<host>/<path>` hits production and
+ * `/myparcel/proxy/<host>/acceptance/<path>` hits acceptance.
+ *
+ * To expose a new upstream call, add it under the right host in
+ * {@see self::HOSTS}. To expose a new host, add an entry with both its
+ * production and acceptance URLs.
  */
 final class ProxyConfig
 {
@@ -21,7 +28,7 @@ final class ProxyConfig
     /** URL segment that switches a host to its acceptance environment. */
     public const ACCEPTANCE_SEGMENT = 'acceptance';
 
-    /** Host keys: the first URL segment after /myparcel/proxy/. */
+    /** Host keys — the first URL segment after /myparcel/proxy/. */
     public const HOST_CORE    = 'core';
     public const HOST_ADDRESS = 'address';
 

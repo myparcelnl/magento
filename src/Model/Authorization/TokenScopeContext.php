@@ -13,10 +13,14 @@ use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
 /**
- * Per-request owner of the token and the stores it may see.
+ * Per-request ownership and visibility for token-authenticated callers.
  *
- * Every scope-filtering plugin asks this class which stores a token can see.
- * Resets after each request, so queue consumers and the async API do not leak state.
+ * Memoizes the authenticated owner (scope, scopeId) plus the row-coordinate partition of
+ * stores it may see: each non-admin store's owner is the most-specific row that exists
+ * (stores > websites > default), and a store belongs to the caller if its owner matches.
+ * Implements ResetAfterRequestInterface so long-running modes (queue consumers, async API)
+ * do not leak state between requests. Single source of truth for "which stores can this
+ * token see" — consulted by every scope-filtering plugin.
  */
 class TokenScopeContext implements ResetAfterRequestInterface
 {
@@ -55,10 +59,12 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
-     * Get the stores the token caller may see, or null when no token authenticated this request.
+     * Stores the token-authenticated caller may see.
      *
-     * A store belongs to the caller when the most-specific token row that exists for it
-     * (stores > websites > default) is the caller's row.
+     * Returns null when no token authenticated this request (admin / Bearer / guest).
+     * Otherwise returns the row-coordinate partition: each non-admin store's owner is
+     * the most-specific row that exists (stores > websites > default), and a store
+     * belongs to the caller if and only if its owner matches the caller's row coordinate.
      *
      * @return int[]|null
      */
@@ -90,7 +96,9 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
-     * Find the token row whose stored hash matches, in constant time.
+     * Finds the token row whose stored SHA-256 matches the presented hash (constant-time).
+     * Memoizes the underlying row load so a token-authenticated request hits the DB once
+     * across both findByHash() and permittedStoreIds().
      *
      * @return array{scope: string, scopeId: int}|null
      */
@@ -106,7 +114,8 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
-     * Refuse a store outside the token caller's stores. Do nothing without a token.
+     * Throws NoSuchEntityException when a token-authenticated caller asks for a record
+     * outside their permitted store set. No-op when no token authenticated this request.
      *
      * @throws NoSuchEntityException
      */
@@ -159,7 +168,8 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
-     * Get a "{scope}:{scopeId}" key for every stored token row.
+     * Returns a set of "{scope}:{scopeId}" keys for every stored token row.
+     * Used by permittedStoreIds() to determine store ownership via resolveOwner().
      *
      * @return array<string, true>
      */

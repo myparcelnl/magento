@@ -21,10 +21,10 @@ The system must return all API errors in a standardized format conforming to RFC
 ```
 
 **Fields:**
-- `type`: URI identifying the problem type (null for standard HTTP errors)
-- `status`: HTTP status code (integer)
-- `title`: human-readable summary of the problem type
-- `detail`: human-readable explanation specific to this occurrence
+- `type` — URI identifying the problem type (null for standard HTTP errors)
+- `status` — HTTP status code (integer)
+- `title` — human-readable summary of the problem type
+- `detail` — human-readable explanation specific to this occurrence
 
 **Content-Type:** Error responses must use `Content-Type: application/problem+json`.
 
@@ -53,7 +53,7 @@ The system must return all API errors in a standardized format conforming to RFC
 - [ ] HTTP 404 is returned when the order does not exist, with the order ID in the detail message
 - [ ] HTTP 406 is returned when an unsupported API version is requested, with supported versions listed
 - [ ] HTTP 500 is returned for unexpected errors, with a generic detail message (no internal details leaked)
-- [ ] The `ProblemDetails` class is reusable: it can be instantiated for any status/title/detail combination
+- [ ] The `ProblemDetails` class is reusable — it can be instantiated for any status/title/detail combination
 - [ ] Error response helper methods are available in `AbstractEndpoint` for use by any endpoint
 
 ## Priority
@@ -66,12 +66,12 @@ The system must return all API errors in a standardized format conforming to RFC
 
 ### Referenced Technical Requirements
 
-None (no TRs created yet)
+— (No TRs created yet)
 
 ### Referenced Architectural Decisions
 
-- **API Design Reference 0014**: defines error response format and structure requirements
-- **RFC 9457**: Problem Details for HTTP APIs (IETF standard)
+- **API Design Reference 0014** — defines error response format and structure requirements
+- **RFC 9457** — Problem Details for HTTP APIs (IETF standard)
 
 ### Notes
 
@@ -85,12 +85,12 @@ The `ProblemDetails` class implements `JsonSerializable` for clean serialization
 
 ### Downstream (depends on this FR)
 
-- FR-000001 (Retrieve Delivery Options): uses the error response infrastructure
+- FR-000001 (Retrieve Delivery Options) — uses the error response infrastructure
 - Any future MyParcel REST endpoint that needs error handling
 
 ## Cross-References
 
-None.
+—
 
 ## Implementation Notes
 

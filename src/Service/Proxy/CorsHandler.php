@@ -13,12 +13,28 @@ use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 
 /**
- * Handles CORS for the storefront proxy. It is not access control: it stops other sites in a
- * browser, but a script can send any Origin or Referer.
+ * Owns the storefront CORS lifecycle for the proxy.
  *
- * An origin is allowed when its scheme, host and port match a store's web base URL exactly. Every
- * method that emits `Access-Control-Allow-Origin` validates the origin itself, whatever the caller.
- * It never emits `Access-Control-Allow-Credentials`: {@see Client} strips `Authorization` and `Cookie`.
+ * - Detects preflight requests (`OPTIONS` + `Access-Control-Request-Method`).
+ * - Decides whether an `Origin` (or `Referer` fallback) is permitted by
+ *   comparing scheme/host/port exactly against every store's web base URL.
+ * - Builds the 204 preflight response with `Access-Control-Allow-*` and
+ *   `Vary` headers, or a 403 `application/problem+json` if the origin is
+ *   not on the allow-list.
+ * - Applies `Access-Control-Allow-Origin` and `Vary: Origin` to forwarded
+ *   responses, or replaces the response with a 403 `application/problem+json`
+ *   if the origin is not on the allow-list.
+ * - Provides {@see buildForbidden()} as the single source of truth for the
+ *   "origin not allowed" 403 response shape (RFC 9457).
+ *
+ * The methods that emit `Access-Control-Allow-Origin` validate the origin
+ * themselves so they can never echo an unvalidated value, regardless of
+ * caller — defense in depth on top of the controller's pre-forward gate.
+ *
+ * `Access-Control-Allow-Credentials` is intentionally not emitted — the
+ * {@see Client} already strips inbound `Authorization` and `Cookie`.
+ * This is the real authorization policy for the proxy; the controller's
+ * `validateForCsrf` is permissive.
  */
 class CorsHandler
 {

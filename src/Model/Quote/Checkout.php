@@ -50,7 +50,7 @@ class Checkout
     private CartShippingRules     $cartRules;
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
-    private CapabilitiesLookup           $capabilityLookup;
+    private CapabilitiesLookup    $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
     private StoredAccount         $storedAccount;
     private DropOffSettings       $dropOffSettings;
@@ -71,7 +71,7 @@ class Checkout
      * @param PackageTypeResolver   $packageTypes
      * @param CartShippingRules     $cartRules
      * @param StoreManagerInterface $storeManager
-     * @param CapabilitiesLookup           $capabilityLookup
+     * @param CapabilitiesLookup    $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
      * @param StoredAccount         $storedAccount
      * @param DropOffSettings       $dropOffSettings
@@ -83,7 +83,7 @@ class Checkout
         PackageTypeResolver   $packageTypes,
         CartShippingRules     $cartRules,
         StoreManagerInterface $storeManager,
-        CapabilitiesLookup           $capabilityLookup,
+        CapabilitiesLookup    $capabilityLookup,
         ContractDefinitions   $contractDefinitions,
         StoredAccount         $storedAccount,
         DropOffSettings       $dropOffSettings

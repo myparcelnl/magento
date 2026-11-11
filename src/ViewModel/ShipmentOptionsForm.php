@@ -42,7 +42,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     private Order               $order;
     private DefaultOptions      $defaultOptions;
     private ?NewShipmentForm    $form = null;
-    private CapabilitiesLookup         $capabilityLookup;
+    private CapabilitiesLookup  $capabilityLookup;
     private ContractDefinitions $contractDefinitions;
     private Weight              $weightService;
     private StoredAccount       $storedAccount;

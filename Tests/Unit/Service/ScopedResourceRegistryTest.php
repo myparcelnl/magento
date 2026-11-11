@@ -30,8 +30,13 @@ it('treats resource ids as case-sensitive', function () {
 });
 
 /**
- * Every <resource name="…"/> in etc/integration.xml must be in the registry in etc/webapi_rest/di.xml.
- * A failure means a grant exists with no enforcement: a security regression.
+ * Coverage regression: every <resource name="…"/> declared in etc/integration.xml
+ * must be present in the registry configured in etc/webapi_rest/di.xml.
+ *
+ * Out-of-sync grants and registry are exactly the mistake the deny-by-default rule
+ * is meant to prevent — TR-000004 §Definition of Done calls this guarantee out
+ * explicitly. Failing this test means an integration grant exists with no enforcement
+ * counterpart, which is a security regression.
  */
 it('integration.xml grants are a subset of the registry configured in webapi_rest/di.xml', function () {
     $moduleRoot = dirname(__DIR__, 3);

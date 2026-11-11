@@ -45,7 +45,7 @@ class OrderItemRepositoryStoreFilter
         OrderItemInterface           $item
     ): OrderItemInterface {
         $permitted = $this->tokenScopeContext->permittedStoreIds();
-        // Non-token request (admin/Bearer/guest): no store filter applied.
+        // Non-token request (admin/Bearer/guest) — no store filter applied.
         if ($permitted === null) {
             return $item;
         }

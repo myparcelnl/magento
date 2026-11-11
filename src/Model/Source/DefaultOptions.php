@@ -99,8 +99,7 @@ class DefaultOptions
         if (ShipmentOption::AGE_CHECK === $option) {
             $fromProducts = $this->ageCheckFromProducts();
 
-            // Asked before the checkout, unlike hasOptionSet() used to: both answer "on", but only
-            // the product is the higher tier.
+            // Asked before the checkout: both can answer "on", but the product is the higher tier.
             if (true === $fromProducts) {
                 return OptionSource::PRODUCT;
             }

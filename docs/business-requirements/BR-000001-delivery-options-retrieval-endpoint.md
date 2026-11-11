@@ -4,11 +4,11 @@
 
 External sales channels and orderv2 integrations need to retrieve delivery options (shipping preferences) from Magento orders to fulfill shipments correctly. Currently, delivery options are exposed as a side effect of a plugin on the generic Magento OrderRepository REST API (`OrderInformationUpdate`). This mechanism is not purpose-built for the use case, lacks independent versioning, has no dedicated documentation, and provides no typed contract that integrations can rely on.
 
-As MyParcel expands its integration ecosystem (connecting more sales channels and migrating to orderv2), the absence of a stable, dedicated API for delivery options creates fragility. Integration consumers must reverse-engineer the existing plugin behavior, and any change to the generic order API can silently break delivery options retrieval.
+As MyParcel expands its integration ecosystem — connecting more sales channels and migrating to orderv2 — the absence of a stable, dedicated API for delivery options creates fragility. Integration consumers must reverse-engineer the existing plugin behavior, and any change to the generic order API can silently break delivery options retrieval.
 
 ## Objective
 
-Enable external integrations to reliably retrieve delivery options (shipping preferences) for any Magento order through a dedicated, versioned, typed REST endpoint: providing a stable contract that integration consumers can depend on independently of the generic Magento order API.
+Enable external integrations to reliably retrieve delivery options (shipping preferences) for any Magento order through a dedicated, versioned, typed REST endpoint — providing a stable contract that integration consumers can depend on independently of the generic Magento order API.
 
 ## Business Justification
 
@@ -53,7 +53,7 @@ Enable external integrations to reliably retrieve delivery options (shipping pre
 |---|---|---|
 | Business Sponsor | MyParcel | Final approval, strategic direction |
 | Product Owner | MyParcel Engineering | Requirements refinement, prioritization |
-| Technical Lead | Not assigned | Feasibility assessment, implementation oversight |
+| Technical Lead | — | Feasibility assessment, implementation oversight |
 | End Users | Sales channel / orderv2 integration consumers | Validation and feedback |
 
 ## Constraints
@@ -64,8 +64,8 @@ Enable external integrations to reliably retrieve delivery options (shipping pre
 
 ## Dependencies
 
-- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md): defines the versioning strategy using `Accept`/`Content-Type` headers that this endpoint must implement.
-- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md): defines field naming conventions (camelCase), error response format, and standard response structure that this endpoint must conform to.
+- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md) — defines the versioning strategy using `Accept`/`Content-Type` headers that this endpoint must implement.
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — defines field naming conventions (camelCase), error response format, and standard response structure that this endpoint must conform to.
 - **Existing data model:** Delivery options are stored as JSON in the `sales_order.myparcel_delivery_options` column and parsed via `DeliveryOptionsFromOrderAdapter`. The endpoint depends on this existing storage mechanism.
 
 ## Risk Assessment

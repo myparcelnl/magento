@@ -33,7 +33,7 @@ class StoreScopeSearchCriteria
     public function apply(SearchCriteriaInterface $searchCriteria): SearchCriteriaInterface
     {
         $permitted = $this->tokenScopeContext->permittedStoreIds();
-        // Non-token request (admin/Bearer/guest): no store filter.
+        // Non-token request (admin/Bearer/guest) — no store filter applied.
         if ($permitted === null) {
             return $searchCriteria;
         }

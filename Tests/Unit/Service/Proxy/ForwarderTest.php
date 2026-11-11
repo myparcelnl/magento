@@ -234,8 +234,9 @@ it('passes an empty query string when the request has none', function () {
 it('passes an empty headers array when the request does not declare getHeaders', function () {
     $f = makeForwarder();
 
-    // Plain RequestInterface mock without RequestWithHeaders, so method_exists($request,
-    // 'getHeaders') returns false and the Forwarder must skip its header collection branch.
+    // Plain RequestInterface mock — does NOT combine RequestWithHeaders,
+    // so method_exists($request, 'getHeaders') returns false and the
+    // Forwarder must skip its header collection branch.
     $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getMethod')->andReturn('GET');
     $request->shouldReceive('getContent')->andReturn('');

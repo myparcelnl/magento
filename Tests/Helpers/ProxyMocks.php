@@ -62,7 +62,8 @@ function mockProxyRequest(string $method, array $headers = []): RequestInterface
 /**
  * Mock a Raw result that records every setHeader/setHttpResponseCode/setContents call.
  *
- * Assert against $captured['calls'], which is an array reference.
+ * Returns ['raw' => Raw mock, 'calls' => array reference] — assert against $captured['calls'].
+ * Each call is ['method' => string, 'args' => array].
  *
  * @return array{raw: Raw, calls: array<int, array{method: string, args: array<int, mixed>}>}
  */

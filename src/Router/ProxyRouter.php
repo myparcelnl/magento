@@ -11,10 +11,17 @@ use Magento\Framework\App\RouterInterface;
 use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
 
 /**
- * Routes `/myparcel/proxy/<host>[/acceptance]/<path>` to the action set in `etc/frontend/di.xml`.
+ * Routes storefront URLs under `/myparcel/proxy/<host>[/acceptance]/<path>`
+ * to the configured action (the {@see \MyParcelNL\Magento\Controller\Proxy\Forward}
+ * controller, wired in `etc/frontend/di.xml`).
  *
- * Sets `upstream_host`, `upstream_acceptance` and `upstream_path` on the request. No security policy
- * lives here: {@see \MyParcelNL\Magento\Service\Proxy\Client} enforces the host and path allow-lists.
+ * The first segment after `/myparcel/proxy/` is the upstream host (e.g.
+ * `core`, `address`). If the next segment is the literal
+ * `acceptance`, it is consumed as an environment flag; the remainder is
+ * the upstream path. The three values are exposed on the request as
+ * `upstream_host`, `upstream_acceptance`, and `upstream_path`. No
+ * security policy lives here — host registry and per-host path
+ * allow-list are enforced in {@see \MyParcelNL\Magento\Service\Proxy\Client}.
  */
 class ProxyRouter implements RouterInterface
 {

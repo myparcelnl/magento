@@ -12,10 +12,15 @@ use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use Psr\Log\LoggerInterface;
 
 /**
- * Moves account settings rows from a plaintext api key path to its fingerprint path.
+ * Rewrites account settings rows that still carry a plaintext api key in their config path to the
+ * path keyed by the api key's fingerprint (see Config::XML_PATH_ACCOUNT_SETTINGS).
  *
- * Idempotent: it skips a fingerprinted suffix. It writes at default scope only, never overwrites an
- * existing fingerprinted row, and never logs an api key.
+ * Invariants:
+ *  - Idempotent — an already-fingerprinted suffix is skipped, so a re-run is a no-op and a
+ *    mis-placed version gate cannot corrupt anything.
+ *  - Writes the target row at default scope only, whatever scope the legacy row sat at.
+ *  - Never overwrites an existing fingerprinted row; that one is at least as fresh.
+ *  - Nothing logged may contain an api key.
  */
 class FingerprintAccountSettingsPaths
 {
@@ -36,7 +41,10 @@ class FingerprintAccountSettingsPaths
         $this->logger            = $logger;
     }
 
-    /** Rewrite every plaintext-suffixed row and delete the row it replaced. */
+    /**
+     * Rewrites every plaintext-suffixed row it finds and deletes the row it replaced. Safe to call
+     * again — a fingerprinted suffix is skipped.
+     */
     public function run(): void
     {
         $rows        = $this->accountSettingsRows();

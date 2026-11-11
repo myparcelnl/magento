@@ -169,7 +169,7 @@ class NewShipment implements ObserverInterface
 
         $this->objectManager->get(ExportErrorRecorder::class)->record($report, $builtShipments);
 
-        // Each built shipment carries its own track, so nothing is paired by position any more.
+        // Each built shipment carries its own track, so nothing is paired by position.
         foreach ($builtShipments as $built) {
             if (! $built->getTrack()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID)) {
                 continue;
