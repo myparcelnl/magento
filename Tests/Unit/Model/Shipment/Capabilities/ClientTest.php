@@ -12,7 +12,7 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 // Fixtures live in Tests/Helpers/{CapabilitiesFixtures,HttpMocks}.php.
 
-it('sends the request the API expects: v2 keys, version=2 accept, the given key', function () {
+it('sends the request the API expects: v2 keys, the SDK version=2.0 accept, the given key', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()]))]);
 
     $request = CapabilitiesRequest::forCountry('NL')
@@ -27,7 +27,7 @@ it('sends the request the API expects: v2 keys, version=2 accept, the given key'
 
     expect((string) $sent->getUri())->toBe('https://api.myparcel.nl/shipments/capabilities')
         ->and($sent->getMethod())->toBe('POST')
-        ->and($sent->getHeaderLine('Accept'))->toBe('application/json;charset=utf-8;version=2')
+        ->and($sent->getHeaderLine('Accept'))->toStartWith('application/json;charset=utf-8;version=2.0,')
         ->and($sent->getHeaderLine('Authorization'))->toBe('Bearer ' . base64_encode(CAPABILITIES_TEST_API_KEY))
         // This call builds its own header rather than going through the SDK trait, so it is the one
         // that silently drifts. It used to send a format of its own: MyParcelMagento/5.9.0; PHP/8.x.
@@ -51,7 +51,7 @@ it('returns the results array verbatim, keys the SDK does not declare included',
         ->and($results[0]['options']['aBrandNewOption'])->toBe(['isRequired' => true]);
 });
 
-it('keeps the insurance bounds a generated response model would have dropped', function () {
+it('keeps the insurance bounds in the raw results', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()]))]);
 
     $results = $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
@@ -75,6 +75,39 @@ it('raises on a transport failure', function () {
         ->toThrow(RuntimeException::class);
 });
 
+it('names the decoding error for a 2xx body that is not JSON, not the status', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], 'not json')]);
+
+    try {
+        $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+        $message = null;
+    } catch (RuntimeException $e) {
+        $message = $e->getMessage();
+    }
+
+    expect($message)->toContain('capabilities response is not JSON')
+        ->and($message)->not->toContain('responded 200');
+});
+
+it('returns a malformed entry verbatim next to a good one, so CapabilitySet can skip only that one', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([
+        capabilityResult(['packageTypes' => 'PACKAGE']),
+        capabilityResult(),
+    ]))]);
+
+    $results = $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+
+    expect($results)->toHaveCount(2)
+        ->and($results[0]['packageTypes'])->toBe('PACKAGE');
+});
+
+it('raises on a redirect, as on any other non-2xx status', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(302, ['Location' => 'https://example.test'], '')]);
+
+    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
+        ->toThrow(RuntimeException::class, 'capabilities responded 302');
+});
+
 it('raises on a body carrying no results array', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], '{"unexpected":true}')]);
 
@@ -82,32 +115,33 @@ it('raises on a body carrying no results array', function () {
         ->toThrow(RuntimeException::class, 'no results array');
 });
 
-it('logs an option the SDK request model cannot carry instead of dropping it silently', function () {
-    // No module option is unsendable today. A name the mapper cannot place stands in for a future
-    // unknown option, which must not be dropped silently.
-    $logger = mockLoggerFacade();
-    $logger->shouldReceive('notice')
-        ->once()
-        ->with(Mockery::pattern('/dropped option\(s\).*not_a_known_option/'));
+it('sends the serialized body unchanged through the generated client', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
 
-    $c    = makeCapabilitiesClient();
-    $body = json_decode($c['client']->serialize(
-        CapabilitiesRequest::forCountry('NL')->withOptions(['not_a_known_option' => true])
-    ), true);
+    $body = $c['client']->serialize(
+        CapabilitiesRequest::forCountry('NL')->withOptions([ShipmentOption::SIGNATURE => null])
+    );
 
-    expect($body['options'] ?? [])->not->toHaveKey('not_a_known_option');
+    $c['client']->send(CAPABILITIES_TEST_API_KEY, $body);
+
+    // As objects, so an option's {} does not pass as [].
+    expect(json_decode((string) $c['history'][0]['request']->getBody()))
+        ->toEqual(json_decode($body));
 });
 
-it('does not log when every option survives mapping', function () {
-    $logger = mockLoggerFacade();
-    $logger->shouldReceive('notice')->never();
+it('waits at most two seconds for a connection, so a checkout does not hang on an unreachable host', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
 
-    $c    = makeCapabilitiesClient();
-    $body = json_decode($c['client']->serialize(
-        CapabilitiesRequest::forCountry('NL')->withOptions([ShipmentOption::SIGNATURE => true])
-    ), true);
+    $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
 
-    expect($body['options'])->toHaveKey('requiresSignature');
+    expect($c['history'][0]['options']['connect_timeout'])->toBe(2);
+});
+
+it('refuses an empty API key without a request', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
+
+    expect(fn () => $c['client']->send('', '{}'))->toThrow(RuntimeException::class, 'no API key')
+        ->and($c['history'])->toBeEmpty();
 });
 
 // ---- failures -------------------------------------------------------------
@@ -145,7 +179,7 @@ it('asks contract definitions on their own path, unfiltered, in one call', funct
         // No carrier filter: one call answers for every carrier the account has, and each item
         // names its own. Filtering cost a request per carrier.
         ->and((string) $sent->getBody())->toBe('{}')
-        ->and($sent->getHeaderLine('Accept'))->toBe('application/json;charset=utf-8;version=2')
+        ->and($sent->getHeaderLine('Accept'))->toStartWith('application/json;charset=utf-8;version=2.0,')
         ->and($sent->getHeaderLine('Authorization'))
         ->toBe('Bearer ' . base64_encode(CAPABILITIES_TEST_API_KEY));
 });
