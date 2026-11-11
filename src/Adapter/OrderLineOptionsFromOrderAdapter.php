@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Adapter;
 
+use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderLine;
 
 class OrderLineOptionsFromOrderAdapter extends OrderLine
@@ -26,8 +27,8 @@ class OrderLineOptionsFromOrderAdapter extends OrderLine
     {
         $magentoItemData = $magentoOrderItem->getData();
 
-        $price = (int) ($magentoItemData['price'] * 100.0);
-        $vat   = (int) ($magentoItemData['tax_amount'] * 100.0);
+        $price = DeliveryCosts::getPriceInCents((float) $magentoItemData['price']);
+        $vat   = DeliveryCosts::getPriceInCents((float) $magentoItemData['tax_amount']);
 
         return [
             'price'           => $price,
