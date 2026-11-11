@@ -4,13 +4,13 @@ Developer checklist for adding a new REST endpoint that can be called with an AP
 
 ## Context
 
-Authentication, scope binding, and the deny-by-default allow-list are centralized. Adding a new endpoint is mostly static config — the gating logic does not change per endpoint.
+Authentication, scope binding, and the deny-by-default allow-list are centralized. Adding a new endpoint is mostly static config: the gating logic does not change per endpoint.
 
 For any token-authenticated request, **three gates must all pass**:
 
-1. **Integration grant** — `etc/integration.xml` grants the ACL resource to the `MyParcel API` integration.
-2. **Token allow-list** — `ScopedResourceRegistry` (configured in `etc/webapi_rest/di.xml`) lists the resource as token-callable.
-3. **Per-row scope** — `TokenScopeContext` constrains returned data to the token's permitted stores.
+1. **Integration grant**: `etc/integration.xml` grants the ACL resource to the `MyParcel API` integration.
+2. **Token allow-list**: `ScopedResourceRegistry` (configured in `etc/webapi_rest/di.xml`) lists the resource as token-callable.
+3. **Per-row scope**: `TokenScopeContext` constrains returned data to the token's permitted stores.
 
 Steps 1 + 2 are always required; step 3 depends on what the endpoint queries.
 
@@ -32,25 +32,25 @@ All scopes below support default / website / store.
 
 Sources of truth (must stay in sync; the regression test `Tests/Unit/Service/ScopedResourceRegistryTest.php` enforces alignment between the first two):
 
-- `etc/integration.xml` — gate 1.
-- `etc/webapi_rest/di.xml` `ScopedResourceRegistry` — gate 2.
-- `etc/webapi.xml` — which route requires which resource.
-- `etc/acl.xml` — where the resource sits in the admin tree.
+- `etc/integration.xml`: gate 1.
+- `etc/webapi_rest/di.xml` `ScopedResourceRegistry`: gate 2.
+- `etc/webapi.xml`: which route requires which resource.
+- `etc/acl.xml`: where the resource sits in the admin tree.
 
 ## Files to touch
 
-### 1. Service contract — `src/Api/<Name>Interface.php`
+### 1. Service contract: `src/Api/<Name>Interface.php`
 
 - New interface declaring the method(s) the endpoint exposes.
 - Annotate parameters and return types for webapi serialization.
 
-### 2. Implementation — `src/Model/Rest/<Name>.php`
+### 2. Implementation: `src/Model/Rest/<Name>.php`
 
 - For versioned content negotiation (Accept / Content-Type → `application/vnd.myparcel.v1+json`), extend `AbstractEndpoint` and define `getRequestHandlers()` / `getResourceHandlers()` per version. Canonical example: `src/Model/Rest/OrderDeliveryOptions.php`.
 - Add per-version request and resource classes under `src/Model/Rest/Request/` and `src/Model/Rest/Resource/`.
 - For non-versioned endpoints, implement the interface directly.
 
-### 3. Route — `etc/webapi.xml`
+### 3. Route: `etc/webapi.xml`
 
 ```xml
 <route url="/V1/myparcel/<path>" method="GET">
@@ -61,15 +61,15 @@ Sources of truth (must stay in sync; the regression test `Tests/Unit/Service/Sco
 </route>
 ```
 
-### 4. ACL resource — `etc/acl.xml`
+### 4. ACL resource: `etc/acl.xml`
 
 Add `<resource id="MyParcelNL_Magento::<feature>_read" title="..." sortOrder="..."/>` under the existing `Magento_Backend::admin` → `stores` → `config` tree. Mirror the existing `delivery_options_read` entry.
 
-### 5. Integration grant — `etc/integration.xml`
+### 5. Integration grant: `etc/integration.xml`
 
 Add `<resource name="MyParcelNL_Magento::<feature>_read"/>` to the `MyParcel API` integration. Without this, even a valid token has no admin permission for the resource.
 
-### 6. Token allow-list — `etc/webapi_rest/di.xml`
+### 6. Token allow-list: `etc/webapi_rest/di.xml`
 
 Add an entry to the `$resources` argument of `ScopedResourceRegistry`:
 
@@ -81,7 +81,7 @@ Add an entry to the `$resources` argument of `ScopedResourceRegistry`:
 
 Also update the **Access matrix** at the top of this document with the new resource → route → filter row.
 
-### 7. Scope filtering — only if needed
+### 7. Scope filtering: only if needed
 
 First **enumerate every route the resource authorizes**, not just the one you are adding:
 
@@ -95,10 +95,10 @@ Then, for each service in that list:
 - **Reads orders via `OrderRepositoryInterface`**: nothing to do. `OrderRepositoryStoreFilter` (`src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php`) handles both `getList()` and `get()`.
 - **Reads order items or order comments/statuses**: nothing to do. `OrderItemRepositoryStoreFilter` and `OrderManagementStoreFilter` cover those.
 - **For any other data source** (other repositories, direct DB, config reads):
-  - For `getList`-shaped paths, inject `MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria` and call `apply($searchCriteria)` — it already handles the null (non-token) and empty-permitted-set cases, so do not re-implement the `store_id IN (...)` construction.
-  - For `get(id)`-shaped paths, inject `TokenScopeContext` and either compare against `permittedStoreIds(): ?int[]` (null = no token / no constraint) or call `assertStoreInScope(int $storeId): void`. Throw `NoSuchEntityException` (404), never a 403 — a 403 confirms the record exists.
+  - For `getList`-shaped paths, inject `MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria` and call `apply($searchCriteria)`: it already handles the null (non-token) and empty-permitted-set cases, so do not re-implement the `store_id IN (...)` construction.
+  - For `get(id)`-shaped paths, inject `TokenScopeContext` and either compare against `permittedStoreIds(): ?int[]` (null = no token / no constraint) or call `assertStoreInScope(int $storeId): void`. Throw `NoSuchEntityException` (404), never a 403. A 403 confirms the record exists.
   - If the record carries no trustworthy `store_id` of its own, resolve it through the already-filtered `OrderRepositoryInterface` rather than duplicating the boundary check; `OrderManagementStoreFilter` is the reference for that.
-  - Register the plugin in `etc/webapi_rest/di.xml` (that area only — the admin must stay unaffected).
+  - Register the plugin in `etc/webapi_rest/di.xml` (that area only: the admin must stay unaffected).
 
 ## Tests
 
@@ -132,17 +132,17 @@ Verify:
 
 ## Key reference files
 
-- `src/Model/Authorization/ApiAccessTokenUserContext.php` — token → owner row resolution.
-- `src/Model/Authorization/TokenScopeContext.php` — scope state, `permittedStoreIds()`, `assertStoreInScope()`.
-- `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` — allow-list gate.
-- `src/Service/ScopedResourceRegistry.php` — registry storage.
-- `src/Service/Authorization/StoreScopeSearchCriteria.php` — the shared `store_id IN (...)` injector.
-- `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` — store filtering over `getList` + `get`.
-- `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php` — scope from the record's own `store_id`.
-- `src/Plugin/Magento/Sales/OrderManagementStoreFilter.php` — gating a service that takes only an order id.
-- `src/Model/Rest/OrderDeliveryOptions.php` + `src/Model/Rest/AbstractEndpoint.php` — versioned endpoint reference.
-- `etc/webapi.xml`, `etc/acl.xml`, `etc/integration.xml`, `etc/webapi_rest/di.xml` — the four config files that always change.
+- `src/Model/Authorization/ApiAccessTokenUserContext.php`: token → owner row resolution.
+- `src/Model/Authorization/TokenScopeContext.php`: scope state, `permittedStoreIds()`, `assertStoreInScope()`.
+- `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php`: allow-list gate.
+- `src/Service/ScopedResourceRegistry.php`: registry storage.
+- `src/Service/Authorization/StoreScopeSearchCriteria.php`: the shared `store_id IN (...)` injector.
+- `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php`: store filtering over `getList` + `get`.
+- `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php`: scope from the record's own `store_id`.
+- `src/Plugin/Magento/Sales/OrderManagementStoreFilter.php`: gating a service that takes only an order id.
+- `src/Model/Rest/OrderDeliveryOptions.php` + `src/Model/Rest/AbstractEndpoint.php`: versioned endpoint reference.
+- `etc/webapi.xml`, `etc/acl.xml`, `etc/integration.xml`, `etc/webapi_rest/di.xml`: the four config files that always change.
 
 ## Related
 
-- TR-000004 (`docs/technical-requirements/TR-000004-rest-api-access-token-authentication.md`) — full requirement specification for token authentication and scoping.
+- TR-000004 (`docs/technical-requirements/TR-000004-rest-api-access-token-authentication.md`): full requirement specification for token authentication and scoping.

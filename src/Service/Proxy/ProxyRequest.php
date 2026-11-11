@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service\Proxy;
 
 /**
- * Immutable descriptor of an inbound proxy call used for security-policy
- * checks and rejection logging. Holds only the fields the policy needs
- * (method, upstream host key, acceptance flag, upstream path) — not the
- * full request — so {@see Client::reject()} and {@see Client::isPathAllowed()}
- * can take one argument instead of four.
+ * Describes an inbound proxy call with only the fields the security policy and the rejection log
+ * need: method, upstream host key, acceptance flag and upstream path.
  */
 final class ProxyRequest
 {

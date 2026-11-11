@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Service\ScopedResourceRegistry;
  * deny-by-default for token-authenticated callers.
  *
  * ACL grants from etc/integration.xml only unlock resources also listed in
- * {@see ScopedResourceRegistry}; native ACL still applies on top — both must pass.
+ * {@see ScopedResourceRegistry}. Native ACL still applies on top, so both must pass.
  * Non-token callers (admin session, native Bearer, guest) bypass the gate.
  */
 class MyParcelTokenAclGate
@@ -30,9 +30,7 @@ class MyParcelTokenAclGate
     }
 
     /**
-     * Deny-by-default for token-authenticated callers: ACL grants from etc/integration.xml
-     * only unlock resources that are also registered in ScopedResourceRegistry. Native ACL
-     * still applies on top — both must pass.
+     * Allow a token-authenticated caller only a resource that ScopedResourceRegistry lists.
      *
      * @param string|string[] $resources
      */

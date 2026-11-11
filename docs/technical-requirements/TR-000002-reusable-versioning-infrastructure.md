@@ -6,7 +6,7 @@
 
 ## Related ADRs
 
-- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md) — defines the versioning strategy that this infrastructure must implement as reusable abstractions
+- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md): defines the versioning strategy that this infrastructure must implement as reusable abstractions
 
 ## Category
 
@@ -43,12 +43,12 @@ FR-000002 requires that the versioning mechanism be reusable across all future M
 - Declares which version it handles via `getVersion(): int`
 - Exposes `format(): array` method for version-specific response formatting
 - Creates response with `Content-Type: application/json; version={N}` where N comes from `getVersion()`
-- The response version is determined by the Resource class, not by the request — ensuring the response always accurately declares its own format
+- The response version is determined by the Resource class, not by the request: ensuring the response always accurately declares its own format
 
 ### Scalability Criteria
 
-- **Adding a new endpoint:** Extend `AbstractEndpoint`, register version handlers — no changes to base classes required
-- **Adding a new version to an existing endpoint:** Create new `AbstractVersionedRequest` and `AbstractVersionedResource` subclasses — no changes to base classes or existing version handlers required
+- **Adding a new endpoint:** Extend `AbstractEndpoint`, register version handlers: no changes to base classes required
+- **Adding a new version to an existing endpoint:** Create new `AbstractVersionedRequest` and `AbstractVersionedResource` subclasses: no changes to base classes or existing version handlers required
 
 ## Verification Method
 
@@ -57,7 +57,7 @@ Unit tests using mock implementations that exercise the extension points without
 ### Test Scenarios
 
 1. **Mock endpoint dispatches correctly:** A mock endpoint extending `AbstractEndpoint` with a mock V1 handler correctly dispatches a version 1 request, returns the transformed response, and sets the `Content-Type: application/json; version=1` response header
-2. **New version handler is additive:** Adding a mock V2 handler to the mock endpoint works correctly without modifying the V1 handler or `AbstractEndpoint` — both V1 and V2 requests dispatch to their respective handlers
+2. **New version handler is additive:** Adding a mock V2 handler to the mock endpoint works correctly without modifying the V1 handler or `AbstractEndpoint`: both V1 and V2 requests dispatch to their respective handlers
 
 ## Assumptions
 

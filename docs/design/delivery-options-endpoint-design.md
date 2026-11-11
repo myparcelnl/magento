@@ -1,4 +1,4 @@
-# Delivery Options REST Endpoint — Implementation Design
+# Delivery Options REST Endpoint: Implementation Design
 
 ## Context
 
@@ -62,19 +62,19 @@ Magento stores SDK names, the API needs Order Service constants:
 |---|---|---|
 | `postnl` | `POSTNL` | |
 | `bpost` | `BPOST` | |
-| `dhlforyou` | `DHL_FOR_YOU` | Yes — word boundaries added |
+| `dhlforyou` | `DHL_FOR_YOU` | Yes: word boundaries added |
 | `dhlparcelconnect` | `DHL_PARCEL_CONNECT` | Yes |
 | `dhleuroplus` | `DHL_EUROPLUS` | Yes |
-| `ups` | `UPS_STANDARD` | Yes — name changes entirely |
-| `upsexpresssaver` | `UPS_EXPRESS_SAVER` | Yes — word boundaries added |
-| `bol.com` / `bol_com` | `BOL` | Yes — truncated |
+| `ups` | `UPS_STANDARD` | Yes: name changes entirely |
+| `upsexpresssaver` | `UPS_EXPRESS_SAVER` | Yes: word boundaries added |
+| `bol.com` / `bol_com` | `BOL` | Yes: truncated |
 | `cheap_cargo` | `CHEAP_CARGO` | |
 | `dpd` | `DPD` | |
 | `gls` | `GLS` | |
 | `brt` | `BRT` | |
 | `trunkrs` | `TRUNKRS` | |
 
-**Implication:** Cannot just `strtoupper()` — need a hardcoded mapping table for non-obvious ones. The PDK tries: direct match, then SCREAMING_SNAKE_CASE conversion, then mapping table, then error.
+**Implication:** Cannot just `strtoupper()`: need a hardcoded mapping table for non-obvious ones. The PDK tries: direct match, then SCREAMING_SNAKE_CASE conversion, then mapping table, then error.
 
 ### 2. Package Type: lowercase to SCREAMING_SNAKE_CASE with renames
 
@@ -82,9 +82,9 @@ Magento stores SDK names, the API needs Order Service constants:
 |---|---|---|
 | `package` | `PACKAGE` | |
 | `mailbox` | `MAILBOX` | |
-| `letter` | `UNFRANKED` | **Renamed** — not just uppercased |
+| `letter` | `UNFRANKED` | **Renamed**: not just uppercased |
 | `digital_stamp` | `DIGITAL_STAMP` | |
-| `package_small` | `SMALL_PACKAGE` | **Reordered** — not just uppercased |
+| `package_small` | `SMALL_PACKAGE` | **Reordered**: not just uppercased |
 
 ### 3. Delivery Type: add `_DELIVERY` suffix
 
@@ -102,14 +102,14 @@ Three major changes from internal to API format:
 
 #### a) Boolean options become empty objects `{}`
 
-The Order Service API uses the **presence of a key** to mean "enabled" — the value is an empty object `{}`, not `true`. If the option is disabled/false, the key is **omitted entirely**.
+The Order Service API uses the **presence of a key** to mean "enabled": the value is an empty object `{}`, not `true`. If the option is disabled/false, the key is **omitted entirely**.
 
 ```
 Magento: "signature": true      ->  API: "requiresSignature": {}
 Magento: "signature": false     ->  API: (key omitted)
 ```
 
-**Why?** This is ADR-0013 (empty object standard). It communicates "this option is set" without implying a boolean value. It's extensible — if `requiresSignature` ever needs sub-fields, the object can grow without breaking the contract.
+**Why?** This is ADR-0013 (empty object standard). It communicates "this option is set" without implying a boolean value. It's extensible: if `requiresSignature` ever needs sub-fields, the object can grow without breaking the contract.
 
 #### b) Field names are renamed (not just camelCased)
 
@@ -129,30 +129,30 @@ Magento: "signature": false     ->  API: (key omitted)
 
 #### c) Special-format options
 
-**Insurance** — stored as integer euros, returned as micro-currency:
+**Insurance**: stored as integer euros, returned as micro-currency:
 ```
 Magento: "insurance": 50
 API:     "insurance": { "amount": 50000000, "currency": "EUR" }
 ```
 Formula: `amount = value x 1,000,000`. Currency is hardcoded `EUR` for now.
 
-**Label description** — stored as string, wrapped in object:
+**Label description**: stored as string, wrapped in object:
 ```
 Magento: "label_description": "Fragile"
 API:     "customLabelText": { "text": "Fragile" }
 ```
 
-**Tracked** — inverted logic:
+**Tracked**: inverted logic:
 ```
 Magento: "tracked": false  ->  API: "noTracking": {}
-Magento: "tracked": true   ->  API: (key omitted — tracking is the default)
+Magento: "tracked": true   ->  API: (key omitted: tracking is the default)
 ```
 
 ### 5. TriState vs Boolean (Magento simplification)
 
 The PDK uses TriState (-1 = inherit, 0 = disabled, 1 = enabled). Magento stores plain `true`/`false`. This means:
 
-- **No INHERIT filtering needed** — Magento has already resolved inheritance at storage time
+- **No INHERIT filtering needed**: Magento has already resolved inheritance at storage time
 - We just filter: include the key if `true`, omit if `false`
 - This makes our mapper simpler than the PDK's
 - **Important**: SDK adapter boolean methods return `?bool` (nullable). Must check `=== true`, not just truthy.
@@ -187,7 +187,7 @@ When `deliveryType` is `PICKUP_DELIVERY`, the response includes:
 }
 ```
 
-Fields like `type`, `numberSuffix`, `boxNumber`, `state`, `region` are not stored in the SDK adapter — returned as `null`.
+Fields like `type`, `numberSuffix`, `boxNumber`, `state`, `region` are not stored in the SDK adapter: returned as `null`.
 
 ---
 
@@ -195,12 +195,12 @@ Fields like `type`, `numberSuffix`, `boxNumber`, `state`, `region` are not store
 
 ### Version Negotiation (ADR-0011)
 
-ADR-0011 mandates that versioning uses **only** `Content-Type` and `Accept` headers — no custom headers, no path-based versioning. This has two critical implications:
+ADR-0011 mandates that versioning uses **only** `Content-Type` and `Accept` headers: no custom headers, no path-based versioning. This has two critical implications:
 
-1. **No custom signal headers** — endpoint-to-plugin communication (e.g. telling the response plugin which version was negotiated) must NOT use `X-MyParcel-*` or similar headers. Use a shared DI service (`VersionContext`) instead.
-2. **Response headers** — every versioned response MUST include:
-   - `Content-Type: application/json; version={N}; charset=utf-8` — the negotiated version
-   - `Accept: application/json; version=1, application/json; version=2` — all supported versions (ADR-0011 section 3.1)
+1. **No custom signal headers**: endpoint-to-plugin communication (e.g. telling the response plugin which version was negotiated) must NOT use `X-MyParcel-*` or similar headers. Use a shared DI service (`VersionContext`) instead.
+2. **Response headers**: every versioned response MUST include:
+   - `Content-Type: application/json; version={N}; charset=utf-8`: the negotiated version
+   - `Accept: application/json; version=1, application/json; version=2`: all supported versions (ADR-0011 section 3.1)
 
 #### Version Resolution Algorithm
 
@@ -232,7 +232,7 @@ The endpoint and response plugins run at different points in Magento's request l
                               +---------------------------+
 ```
 
-**Why not signal headers?** ADR-0011 section 1.3 states "Other versioning methods MUST NOT be used." Custom `X-MyParcel-*` headers leak implementation details into the HTTP response and violate this rule even if cleaned up before sending — another plugin or middleware could observe them.
+**Why not signal headers?** ADR-0011 section 1.3 states "Other versioning methods MUST NOT be used." Custom `X-MyParcel-*` headers leak implementation details into the HTTP response and violate this rule even if cleaned up before sending: another plugin or middleware could observe them.
 
 #### Request vs Resource Version
 
@@ -294,10 +294,10 @@ src/Model/Rest/
   OrderDeliveryOptions.php                   # Main endpoint implementation
 
 src/Model/Rest/Request/
-  OrderDeliveryOptionsV1Request.php          # V1 request handler — transforms SDK adapter to V1 array
+  OrderDeliveryOptionsV1Request.php          # V1 request handler: transforms SDK adapter to V1 array
 
 src/Model/Rest/Resource/
-  OrderDeliveryOptionsV1Resource.php         # V1 resource — wraps data, declares version=1
+  OrderDeliveryOptionsV1Resource.php         # V1 resource: wraps data, declares version=1
 
 src/Model/Rest/Transformer/
   CarrierTransformer.php                     # lowercase -> SCREAMING_SNAKE_CASE
@@ -314,10 +314,10 @@ src/Plugin/.../Rest/Response/
 
 ### Plugin DI Wiring
 
-Both plugins and `AbstractEndpoint` receive the **same** `VersionContext` instance via constructor injection. No `di.xml` configuration needed — Magento auto-wires concrete classes as shared instances.
+Both plugins and `AbstractEndpoint` receive the **same** `VersionContext` instance via constructor injection. No `di.xml` configuration needed: Magento auto-wires concrete classes as shared instances.
 
 ```xml
-<!-- di.xml — these plugins are already registered, VersionContext is auto-wired -->
+<!-- di.xml: these plugins are already registered, VersionContext is auto-wired -->
 <type name="Magento\Framework\Webapi\Rest\Response">
     <plugin name="myparcel-problem-details-error" sortOrder="5"
             type="...\ProblemDetailsError"/>
@@ -343,8 +343,8 @@ All errors return Problem Details format with `Content-Type: application/problem
 Format: `{ "type": null, "status": N, "title": "...", "detail": "..." }`
 
 **Error flow:** Errors can originate in two places:
-1. **Inside the endpoint** (`errorResponse()`) — sets `VersionContext::isError = true` directly
-2. **As thrown exceptions** (`WebapiException`) — caught by `ProblemDetailsError` plugin, which sets `VersionContext::isError = true`
+1. **Inside the endpoint** (`errorResponse()`): sets `VersionContext::isError = true` directly
+2. **As thrown exceptions** (`WebapiException`): caught by `ProblemDetailsError` plugin, which sets `VersionContext::isError = true`
 
 In both cases, `VersionContentType` sees `isError = true` and sets `Content-Type: application/problem+json; charset=utf-8`.
 
@@ -358,7 +358,7 @@ In both cases, `VersionContentType` sees `isError = true` and sets `Content-Type
    - `getVersionHandlers()`: return `[1 => $this->v1Request]`
    - Business method: call `resolveVersion()`, do work, wrap in Resource, call `setNegotiatedVersion($resource::getVersion())`
 5. Register `<preference>` in `di.xml`
-6. No plugin changes needed — `VersionContentType` and `ProblemDetailsError` work for all MyParcel endpoints
+6. No plugin changes needed: `VersionContentType` and `ProblemDetailsError` work for all MyParcel endpoints
 
 ---
 

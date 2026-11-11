@@ -2,7 +2,7 @@
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **FR:** [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
@@ -36,16 +36,16 @@ So that **MyParcel can no longer call my Magento REST API at that scope coordina
 **Given** the install has `T_default` and `T_s2` (no website-tier token), so per TR-000004's partition rule `T_default` returns orders from all stores **except** store 2,
 **When** I revoke `T_s2`,
 **And** the config cache type covering `core_config_data` reads is flushed (which the `clear()` flow does automatically),
-**Then** the very next call with `T_default` returns orders from all stores **including** store 2 — store 2 has rejoined the next-coarsest tier with a token, which is the default tier in this setup.
+**Then** the very next call with `T_default` returns orders from all stores **including** store 2: store 2 has rejoined the next-coarsest tier with a token, which is the default tier in this setup.
 
 **Given** instead the install has `T_default`, `T_W1` (website W1 contains stores 1 and 2), and `T_s2`,
 **When** I revoke `T_s2`,
-**Then** the very next call with `T_W1` returns orders from stores 1 AND 2 — store 2 has rejoined the website-tier owner, NOT the default-tier owner,
+**Then** the very next call with `T_W1` returns orders from stores 1 AND 2: store 2 has rejoined the website-tier owner, NOT the default-tier owner,
 **And** `T_default` is unchanged (it never owned store 2).
 
 **Given** the same setup,
 **When** I revoke `T_W1` instead of `T_s2`,
-**Then** the very next call with `T_default` returns orders from store 1 (and any other previously-W1-owned, non-store-tokened stores), but NOT store 2 — store 2 stays owned by `T_s2` until that store-tier row is also revoked.
+**Then** the very next call with `T_default` returns orders from store 1 (and any other previously-W1-owned, non-store-tokened stores), but NOT store 2: store 2 stays owned by `T_s2` until that store-tier row is also revoked.
 
 ### Scenario 4: Re-generating at the same scope after revocation issues a fresh token
 
@@ -78,8 +78,8 @@ So that **MyParcel can no longer call my Magento REST API at that scope coordina
 - The mechanism for revocation must be finalized during this story's design. Two reasonable options:
     - **(a) UI button:** add a *Revoke* button to the *API Access* group alongside *Generate* at the current scope. Pros: matches the self-service spirit; lets the admin express "no token at this scope at all". Cons: extra UI affordance, slight ACL surface increase.
     - **(b) Implicit via Generate:** rely on the rotation flow (US-000002). To "revoke", the admin generates a new token and discards it. The previous token is invalidated immediately. Pros: zero new UI. Cons: a hash always exists in storage at that scope; "no token at all at this scope" is not directly expressible from the UI, which means cascade-back behaviour (Scenario 3) is unreachable through the UI.
-    - Decide during implementation. Given the partition + cascade-back semantics, option **(a)** is preferred — only an explicit clear allows a store's data to rejoin its next-coarsest-tier owner.
-- The technical primitive is `TokenService::revokeForScope($scope, $scopeId)` which deletes the row at that scope via `WriterInterface::delete($path, $scope, $scopeId)` (mapping the three accepted `$scopeType` values — `default`, `websites`, `stores` — to Magento's corresponding scope constants) and flushes the config cache type so the partition rule sees the change immediately.
+    - Decide during implementation. Given the partition + cascade-back semantics, option **(a)** is preferred: only an explicit clear allows a store's data to rejoin its next-coarsest-tier owner.
+- The technical primitive is `TokenService::revokeForScope($scope, $scopeId)` which deletes the row at that scope via `WriterInterface::delete($path, $scope, $scopeId)` (mapping the three accepted `$scopeType` values (`default`, `websites`, `stores`) to Magento's corresponding scope constants) and flushes the config cache type so the partition rule sees the change immediately.
 - Per TR-000004 §Specifications "Revocation isolation + cascade-back" criterion: clearing the row at scope `S` causes calls with the prior token to return `401`; the released stores rejoin the next-coarsest tier that still has a token (store-tier carve-out → website-tier owner if one exists, else default-tier; website-tier carve-out → default-tier).
 
 ## Dependencies

@@ -1,23 +1,23 @@
 # TR-000004: REST API Access Token Authentication
 
-> **Status:** Draft — targeting branch `feat/rest-api-access-token-auth`. The scope model is three-tier (`default` / `websites` / `stores`) with row-coordinate partition ownership; §Rationale is authoritative. Revision history is in git.
+> **Status:** Draft: targeting branch `feat/rest-api-access-token-auth`. The scope model is three-tier (`default` / `websites` / `stores`) with row-coordinate partition ownership; §Rationale is authoritative. Revision history is in git.
 
 ## Related Business Requirements
 
-- [BR-000002 — MyParcel backoffice authenticates against customer Magento REST API](../business-requirements/BR-000002-myparcel-backoffice-rest-auth.md)
+- [BR-000002: MyParcel backoffice authenticates against customer Magento REST API](../business-requirements/BR-000002-myparcel-backoffice-rest-auth.md)
 
 ## Related Functional Requirements
 
-- [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Related User Stories
 
-- [US-000001 — Admin generates API access token](../user-stories/US-000001-admin-generates-api-access-token.md)
-- [US-000002 — Admin rotates API access token](../user-stories/US-000002-admin-rotates-api-access-token.md)
-- [US-000003 — Admin revokes API access token](../user-stories/US-000003-admin-revokes-api-access-token.md)
-- [US-000004 — REST caller authenticates with token](../user-stories/US-000004-rest-caller-authenticates-with-token.md)
-- [US-000005 — Admin generates store-scoped API access token](../user-stories/US-000005-admin-generates-store-scoped-api-access-token.md)
-- [US-000006 — Admin generates website-scoped API access token](../user-stories/US-000006-admin-generates-website-scoped-api-access-token.md)
+- [US-000001: Admin generates API access token](../user-stories/US-000001-admin-generates-api-access-token.md)
+- [US-000002: Admin rotates API access token](../user-stories/US-000002-admin-rotates-api-access-token.md)
+- [US-000003: Admin revokes API access token](../user-stories/US-000003-admin-revokes-api-access-token.md)
+- [US-000004: REST caller authenticates with token](../user-stories/US-000004-rest-caller-authenticates-with-token.md)
+- [US-000005: Admin generates store-scoped API access token](../user-stories/US-000005-admin-generates-store-scoped-api-access-token.md)
+- [US-000006: Admin generates website-scoped API access token](../user-stories/US-000006-admin-generates-website-scoped-api-access-token.md)
 
 ## Related ADRs
 
@@ -25,7 +25,7 @@
 
 ## Category
 
-Security (primary), Compatibility (secondary — Magento 2.4.4+ integration auth gate).
+Security (primary), Compatibility (secondary: Magento 2.4.4+ integration auth gate).
 
 ## Requirement
 
@@ -45,17 +45,17 @@ The solution MUST reuse Magento's native ACL machinery (`authorization_role`, `a
 
 ## Rationale
 
-MyParcel's SaaS backoffice needs to read from customer Magento REST endpoints — both native (`GET /V1/orders` etc., gated by `Magento_Sales::actions_view`) and our own custom endpoints (`GET /V1/myparcel/delivery-options`, gated by `MyParcelNL_Magento::delivery_options_read` on `feat/dedicated-delivery-options-endpoint`).
+MyParcel's SaaS backoffice needs to read from customer Magento REST endpoints: both native (`GET /V1/orders` etc., gated by `Magento_Sales::actions_view`) and our own custom endpoints (`GET /V1/myparcel/delivery-options`, gated by `MyParcelNL_Magento::delivery_options_read` on `feat/dedicated-delivery-options-endpoint`).
 
-Magento 2.4.4+ added a gate at `vendor/magento/module-integration/Model/OpaqueToken/Reader.php:146` that disables Integration access tokens as REST bearer tokens by default (`oauth/consumer/enable_integration_as_bearer` = `0`). With that flag disabled, `UserTokenReader::read()` throws a silent `UserTokenException`, `TokenUserContext::processRequest()` (`vendor/magento/module-webapi/Model/Authorization/TokenUserContext.php:154-158`) bails, and no user is identified. The flag is only flippable via CLI or the OAuth admin page (`vendor/magento/module-integration/etc/adminhtml/system.xml:57`) — both of which violate the "admin does nothing technical" requirement.
+Magento 2.4.4+ added a gate at `vendor/magento/module-integration/Model/OpaqueToken/Reader.php:146` that disables Integration access tokens as REST bearer tokens by default (`oauth/consumer/enable_integration_as_bearer` = `0`). With that flag disabled, `UserTokenReader::read()` throws a silent `UserTokenException`, `TokenUserContext::processRequest()` (`vendor/magento/module-webapi/Model/Authorization/TokenUserContext.php:154-158`) bails, and no user is identified. The flag is only flippable via CLI or the OAuth admin page (`vendor/magento/module-integration/etc/adminhtml/system.xml:57`): both of which violate the "admin does nothing technical" requirement.
 
 We therefore sidestep the native bearer path and introduce our own `UserContextInterface` with a custom `Authorization` scheme, while reusing the rest of Magento's auth stack (integration records, ACL roles, rules, resource gating).
 
 ### Three-tier partition (row-coordinate ownership)
 
-Magento's native scope system is *cascading*: a config value at store-view scope falls back to website, then to default. The token model **borrows the precedence order** (`stores > websites > default`) but applies it as a **partition**: per store `S`, exactly one token row "owns" `S` — the most-specific row that exists for `S` — and only that row's token authenticates calls that return `S`'s data. There is no fallback at request time.
+Magento's native scope system is *cascading*: a config value at store-view scope falls back to website, then to default. The token model **borrows the precedence order** (`stores > websites > default`) but applies it as a **partition**: per store `S`, exactly one token row "owns" `S` (the most-specific row that exists for `S`) and only that row's token authenticates calls that return `S`'s data. There is no fallback at request time.
 
-This three-tier partition is required by the MyParcel side of the integration: a merchant who issues a separate token for store-view `S` must be able to bind that token to `S` exclusively (so its data is invisible to any sibling website-scope or default-scope token); a merchant who issues a website-scope token must cover every store-view in that website by default but retain the freedom to carve out individual store-views with their own tokens; and the default-scope token must cover everything not otherwise tokened. Cascading at request time would either leak shadowed stores back into a parent token's view or hide them from their owning token — neither is acceptable.
+This three-tier partition is required by the MyParcel side of the integration: a merchant who issues a separate token for store-view `S` must be able to bind that token to `S` exclusively (so its data is invisible to any sibling website-scope or default-scope token); a merchant who issues a website-scope token must cover every store-view in that website by default but retain the freedom to carve out individual store-views with their own tokens; and the default-scope token must cover everything not otherwise tokened. Cascading at request time would either leak shadowed stores back into a parent token's view or hide them from their owning token: neither is acceptable.
 
 **Row-coordinate ownership (not hash-value equivalence).** Per store `S`, the owning row is determined by row *existence*, not hash equality:
 
@@ -68,10 +68,10 @@ The presented token authenticates `S` iff the resolved `(scopeType, scopeId)` fr
 
 Implementation consequences:
 
-- One bulk SELECT per request — `SELECT scope, scope_id FROM core_config_data WHERE path='myparcelnl_magento_general/api_access_token'` — yields the existing-rows set; cached on `TokenScopeContext` for the request lifetime via `ResetAfterRequestInterface`.
+- One bulk SELECT per request (`SELECT scope, scope_id FROM core_config_data WHERE path='myparcelnl_magento_general/api_access_token'`) yields the existing-rows set; cached on `TokenScopeContext` for the request lifetime via `ResetAfterRequestInterface`.
 - Per-store ownership is computed in PHP from that set plus `StoreManagerInterface::getStores()` (yielding the `store→website` map; admin store id=0 is excluded by passing `withDefault=false`). The resulting permitted set per tier is specified in §Security Criteria.
 
-**Disabled stores remain in their owning token's view.** A disabled store does not generate new orders and therefore cannot leak post-disablement data; pre-disablement orders remain queryable so the operator's mental model ("rotate or revoke explicitly; don't lose existing data silently") holds. Re-enabling a previously disabled store does not change ownership — the token already covered it.
+**Disabled stores remain in their owning token's view.** A disabled store does not generate new orders and therefore cannot leak post-disablement data; pre-disablement orders remain queryable so the operator's mental model ("rotate or revoke explicitly; don't lose existing data silently") holds. Re-enabling a previously disabled store does not change ownership: the token already covered it.
 
 **Admin store (id=0) is never tokened and never returned.** Token rows at `(scope='default', scope_id=0)` are the default-tier *token row*, not the admin-store data row; `StoreManagerInterface::getStores(false)` excludes admin from the candidate set, so no token's permitted set ever contains `0`.
 
@@ -79,7 +79,7 @@ Implementation consequences:
 
 The earlier draft of this TR assumed any newly granted ACL resource in `etc/integration.xml` would "just work." Under per-store filtering, that property would silently leak data: a token at store-view S would receive *all* customers / all CMS pages / etc. unless a per-store filter plugin existed for each grant.
 
-We close this by introducing a *scoped-resource allow-list* (`ScopedResourceRegistry`) and a `MyParcelTokenAclGate` plugin on `RequestValidator::validate`. Token-authenticated requests against any granted resource that is not in the registry return `401`. Adding a new ACL grant therefore requires three coordinated changes (grant in `etc/integration.xml`, filter plugin on the relevant repository, registry entry) — verified by a regression test that asserts every grant has a matching registry entry.
+We close this by introducing a *scoped-resource allow-list* (`ScopedResourceRegistry`) and a `MyParcelTokenAclGate` plugin on `RequestValidator::validate`. Token-authenticated requests against any granted resource that is not in the registry return `401`. Adding a new ACL grant therefore requires three coordinated changes (grant in `etc/integration.xml`, filter plugin on the relevant repository, registry entry), verified by a regression test that asserts every grant has a matching registry entry.
 
 This is an explicit trade-off versus TR-000004's earlier "grant + go" forward-compat property: future ACL additions cost more, but cannot leak.
 
@@ -122,24 +122,24 @@ Baseline verified: `vendor/magento/module-webapi/Controller/Rest/RequestValidato
 
 | Criterion | Requirement | Measurement Method |
 |-----------|-------------|---------------------|
-| UserContext registration | Custom context registered at `sortOrder=5` in `CompositeUserContext` chain, ahead of native `tokenUserContext` (`sortOrder=10`) | `bin/magento object-manager:debug Magento\Authorization\Model\CompositeUserContext` or equivalent inspection — `myParcelTokenUserContext` appears first in array. |
+| UserContext registration | Custom context registered at `sortOrder=5` in `CompositeUserContext` chain, ahead of native `tokenUserContext` (`sortOrder=10`) | `bin/magento object-manager:debug Magento\Authorization\Model\CompositeUserContext` or equivalent inspection: `myParcelTokenUserContext` appears first in array. |
 | Bypass safety when token absent | When no `Authorization: MyParcel` header is present, context returns `(userType=null, userId=null)`, `TokenScopeContext::permittedStoreIds()` is `null`, and downstream filter plugins no-op. The composite chain falls through to native contexts unchanged. | Unit test: request without our header → our context returns nulls; filter plugin's `beforeGetList` does NOT touch the SearchCriteria; native contexts process normally. |
 | Native auth paths unaffected | Admin bearer tokens, customer tokens, and other modules' integrations continue to work unchanged on filtered AND non-filtered resources. The `MyParcelTokenAclGate` plugin only activates when our `UserContext` is the resolved one. | Scenarios 19, 25. |
 | URL prefix decorative for token auth | `/rest/{store_code}/V1/...` is honoured by `PathProcessor` (sets the StoreManager's current store) but does NOT widen or narrow what a token-authenticated call can read. | Scenario 16. |
-| `/rest/all/V1/...` GET-blocked by Magento | Native Magento blocks `GET /rest/all/V1/...` (`vendor/magento/module-webapi/Controller/Rest.php:270-275`). Our scheme inherits this behaviour — no special handling required. | Integration test: `T_default` against `/rest/all/V1/orders` → Magento returns its native error, not unfiltered data. |
+| `/rest/all/V1/...` GET-blocked by Magento | Native Magento blocks `GET /rest/all/V1/...` (`vendor/magento/module-webapi/Controller/Rest.php:270-275`). Our scheme inherits this behaviour: no special handling required. | Integration test: `T_default` against `/rest/all/V1/orders` → Magento returns its native error, not unfiltered data. |
 | Magento version | Works on Magento 2.4.4+ regardless of `oauth/consumer/enable_integration_as_bearer` value | Integration test: with flag both `0` (default) and `1`, our scheme works identically. |
 | ACL grant mechanism | Integration role + rules created by Magento's own `Magento\Webapi\Model\Plugin\Manager::afterProcessConfigBasedIntegrations → grantPermissions` on `setup:upgrade` | Scenario 1. |
 | Allow-list ↔ integration.xml coverage | Every ACL resource granted in `etc/integration.xml` MUST appear in `ScopedResourceRegistry`. | Regression test: parse both files at boot, fail the suite if `etc/integration.xml` grants a resource that is not in the registry. |
-| Forward-compatible grants — narrowed | Granting a resource that doesn't yet exist in any `acl.xml` is still a no-op at native ACL level (`grantPermissions` writes resource IDs as plain strings). However, the resource ALSO needs a `ScopedResourceRegistry` entry and a backing filter plugin to be reachable by token-authenticated calls. | Documented constraint; enforced by the regression test above. |
+| Forward-compatible grants: narrowed | Granting a resource that doesn't yet exist in any `acl.xml` is still a no-op at native ACL level (`grantPermissions` writes resource IDs as plain strings). However, the resource ALSO needs a `ScopedResourceRegistry` entry and a backing filter plugin to be reachable by token-authenticated calls. | Documented constraint; enforced by the regression test above. |
 
 ### Performance Criteria
 
 | Criterion | Requirement | Measurement Method |
 |-----------|-------------|---------------------|
-| Per-request overhead — auth | Single header read + single `hash('sha256', $presented)` + single SELECT from `core_config_data` (`WHERE path=… AND value=… AND scope IN ('default','websites','stores')`) + single `IntegrationServiceInterface::findByName` (memoized). Hashing 64 input bytes is sub-microsecond. | Profile a typical request: auth-stage added latency < 2 ms at p95. |
-| Per-request overhead — partition lookup | At most ONE additional SELECT from `core_config_data` per request that reaches a list endpoint, of the form `SELECT scope, scope_id FROM core_config_data WHERE path = 'myparcelnl_magento_general/api_access_token'` (no `value` filter). Yields the existing-rows set for all three tiers in one round trip. Memoized on `TokenScopeContext` for the request lifetime. Per-store ownership resolution is in-memory PHP from this set plus the `store→website` map from `StoreManagerInterface`. | Unit test: two `OrderRepositoryInterface::getList` calls in one request issue only one bulk row-set lookup. |
+| Per-request overhead: auth | Single header read + single `hash('sha256', $presented)` + single SELECT from `core_config_data` (`WHERE path=… AND value=… AND scope IN ('default','websites','stores')`) + single `IntegrationServiceInterface::findByName` (memoized). Hashing 64 input bytes is sub-microsecond. | Profile a typical request: auth-stage added latency < 2 ms at p95. |
+| Per-request overhead: partition lookup | At most ONE additional SELECT from `core_config_data` per request that reaches a list endpoint, of the form `SELECT scope, scope_id FROM core_config_data WHERE path = 'myparcelnl_magento_general/api_access_token'` (no `value` filter). Yields the existing-rows set for all three tiers in one round trip. Memoized on `TokenScopeContext` for the request lifetime. Per-store ownership resolution is in-memory PHP from this set plus the `store→website` map from `StoreManagerInterface`. | Unit test: two `OrderRepositoryInterface::getList` calls in one request issue only one bulk row-set lookup. |
 | Integration lookup | Memoized on class instance for the duration of the request (`ResetAfterRequestInterface`). | Unit test: multiple `processRequest()` calls within one request issue only one `findByName` query. |
-| Allow-list lookup | In-memory hash-set check (`ScopedResourceRegistry`) — no DB roundtrip. | Code inspection. |
+| Allow-list lookup | In-memory hash-set check (`ScopedResourceRegistry`): no DB roundtrip. | Code inspection. |
 | Filter plugin overhead on getList | `beforeGetList` injects a single `Filter` into the existing SearchCriteria; no extra query. The added `WHERE store_id IN (…)` predicate is index-backed by `sales_order.IDX_SALES_ORDER_STORE_ID`. | Integration test on a fixture with N=10k orders: filtered getList latency within 5 % of unfiltered getList. |
 
 ## Verification Method
@@ -148,9 +148,9 @@ End-to-end via curl against a local dev store after the scaffold lands, plus uni
 
 ### Test Scenarios
 
-Multi-store + multi-website fixture: two websites — `W1` "Main Website" (`website_id=1`) containing `store_id=1` "default" and `store_id=2` "store_b"; `W2` "Secondary Website" (`website_id=2`) containing `store_id=3` "store_c" and `store_id=4` "store_d". Each store has at least one order. Admin store (`store_id=0`) is excluded from any token's view by construction.
+Multi-store + multi-website fixture: two websites: `W1` "Main Website" (`website_id=1`) containing `store_id=1` "default" and `store_id=2` "store_b"; `W2` "Secondary Website" (`website_id=2`) containing `store_id=3` "store_c" and `store_id=4` "store_d". Each store has at least one order. Admin store (`store_id=0`) is excluded from any token's view by construction.
 
-1. **Install:** `bin/magento setup:upgrade && bin/magento cache:clean && bin/magento setup:di:compile` — no errors. Integration row appears in `integration`; ACL role + rules appear in `authorization_role` / `authorization_rule`.
+1. **Install:** `bin/magento setup:upgrade && bin/magento cache:clean && bin/magento setup:di:compile`: no errors. Integration row appears in `integration`; ACL role + rules appear in `authorization_role` / `authorization_rule`.
 2. **Admin generate flow (default scope):** Admin config page shows *API Access* group at default scope. Click **Generate** → token `T_default` shown in full once; `core_config_data` row at `(scope='default', scope_id=0, path='myparcelnl_magento_general/api_access_token')` contains a 64-char hex SHA-256 hash that does NOT equal `T_default`.
 3. **Admin generate flow (website scope):** Switch scope selector to "Main Website" (W1) → *API Access* group is visible. Click **Generate** → token `T_W1` shown in full once; `core_config_data` row at `(scope='websites', scope_id=1, path='myparcelnl_magento_general/api_access_token')` contains a 64-char hex SHA-256 hash that does NOT equal `T_W1`.
 4. **Admin generate flow (store-view scope):** Switch scope selector to "store_b" → *API Access* group is visible. Click **Generate** → token `T_s2` shown in full once; `core_config_data` row at `(scope='stores', scope_id=2, path='myparcelnl_magento_general/api_access_token')` contains a 64-char hex SHA-256 hash that does NOT equal `T_s2`.
@@ -165,7 +165,7 @@ Multi-store + multi-website fixture: two websites — `W1` "Main Website" (`webs
 13. **Website token, before any store-tier carve-out:** `curl -H "Authorization: MyParcel <T_W1>" /rest/V1/orders` → orders from stores 1 and 2.
 14. **Website token, after `T_s2` generated (store-tier carve-out within website):** with `T_s2` issued, repeat scenario 13 → `200` with orders ONLY from store 1.
 15. **Store-view token narrows:** `curl -H "Authorization: MyParcel <T_s2>" /rest/V1/orders` → only store-2 orders.
-16. **URL prefix is decorative:** `curl -H "Authorization: MyParcel <T_s2>" /rest/default/V1/orders` and `/rest/<store_c_code>/V1/orders` — both return only store-2 orders.
+16. **URL prefix is decorative:** `curl -H "Authorization: MyParcel <T_s2>" /rest/default/V1/orders` and `/rest/<store_c_code>/V1/orders`: both return only store-2 orders.
 17. **Existence-leak prevention:** `curl -H "Authorization: MyParcel <T_s2>" /rest/V1/orders/<id_in_store_3>` → `404`.
 18. **Custom endpoint with token scoping:** `curl -H "Authorization: MyParcel <T_s2>" "/rest/V1/myparcel/delivery-options?orderId=<id_in_store_3>"` → RFC 9457 404 (ProblemDetails).
 19. **Allow-list rejects ungranted-but-scope-aware resources:** Grant a "harness" ACL resource to the integration without registering it in `ScopedResourceRegistry`. `curl -H "Authorization: MyParcel <T_default>" /rest/V1/<harness>` → `401`. Same call with admin bearer → `200` (allow-list applies only to token-authenticated calls).
@@ -174,39 +174,39 @@ Multi-store + multi-website fixture: two websites — `W1` "Main Website" (`webs
 22. **Revocation cascade-back (store-tier):** delete the `(stores, 2)` row → `T_s2` returns `401`; `T_W1` calls now include store-2 orders again; `T_default` is unchanged.
 23. **Revocation cascade-back (website-tier):** delete the `(websites, 1)` row → `T_W1` returns `401`; `T_default` calls now include W1's stores (1 and 2) again.
 24. **Disabled-store inclusion:** with `T_s2` issued, disable store 2 in admin → `curl -H "Authorization: MyParcel <T_s2>" /rest/V1/orders` still returns store-2 orders. Re-enabling store 2 has no observable effect on the permitted set (s2 was already covered).
-25. **Native auth unaffected:** admin bearer token continues to access all granted resources — including those NOT in `ScopedResourceRegistry`.
+25. **Native auth unaffected:** admin bearer token continues to access all granted resources: including those NOT in `ScopedResourceRegistry`.
 26. **Unit suite:** `vendor/bin/pest` green. New unit tests cover:
-    - `ApiAccessTokenUserContext::processRequest()` — header parsing, scheme casing, default-scope match, website-scope match, store-scope match, hash-miss → null, request without our header → null.
-    - `TokenService::generateForScope()` / `revokeForScope()` — entropy, SHA-256 hash output matches `/^[0-9a-f]{64}$/`, hash ≠ plaintext, scope-aware persistence (default / websites / stores), scope-aware clearing, hash-uniqueness rejection (409), config cache flush invocation.
-    - `TokenScopeContext::permittedStoreIds()` — three-tier ownership matrix: store-row beats website-row beats default-row; disabled-store inclusion; admin-store exclusion; null when no token authenticated this request; bulk row-set lookup is memoized for the request.
-    - `OrderRepositoryStoreFilter::beforeGetList` — for each scope tier, applies the right `IN(...)` set; null-context no-ops.
-    - `OrderRepositoryStoreFilter::afterGet` — out-of-scope `store_id` throws `NoSuchEntityException`; in-scope passes through.
-    - `MyParcelTokenAclGate` — registry hit passes; registry miss throws `AuthorizationException` (→ 401); non-token contexts are bypassed.
-    - `ScopedResourceRegistry` — registry-vs-`integration.xml` coverage regression test.
+    - `ApiAccessTokenUserContext::processRequest()`: header parsing, scheme casing, default-scope match, website-scope match, store-scope match, hash-miss → null, request without our header → null.
+    - `TokenService::generateForScope()` / `revokeForScope()`: entropy, SHA-256 hash output matches `/^[0-9a-f]{64}$/`, hash ≠ plaintext, scope-aware persistence (default / websites / stores), scope-aware clearing, hash-uniqueness rejection (409), config cache flush invocation.
+    - `TokenScopeContext::permittedStoreIds()`: three-tier ownership matrix: store-row beats website-row beats default-row; disabled-store inclusion; admin-store exclusion; null when no token authenticated this request; bulk row-set lookup is memoized for the request.
+    - `OrderRepositoryStoreFilter::beforeGetList`: for each scope tier, applies the right `IN(...)` set; null-context no-ops.
+    - `OrderRepositoryStoreFilter::afterGet`: out-of-scope `store_id` throws `NoSuchEntityException`; in-scope passes through.
+    - `MyParcelTokenAclGate`: registry hit passes; registry miss throws `AuthorizationException` (→ 401); non-token contexts are bypassed.
+    - `ScopedResourceRegistry`: registry-vs-`integration.xml` coverage regression test.
 
 ## Assumptions
 
 - Magento's `\Magento\Framework\Webapi\Rest\Request` provides access to the `Authorization` header via `getHeader()`.
 - The admin has permission to view/edit the MyParcel config section (existing ACL resource `MyParcelNL_Magento::myparcelnl_magento`).
 - A merchant who runs a single-store install (one website, one store-view) treats this feature as effectively single-tenant: a default-scope token is sufficient, no website- or store-view tokens need to be issued, and partition behaviour is a no-op.
-- The MyParcel backoffice presents the token alone for scope determination — it does NOT have to negotiate a `store_code` URL prefix or a `Store` request header to scope its calls.
+- The MyParcel backoffice presents the token alone for scope determination: it does NOT have to negotiate a `store_code` URL prefix or a `Store` request header to scope its calls.
 - The `sales_order.store_id` foreign key (`vendor/magento/module-sales/etc/db_schema.xml`) is the authoritative partition key. Custom MyParcel endpoints that expose order-derived data MUST resolve `store_id` from the underlying `sales_order` row, not from request input.
-- A **website with zero store-views** is a valid (if unusual) website-scope token target; generation succeeds, and the resulting `permittedStoreIds()` is `[]`. The token authenticates but unlocks no data — a no-op until store-views are added under the website.
+- A **website with zero store-views** is a valid (if unusual) website-scope token target; generation succeeds, and the resulting `permittedStoreIds()` is `[]`. The token authenticates but unlocks no data: a no-op until store-views are added under the website.
 
 ## Constraints
 
 - Must not require any admin CLI operation or OAuth activation.
 - Must not modify any `vendor/magento/**` file.
-- The custom `MyParcel` Authorization scheme must coexist peacefully with Magento's native `Bearer` scheme — other modules and admin tokens continue to work unchanged. The allow-list (`MyParcelTokenAclGate`) MUST only activate for requests whose resolved `UserContextInterface` is `ApiAccessTokenUserContext`; native auth paths are never gated by it.
+- The custom `MyParcel` Authorization scheme must coexist peacefully with Magento's native `Bearer` scheme: other modules and admin tokens continue to work unchanged. The allow-list (`MyParcelTokenAclGate`) MUST only activate for requests whose resolved `UserContextInterface` is `ApiAccessTokenUserContext`; native auth paths are never gated by it.
 - Token expiry / TTL is explicitly out of scope for the first release; rotation is the operator's lever.
 - **Supported scopes are `default`, `websites`, and `stores`.** Storage, admin visibility, and runtime read for any other scope (custom group scopes, typos, future Magento scope additions) are explicitly rejected: the Generate controller returns `400`; the admin form renders the *API Access* group at default, website, and store-view scopes only; `ApiAccessTokenUserContext` accepts hash matches only at `scope IN ('default','websites','stores')`.
-- **Three-tier partition (not cascade) scoping is mandatory** — §Rationale states the ownership rule. Implementation MUST NOT use `ScopeConfigInterface::getValue` for any token-related read (resolution OR membership), since that API performs cascading lookups against the config cache and would silently re-introduce hash-value-based matching; both reads go directly via `\Magento\Framework\App\ResourceConnection`.
-- **Membership is row-coordinate, not hash-value.** `TokenScopeContext::permittedStoreIds()` MUST compute ownership by checking row *existence* at each tier in precedence order, then comparing row coordinates (`scope, scope_id`) to the resolved tuple. It MUST NOT compute ownership by re-hashing or by value-comparing cascaded reads — that would let two rows holding the same hash conflate.
+- **Three-tier partition (not cascade) scoping is mandatory**: §Rationale states the ownership rule. Implementation MUST NOT use `ScopeConfigInterface::getValue` for any token-related read (resolution OR membership), since that API performs cascading lookups against the config cache and would silently re-introduce hash-value-based matching; both reads go directly via `\Magento\Framework\App\ResourceConnection`.
+- **Membership is row-coordinate, not hash-value.** `TokenScopeContext::permittedStoreIds()` MUST compute ownership by checking row *existence* at each tier in precedence order, then comparing row coordinates (`scope, scope_id`) to the resolved tuple. It MUST NOT compute ownership by re-hashing or by value-comparing cascaded reads: that would let two rows holding the same hash conflate.
 - **Hash uniqueness invariant.** `TokenService::generateForScope()` MUST refuse to write a hash that already exists at any other `(scope, scope_id)` row on the same path; the Generate controller surfaces the conflict as `409 Conflict` with a clear admin-visible message and writes nothing. This guards against operator copy-paste of plaintext across scopes (which would conflate ownership in any value-based scheme and is otherwise a privilege-escalation footgun).
-- **Allow-list deny-by-default.** Every ACL resource granted in `etc/integration.xml` MUST be accompanied by (a) a `ScopedResourceRegistry` entry and (b) a per-store filter plugin on the relevant repository or the relevant custom endpoint. Adding a grant without these is a regression — caught by a coverage test.
-- **Filter coverage is per service, not per resource.** The allow-list operates on ACL resources while filtering operates on services, so one registry entry can open more routes than were reasoned about. Before allow-listing a resource, every route Magento maps to it MUST be enumerated and each backing service either store-filtered or consciously recorded as global. `Magento_Sales::actions_view` is the worked example: six routes across three services, originally filtered on `OrderRepositoryInterface` only — a cross-scope order-data leak (security review 2026-07, Finding 1). The route→filter mapping lives in `docs/design/adding-a-token-accessible-rest-endpoint.md` (Access matrix) and MUST be updated whenever a grant changes.
+- **Allow-list deny-by-default.** Every ACL resource granted in `etc/integration.xml` MUST be accompanied by (a) a `ScopedResourceRegistry` entry and (b) a per-store filter plugin on the relevant repository or the relevant custom endpoint. Adding a grant without these is a regression: caught by a coverage test.
+- **Filter coverage is per service, not per resource.** The allow-list operates on ACL resources while filtering operates on services, so one registry entry can open more routes than were reasoned about. Before allow-listing a resource, every route Magento maps to it MUST be enumerated and each backing service either store-filtered or consciously recorded as global. `Magento_Sales::actions_view` is the worked example: six routes across three services, originally filtered on `OrderRepositoryInterface` only: a cross-scope order-data leak (security review 2026-07, Finding 1). The route→filter mapping lives in `docs/design/adding-a-token-accessible-rest-endpoint.md` (Access matrix) and MUST be updated whenever a grant changes.
 - **Filter plugin coverage.** A per-store filter plugin MUST cover BOTH `getList`-shaped (search criteria injection) and `get(id)`-shaped (out-of-scope → `NoSuchEntityException`) paths for the resource it scopes. Custom MyParcel endpoints inheriting `AbstractEndpoint` apply the same check via `permittedStoreIds()` before exposing record data.
-- **Identity and scope reset together.** `ApiAccessTokenUserContext` and `TokenScopeContext` hold two halves of the same per-request state, so both MUST implement `ResetAfterRequestInterface`. If only one resets, a long-running runtime carries a memoized identity into the next request while the scope owner is already `null` — authenticated as the integration user with `permittedStoreIds() === null`, silently disabling every filter above (security review 2026-07, Finding 3).
+- **Identity and scope reset together.** `ApiAccessTokenUserContext` and `TokenScopeContext` hold two halves of the same per-request state, so both MUST implement `ResetAfterRequestInterface`. If only one resets, a long-running runtime carries a memoized identity into the next request while the scope owner is already `null`: authenticated as the integration user with `permittedStoreIds() === null`, silently disabling every filter above (security review 2026-07, Finding 3).
 - **URL prefix is decorative.** `/rest/{store_code}/V1/...` MUST NOT influence what a token-authenticated call returns. The token alone determines the permitted `store_id` set.
 
 ## Implementation notes
@@ -216,16 +216,16 @@ The implementation lives across the following files inside `app/code/MyParcelNL/
 | File | Role |
 |---|---|
 | `src/Model/Authorization/ApiAccessTokenUserContext.php` | Custom `UserContextInterface` at `sortOrder=5`. Parses the `MyParcel` scheme, matches the presented token's SHA-256 hash with `hash_equals`, and on a hit returns `USER_TYPE_INTEGRATION` plus the auto-provisioned integration's id. Side effect: pins `(scopeType, scopeId)` on `TokenScopeContext` for the filter plugins. |
-| `src/Model/Authorization/TokenScopeContext.php` | Request-scoped value object (`ResetAfterRequestInterface`) holding `(scopeType, scopeId)` and a memoized `permittedStoreIds(): ?int[]` — `null` when no MyParcel token authenticated the request, so the filter plugins no-op. Implements the ownership algorithm from §Rationale. |
-| `src/Service/ApiAccessToken/TokenService.php` | Scope-aware token lifecycle. `generateForScope(string $scope, int $scopeId): string` returns the plaintext once and persists only its SHA-256 hash, after enforcing the hash-uniqueness invariant from §Constraints (`AlreadyExistsException`). `revokeForScope()` deletes the row and is idempotent. Both normalise the coordinate — default is forced to `scopeId=0`, other scopes require `scopeId > 0`, anything else raises `InputException` — and flush the `config` cache type. Exposes `hashToken()`; there is no read-back of plaintext. |
+| `src/Model/Authorization/TokenScopeContext.php` | Request-scoped value object (`ResetAfterRequestInterface`) holding `(scopeType, scopeId)` and a memoized `permittedStoreIds(): ?int[]`: `null` when no MyParcel token authenticated the request, so the filter plugins no-op. Implements the ownership algorithm from §Rationale. |
+| `src/Service/ApiAccessToken/TokenService.php` | Scope-aware token lifecycle. `generateForScope(string $scope, int $scopeId): string` returns the plaintext once and persists only its SHA-256 hash, after enforcing the hash-uniqueness invariant from §Constraints (`AlreadyExistsException`). `revokeForScope()` deletes the row and is idempotent. Both normalise the coordinate (default is forced to `scopeId=0`, other scopes require `scopeId > 0`, anything else raises `InputException`) and flush the `config` cache type. Exposes `hashToken()`; there is no read-back of plaintext. |
 | `src/Service/ApiAccessToken/RandomBytesGenerator.php` + `src/Service/ApiAccessToken/RandomBytesGeneratorInterface.php` | Wraps `random_bytes()` behind an interface so a test can force a chosen token, and therefore a chosen hash, to exercise the uniqueness invariant (scenario 6). |
 | `src/Service/ScopedResourceRegistry.php` | DI-configured allow-list of ACL resources that have a per-store filter plugin. An entry without a backing plugin is a contract violation the tests flag. |
 | `Controller/Adminhtml/ApiAccessToken/AbstractTokenAction.php` | Shared base for the two token controllers. Declares `ADMIN_RESOURCE = MyParcelNL_Magento::myparcelnl_magento_api_access_token`, reads the `(scope, scopeId)` pair off the request, and renders errors as JSON with an explicit HTTP status. |
 | `Controller/Adminhtml/ApiAccessToken/Generate.php` | POST-only. Returns `{ "success": true, "token": "<plaintext>" }`. Maps `AlreadyExistsException` to `409` and `InputException` to `400`, each carrying the service's message. Absent params default to `(default, 0)`. |
 | `Controller/Adminhtml/ApiAccessToken/Revoke.php` | POST-only. Returns `{ "success": true }`; maps `InputException` to `400`. |
-| `src/Service/Authorization/StoreScopeSearchCriteria.php` | Shared `store_id IN (...)` injector for `getList` paths. The constraint gets its own `FilterGroup` — filters within a group are OR-ed, groups AND-ed — so it holds whatever the caller filtered on. `IN (-1)` when the permitted set is empty. |
+| `src/Service/Authorization/StoreScopeSearchCriteria.php` | Shared `store_id IN (...)` injector for `getList` paths. The constraint gets its own `FilterGroup` (filters within a group are OR-ed, groups AND-ed), so it holds whatever the caller filtered on. `IN (-1)` when the permitted set is empty. |
 | `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` | Plugin on `OrderRepositoryInterface`. `beforeGetList` delegates to `StoreScopeSearchCriteria`; `afterGet` throws `NoSuchEntityException` out of scope. One `IN(...)` covers all three tiers, so there is no `NOT IN` branch. |
-| `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php` | Plugin on `OrderItemRepositoryInterface` for `/V1/orders/items*`. Scope comes from the item's own `store_id`, which is nullable — `NULL` casts to `0`, never a valid store id, so unattributable rows stay invisible. |
+| `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php` | Plugin on `OrderItemRepositoryInterface` for `/V1/orders/items*`. Scope comes from the item's own `store_id`, which is nullable: `NULL` casts to `0`, never a valid store id, so unattributable rows stay invisible. |
 | `src/Plugin/Magento/Sales/OrderManagementStoreFilter.php` | Plugin on `OrderManagementInterface` for `/V1/orders/:id/comments` and `/statuses`. Both take only an order id, so the check is delegated to the already-filtered `OrderRepositoryInterface`. |
 | `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` | Plugin on `RequestValidator::validate`. After native validation, throws `AuthorizationException` (→ `401`) when the caller is `ApiAccessTokenUserContext` and the route's ACL resource is not in `ScopedResourceRegistry`. |
 | `src/Model/Rest/AbstractEndpoint.php` (modify) | Adds `permittedStoreIds(): ?int[]` and `assertStoreInScope(int $storeId): void`, which throws a `ProblemDetails` 404 out of scope. |
@@ -233,7 +233,7 @@ The implementation lives across the following files inside `app/code/MyParcelNL/
 | `src/Block/System/Config/Form/ApiAccessTokenButton.php` + `view/adminhtml/templates/api_access_token_button.phtml` | Masked field, Generate and Revoke buttons, and the AJAX calls to both controllers. Reads the current admin scope so it acts on the right token row, reports whether a token already exists there, and supplies the per-scope warning copy. |
 | `etc/integration.xml` | Auto-provisions the inactive "MyParcel API" integration on `setup:upgrade` and grants its ACL resources (`Magento_Sales::actions_view`, `MyParcelNL_Magento::delivery_options_read`). |
 | `etc/webapi_rest/di.xml` | Registers `ApiAccessTokenUserContext` in `CompositeUserContext` at `sortOrder=5`; registers the three store-filter plugins (`OrderRepositoryStoreFilter`, `OrderItemRepositoryStoreFilter`, `OrderManagementStoreFilter`); registers `MyParcelTokenAclGate` plugin on `RequestValidator`; declares `ScopedResourceRegistry` as a `virtualType` with the initial allow-list. |
-| `etc/adminhtml/system.xml` (modify) | Adds the `api_access` group under `myparcelnl_magento_dynamic_settings`, shown at all three scopes. Per-scope admin `<comment>` copy: default — "Covers every store **not** tokened separately at website or store-view scope"; website — "Covers every store-view in this website **not** tokened separately at store-view scope; removes those stores from the default-scope token\'s view"; store-view — "Covers only this store; removes it from the default-scope and parent-website token\'s view." |
+| `etc/adminhtml/system.xml` (modify) | Adds the `api_access` group under `myparcelnl_magento_dynamic_settings`, shown at all three scopes. Per-scope admin `<comment>` copy: default: "Covers every store **not** tokened separately at website or store-view scope"; website: "Covers every store-view in this website **not** tokened separately at store-view scope; removes those stores from the default-scope token\'s view"; store-view: "Covers only this store; removes it from the default-scope and parent-website token\'s view." |
 | `etc/acl.xml` | Adds the `MyParcelNL_Magento::myparcelnl_magento_api_access_token` resource guarding the Generate controller. |
 | `etc/module.xml` (modify) | Adds `Magento_Webapi`, `Magento_Integration`, `Magento_Authorization`, `Magento_Backend`, `Magento_Config`, `Magento_Store` to the `<sequence>`. |
 | `composer.json` (modify) | Adds explicit `require` entries for `magento/module-integration`, `magento/module-authorization`, `magento/module-webapi`, `magento/module-config`, `magento/module-store`. |
