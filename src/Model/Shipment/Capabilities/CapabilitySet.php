@@ -115,10 +115,10 @@ final class CapabilitySet
             $names   = [];
 
             foreach (null === $options ? [] : $options::getters() as $property => $getter) {
-                $name = null === $options->$getter() ? null : ShipmentOption::fromV2Name($options::attributeMap()[$property]);
+                $v2Name = $options::attributeMap()[$property];
 
-                if (null !== $name) {
-                    $names[] = $name;
+                if (null !== $options->$getter() && ShipmentOption::knowsV2Name($v2Name)) {
+                    $names[] = ShipmentOption::fromV2Name($v2Name);
                 }
             }
 
