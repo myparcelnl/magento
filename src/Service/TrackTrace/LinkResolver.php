@@ -89,6 +89,7 @@ class LinkResolver
         return $this->urlFor($row);
     }
 
+    /** Render the track and trace links of one order. Do not escape the result, see html(). */
     public function htmlForOrder(int $orderId): string
     {
         return $this->html($this->forOrders([$orderId])[$orderId] ?? []);

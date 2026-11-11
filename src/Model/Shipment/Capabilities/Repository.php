@@ -86,6 +86,10 @@ class Repository
         return $this->forApiKey($apiKey, $request);
     }
 
+    /**
+     * Get the capabilities for this API key and request. Answers permissive when the request cannot
+     * be built or the lookup throws.
+     */
     public function forApiKey(string $apiKey, CapabilitiesRequest $request): CapabilitySet
     {
         try {
