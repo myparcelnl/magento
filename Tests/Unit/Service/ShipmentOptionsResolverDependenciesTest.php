@@ -124,11 +124,11 @@ it('changes nothing when the capabilities cannot be read', function () {
         ->and($resolved[ShipmentOption::SIGNATURE])->toBeFalse();
 });
 
-it('leaves signature off a BE shipment when capabilities say only recipient excludes it', function () {
+it('lets capabilities decide signature with only recipient on a BE shipment', function (array $overrides, bool $signature) {
     captureNotices();
 
     $resolved = dependencyResolver(
-        acceptanceOptionsFor('POSTNL', ['requiresSignature' => ['requires' => [], 'excludes' => ['recipientOnlyDelivery']]]),
+        acceptanceOptionsFor('POSTNL', $overrides),
         [ShipmentOption::SIGNATURE => OptionSource::CONFIGURATION, ShipmentOption::ONLY_RECIPIENT => OptionSource::CHECKOUT],
         0,
         0,
@@ -136,8 +136,11 @@ it('leaves signature off a BE shipment when capabilities say only recipient excl
     )->resolve()->toArray();
 
     expect($resolved[ShipmentOption::ONLY_RECIPIENT])->toBeTrue()
-        ->and($resolved[ShipmentOption::SIGNATURE])->toBeFalse();
-});
+        ->and($resolved[ShipmentOption::SIGNATURE])->toBe($signature);
+})->with([
+    'capabilities exclude it' => [['requiresSignature' => ['requires' => [], 'excludes' => ['recipientOnlyDelivery']]], false],
+    'capabilities allow both' => [[], true],
+]);
 
 it('leaves large format off when capabilities do not offer it for the country', function () {
     $notices = captureNotices();
