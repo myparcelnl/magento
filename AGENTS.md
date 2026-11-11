@@ -56,6 +56,7 @@ Magento order -> Adapter -> SDK consignment -> MyParcel API
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
+- **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`) decides the package type (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, and from what the products in the cart allow. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
 - **Insurance** is a range per carrier from the account's capabilities (`Model\Shipment\Capabilities\InsuranceRange`). `Model\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API (`src/Model/Rest/`)
@@ -97,6 +98,7 @@ These rules are specific to this module. A reviewer can not read them from the c
 
 - Requirements are in `docs/` (business requirements, functional requirements, technical requirements, user stories). ADRs are in [mypadev/engineering-adr](https://github.com/mypadev/engineering-adr/tree/main/01-adr), not here.
 - [`docs/sdk-v11.md`](docs/sdk-v11.md) says why the module owns its shipment domain layer, where it differs from `myparcelnl/pdk` on purpose, which vocabulary each boundary takes, the three money scales, and which SDK defects it works around. Read it before you change `src/Model/Shipment/` or `src/Service/Export/`.
+- [`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md) describes the INT-1289 stack that replaces `etc/dynamic_settings.json` with a settings form generated per scope from account capabilities. PR 1 of 6 has landed. Read it before you change `etc/dynamic_settings.json` or `Config::CARRIERS_XML_PATH_MAP`.
 - Core API spec: `https://api.myparcel.nl/openapi.min.json`. Order API spec, with the enums and `ShipmentOptions`: `https://order.api.myparcel.nl/openapi.json`.
 
 ## Versioning

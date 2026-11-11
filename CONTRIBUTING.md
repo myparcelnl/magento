@@ -53,8 +53,8 @@ steps in this order:
 3. **Name it for the readers.** Add the name without the `myparcel_` prefix to
    `Service\ProductAttributes::ATTRIBUTES`, so that one load reads it with the others.
 4. **Read it where it applies.** For the shipment, read it in `ShipmentOptionsResolver`, as
-   `hasAgeCheck()` reads `age_check`. At checkout, read it in `Model\Sales\Repository\PackageRepository`,
-   as `priority_delivery` is read.
+   `hasAgeCheck()` reads `age_check`. At checkout, read it in `Service\CartShippingRules`, as
+   `priority_delivery` is read.
 5. **Test it.** Test the reader with a product that has the attribute on, and with one that has it
    off.
 
