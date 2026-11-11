@@ -31,8 +31,7 @@ use RuntimeException;
  * OrderShipmentOptions both share, and what is decided here is what only a PPS order needs: the
  * two Recipients, the order lines and the order weight.
  *
- * Trap: setCarrierId() is mandatory. Carrier is shipment-level data in the Order v1 payload, and
- * AbstractOrder::getCarrier() throws when it was never set.
+ * Always call setCarrierId(): AbstractOrder::getCarrier() throws when the carrier was never set.
  */
 class FulfilmentOrderBuilder
 {
