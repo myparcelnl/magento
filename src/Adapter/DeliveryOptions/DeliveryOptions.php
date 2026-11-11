@@ -216,6 +216,7 @@ final class DeliveryOptions
         return DeliveryType::PICKUP_NAME === $this->deliveryType->name();
     }
 
+    /** Get the format that is stored on the order. Do not rename a key. */
     public function toArray(): array
     {
         return [

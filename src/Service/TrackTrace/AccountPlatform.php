@@ -32,6 +32,7 @@ class AccountPlatform
         $this->apiProvider = $apiProvider;
     }
 
+    /** Get the proposition id of this store's account, or null. Never throws, see the class docblock. */
     public function forStore(?int $storeId): ?int
     {
         if (null === $storeId) {
