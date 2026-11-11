@@ -13,7 +13,7 @@ function removeExportModeRows(MyParcelTokenLifecycleHarness $harness): RemoveExp
 
 it('removes the export mode at every scope and leaves the other print settings', function () {
     $harness = new MyParcelTokenLifecycleHarness();
-    $harness->save('myparcelnl_magento_general/print/export_mode', 'pps', 'default', 0);
+    $harness->save('myparcelnl_magento_general/print/export_mode', 'shipments', 'default', 0);
     $harness->save('myparcelnl_magento_general/print/export_mode', 'shipments', ScopeInterface::SCOPE_WEBSITES, 2);
     $harness->save('myparcelnl_magento_general/print/paper_type', 'A4', 'default', 0);
 
@@ -26,7 +26,7 @@ it('removes the export mode at every scope and leaves the other print settings',
 
 it('is a no-op on a second run', function () {
     $harness = new MyParcelTokenLifecycleHarness();
-    $harness->save('myparcelnl_magento_general/print/export_mode', 'pps', 'default', 0);
+    $harness->save('myparcelnl_magento_general/print/export_mode', 'shipments', 'default', 0);
 
     removeExportModeRows($harness)->run();
     removeExportModeRows($harness)->run();

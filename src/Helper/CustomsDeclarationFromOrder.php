@@ -14,7 +14,7 @@ use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 
 /**
- * Builds the Order v1 customs declaration for the PPS fulfilment path.
+ * Builds the customs declaration for the Order v1 path.
  *
  * Declares what was ordered, at product weight and price, in the order's own currency. The v11
  * shipment path declares what was shipped, at item weight and price. Both share CustomsItems.

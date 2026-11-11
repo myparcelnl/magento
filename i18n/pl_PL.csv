@@ -47,7 +47,7 @@ Select a standard orientation for printing labels.,Wybierz domyślną orientacj�
 Label description,Opis etykiety
 "This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Ten opis pojawi się na etykiecie wysyłkowej. Można użyć następujących elementów: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%."
 Country of origin,Kraj pochodzenia
-"This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Ten kraj pojawi się na międzynarodowych etykietach wysyłkowych. Stąd wysyłane są Twoje produkty. Możesz użyć NL, BE, DE itd. Zostanie nadpisany przez kraj produkcji na poziomie produktu."
+"This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Ten kraj pojawi się na międzynarodowych etykietach wysyłkowych. Stąd wysyłane są Twoje produkty. Możesz użyć NL, BE, DE itd. Zostanie nadpisany przez kraj produkcji na poziomie produktu."
 Create Concept,Utwórz szkic
 "Enable create label concept, when invoice is printed.","Utwórz szkic przesyłki, gdy faktura zostanie wydrukowana."
 Delivery methods,Metody dostawy
@@ -442,7 +442,7 @@ No standard weight,Brak standardowej wagi
 20 - 50 gram,20 - 50 g
 50 - 350 gram,50 - 350 g
 350 - 2000 gram,350 - 2000 g
-Create MyParcel consignment,Utwórz przesyłkę MyParcel
+Create MyParcel shipment,Utwórz przesyłkę MyParcel
 Export Entire Order,Eksportuj całe zamówienie
 Label amount:,Liczba etykiet:
 Letter,Bez opłaty

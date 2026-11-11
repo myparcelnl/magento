@@ -3,10 +3,12 @@
 How this module uses SDK v11 and why. Keep it current: change it in the same PR as the code it
 describes.
 
-**PPS** is the export mode `Config::EXPORT_MODE_PPS`: setting *Mode* = "Export entire order"
-(`myparcelnl_magento_general/print/export_mode`). The module then sends each order to the Order v1
-API through the SDK's `Fulfilment` classes, and the back office makes the shipments. The code also
-calls this mode "fulfilment" and "Order v1".
+**Order v1** is the export of whole orders. An account with the `LEGACY_ORDER_MANAGEMENT` feature
+sends each order to the Order v1 API (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`),
+and the back office makes the shipments; every other account creates shipments. The mode used to be
+called PPS, Pick Pack Ship ([glossary](https://myparcelnl.atlassian.net/wiki/spaces/MD/pages/10554129/Woordenboek)).
+The SDK names the endpoint `fulfilment/orders` and its classes `Fulfilment`; in this module
+"fulfilment" means only the partner service that handles orders.
 
 ## Why the module owns its shipment domain layer
 
@@ -145,7 +147,7 @@ Each workaround names what to delete once the fix lands.
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. Each step of `query()` is public, so the module could build the request itself, but that copies SDK internals. Fix it in the SDK: let `query()` take user agents |
 | 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
-| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
 Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
 the generated models, so it has no workaround for them; the numbers stay so references to the others
@@ -186,8 +188,8 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   drops its order out of a mass action before export.
 - The per-country print-position rule on the order and shipment views. It answered the same for
   every order, and the grid never used it; positions are offered everywhere.
-- The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
-- The "Export mode" setting. An account with order v1 exports orders (PPS), every other account
+- The rule that forced an Order v1 pickup to package type `package`. A pickup ships as the type stored.
+- The "Export mode" setting. An account with order v1 exports orders, every other account
   exports shipments. A grid selection that mixes the two is refused.
 - PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
   option.
@@ -206,11 +208,11 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   an INT column that clamped long codes.
 - Age check: the product attribute and carrier default tiers work, the New Shipment form pre-checks
   the box from the same answer the export uses, and there is no NL-only gate.
-- A PPS order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,
+- An Order v1 order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,
   and the status cron recovers rows an earlier run left stamped with a placeholder.
 - Every collo of a multicollo gets its own track and barcode, in both export modes.
 - Return labels and status polling use each order's own account, not the first order's.
-- The order grid's PPS export honours the carrier and package type saved in the options modal.
+- The order grid's Order v1 export honours the carrier and package type saved in the options modal.
 - An order without a delivery date no longer ships with tomorrow as its date, and a malformed date
   no longer stops the export. DPD, bpost and a collect shipment get no delivery date: the API
   refuses one there.
@@ -249,7 +251,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - **The SDK defects above** leave workaround code in place until they land.
 - **The REST transformers** bind to the generated Order API enums, the highest-churn SDK surface.
   `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
-- **The PPS status poll asks for every order the account has.** `OrderCollection::query()` is given
+- **The Order v1 status poll asks for every order the account has.** `OrderCollection::query()` is given
   no parameters, so the API answers with its own default page and the increment ids are matched in
   PHP afterwards: an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
