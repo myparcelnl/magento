@@ -64,10 +64,13 @@ steps in this order:
    `$eavSetup->addAttribute(Product::ENTITY, 'myparcel_<name>', …)` with `DEFAULT_ATTRIBUTES`, a
    `label`, a `note` and `'input' => 'boolean'`. Do not change an older step: an installed shop does
    not run it again. Do not change `setup_version` by hand; the release does that.
-2. **Translate it.** Add the `label` and the `note` to every file in `i18n/`.
-3. **Name it for the readers.** Add the name without the `myparcel_` prefix to
-   `Service\ProductAttributes::ATTRIBUTES`, so that one load reads it with the others.
-4. **Read it where it applies:**
+2. **Sort it.** Add `myparcel_<name>` to `Setup\Migrations\SortProductAttributes::ORDER`, and run
+   `$this->sortProductAttributes->run($eavSetup)` at the end of the new step. The sort must run after
+   the last `addAttribute`, or the new attribute goes to the end of the group.
+3. **Translate it.** Add the `label` and the `note` to every file in `i18n/`.
+4. **Name it for the readers.** Add a constant without the `myparcel_` prefix to
+   `Service\ProductAttributes`, and add it to `ATTRIBUTES`, so that one load reads it with the others.
+5. **Read it where it applies:**
    - For the shipment, the attribute sets the order's default for the option: read it in
      `Model\Source\DefaultOptions::sourceOf()` and return `OptionSource::PRODUCT`, as `age_check`
      does. `age_check` is a select with three values, not a boolean; read a boolean attribute as
@@ -76,7 +79,7 @@ steps in this order:
      `ShipmentOptionsResolver` is not enough: the form does not read it.
    - At checkout, the attribute decides what the consumer may choose: read it in
      `Service\CartShippingRules`. `priority_delivery` is the example.
-5. **Test it.** Test the reader with a product that has the attribute on, and with one that has it
+6. **Test it.** Test the reader with a product that has the attribute on, and with one that has it
    off. `Tests/Helpers/DeliveryOptionsFixtures.php` takes every toggle from `ShipmentOption::DEFINITIONS`.
 
 Use `ProductAttributes` to read the attribute, never the EAV tables: Adobe Commerce keys those tables

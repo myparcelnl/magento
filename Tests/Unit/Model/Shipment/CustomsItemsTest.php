@@ -40,10 +40,11 @@ it('leaves a line that converts exactly alone', function () {
  * Commerce those are keyed by row_id, and the raw read answered nothing there.
  *
  * @param array<int,string|null> $classifications product id => stored HS code
+ * @param array<int,string>      $references      product id => stored external product reference
  */
-function customsItemsReading(array $classifications): CustomsItems
+function customsItemsReading(array $classifications, array $references = []): CustomsItems
 {
-    $config   = createConfig(['print/weight_indication' => 'gram']);
+    $config   = createConfig(['print/weight_indication' => 'gram', 'print/country_of_origin' => 'NL']);
     $filtered = [];
 
     $collection = Mockery::mock(ProductCollection::class);
@@ -56,16 +57,18 @@ function customsItemsReading(array $classifications): CustomsItems
     );
     $collection->shouldReceive('addAttributeToSelect')->andReturnSelf();
     $collection->shouldReceive('getItems')->andReturnUsing(
-        static function () use (&$filtered, $classifications): array {
+        static function () use (&$filtered, $classifications, $references): array {
             $products = [];
 
             foreach ($filtered as $id) {
                 $product = Mockery::mock();
                 $product->shouldReceive('getId')->andReturn($id);
+                $product->shouldReceive('getCountryOfManufacture')->andReturnNull();
                 $product->shouldReceive('getData')->andReturnUsing(
-                    static fn(string $code) => 'myparcel_classification' === $code
-                        ? ($classifications[$id] ?? null)
-                        : null
+                    static fn(string $code) => [
+                        'myparcel_classification'             => $classifications[$id] ?? null,
+                        'myparcel_external_product_reference' => $references[$id] ?? null,
+                    ][$code] ?? null
                 );
                 $products[] = $product;
             }
@@ -80,14 +83,22 @@ function customsItemsReading(array $classifications): CustomsItems
     return new CustomsItems($objectManager, $config, new Weight($config));
 }
 
-it('answers HS codes keyed by the public product id', function () {
-    $items = customsItemsReading([7 => '6109.10', 9 => '0901']);
+it('answers the HS code of each line by the public product id', function () {
+    $data = customsItemsReading([7 => '6109.10', 9 => '0901'])->customsDataFor([[7], [9]], 1);
 
-    expect($items->classificationsFor([7, 9]))->toBe([7 => '6109.10', 9 => '0901']);
+    expect(array_column($data, 'classification'))->toBe(['6109.10', '0901']);
 });
 
-it('leaves a product with no HS code out, so the builder sends an empty one', function () {
-    $items = customsItemsReading([7 => '6109.10']);
+it('gives a line whose product has no HS code an empty one, and no reference', function () {
+    $data = customsItemsReading([7 => '6109.10'])->customsDataFor([[7], [9]], 1);
 
-    expect($items->classificationsFor([7, 9]))->toBe([7 => '6109.10']);
+    expect($data[1])->toBe(['classification' => '', 'country' => 'NL', 'external_product_reference' => null]);
+});
+
+it('takes the variant reference when the variant has its own', function () {
+    $references = [7 => 'VARIANT-REF', 9 => 'PARENT-REF'];
+
+    $data = customsItemsReading([], $references)->customsDataFor([[7, 9]], 1);
+
+    expect($data[0]['external_product_reference'])->toBe('VARIANT-REF');
 });
