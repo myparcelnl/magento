@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
 use Magento\Tax\Model\Calculation as TaxCalculation;
+use Magento\Tax\Model\Config as TaxConfig;
 
 class Tax
 {
@@ -15,14 +16,16 @@ class Tax
 
     private Quote          $quote;
     private TaxCalculation $taxCalculation;
+    private TaxConfig      $taxConfig;
     private int            $shippingTaxClass;
     private bool           $priceIncludesTax;
     private bool           $displayIncluding;
     private array          $taxRates;
 
-    public function __construct(Config $config, TaxCalculation $taxCalculation)
+    public function __construct(Config $config, TaxCalculation $taxCalculation, TaxConfig $taxConfig)
     {
         $this->taxCalculation = $taxCalculation;
+        $this->taxConfig      = $taxConfig;
 
         // Tax -> Tax Classes -> Tax Class for Shipping
         $this->shippingTaxClass = (int) $config->getConfigValue('tax/classes/shipping_tax_class');
@@ -32,6 +35,18 @@ class Tax
         $this->displayIncluding = self::DISPLAY_EXCLUDING_TAX !== $config->getConfigValue('tax/cart_display/shipping');
     }
 
+
+    /** Whether discounts apply on prices including tax (Tax -> Calculation Settings -> Apply Discount On Prices). */
+    public function discountIncludesTax(Quote $quote): bool
+    {
+        return $this->taxConfig->discountTax($quote->getStoreId());
+    }
+
+    /** Whether tax is calculated after the discount, so a discount lowers the tax of its item too. */
+    public function appliesTaxAfterDiscount(Quote $quote): bool
+    {
+        return $this->taxConfig->applyTaxAfterDiscount($quote->getStoreId());
+    }
 
     /**
      * Get shipping tax options from Magento and apply them to the price.

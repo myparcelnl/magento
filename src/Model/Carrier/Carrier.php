@@ -32,6 +32,7 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
@@ -55,13 +56,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private ResultFactory $rateResultFactory;
     private MethodFactory $rateMethodFactory;
     private DeliveryCosts $deliveryCosts;
-
-    private const DELIVERY_TYPE_TITLES = [
-        'standard' => 'Standard Delivery',
-        'pickup'   => 'Pickup locations',
-        'morning'  => 'Morning Delivery',
-        'evening'  => 'Evening Delivery',
-    ];
 
     private const PACKAGE_TYPE_TITLES = [
         'package'       => 'Package',
@@ -163,7 +157,10 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $carrier         = $deliveryOptions->getCarrier();
         $configPath      = null === $carrier ? '' : Config::carrierPath($carrier);
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
-        $shipmentFees    = ["{$deliveryOptions->getDeliveryType()}/fee" => true];
+        $deliveryType    = $deliveryOptions->getDeliveryType();
+        $isSameDayType   = DeliveryType::SAME_DAY_NAME === $deliveryType;
+        // a delivery type for one carrier, an option on standard delivery for another
+        $shipmentFees    = ['delivery/same_day_delivery_fee' => $isSameDayType || (bool) $shipmentOptions->option(ShipmentOption::SAME_DAY_DELIVERY)];
 
         foreach (['delivery' => 'checkout', 'mailbox' => 'mailbox'] as $group => $flag) {
             foreach (ShipmentOption::having($flag) as $option) {
@@ -171,7 +168,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             }
         }
 
-        $amount = $this->deliveryCosts->getBasePrice($quote);
+        // the nulls take carrier, package type and country from the quote; named arguments need PHP 8.0, composer allows 7.4
+        $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryType);
+
+        if (! $isSameDayType) {
+            // the delivery type is never below 0 before the option fees, as Checkout::deliveryTypePrice() shows it
+            $amount = max(0.0, $amount + (float) $this->config->getConfigValue("$configPath$deliveryType/fee"));
+        }
 
         foreach ($shipmentFees as $key => $value) {
             if (! $value) {
@@ -200,7 +203,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $carrierHuman = $carrierName;
         }
 
-        $deliveryTypeTitle = self::DELIVERY_TYPE_TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
+        $deliveryTypeTitle = DeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
         ob_start();

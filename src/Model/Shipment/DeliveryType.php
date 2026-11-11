@@ -46,6 +46,17 @@ final class DeliveryType
     public const DEFAULT      = self::STANDARD;
     public const DEFAULT_NAME = self::STANDARD_NAME;
 
+    /**
+     * One label per delivery type, shop-wide: the carrier's method title and the delivery costs
+     * matrix read this same map, so a type never shows two names. The i18n files translate these.
+     */
+    public const TITLES = [
+        self::MORNING_NAME  => 'Morning Delivery',
+        self::STANDARD_NAME => 'Standard Delivery',
+        self::EVENING_NAME  => 'Evening Delivery',
+        self::PICKUP_NAME   => 'Pickup locations',
+    ];
+
     public const NAMES_IDS_MAP
         = [
             self::MORNING_NAME       => self::MORNING,
@@ -56,6 +67,28 @@ final class DeliveryType
             self::EXPRESS_NAME       => self::EXPRESS,
             self::EARLY_MORNING_NAME => self::EARLY_MORNING,
         ];
+
+    /**
+     * The delivery types the matrix prices per type: every type the SDK defines, except same day,
+     * express and early morning.
+     *
+     * @todo INT-1563 shrinks the exceptions with the capabilities refactor.
+     * @return string[] delivery type names, see self::NAMES_IDS_MAP
+     */
+    public static function pricedPerTypeNames(): array
+    {
+        $exceptions = [self::SAME_DAY_NAME, self::EXPRESS_NAME, self::EARLY_MORNING_NAME];
+
+        $names = [];
+        foreach (RefTypesDeliveryTypeV2::getAllowableEnumValues() as $v2Name) {
+            $name = self::fromV2Name($v2Name);
+            if (null !== $name && ! in_array($name, $exceptions, true)) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
 
     /**
      * Module name to the Core API v2 name a capabilities response speaks.

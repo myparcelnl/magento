@@ -239,6 +239,7 @@ function deliveryDataFor(string $carrierName, array $capabilities, array $forced
     setPrivateProperty($checkout, 'tax', $tax);
 
     $deliveryCosts = Mockery::mock(MyParcelNL\Magento\Service\DeliveryCosts::class);
+    $deliveryCosts->shouldReceive('getOrderAmount')->andReturn(0.0)->byDefault();
     $deliveryCosts->shouldReceive('getBasePriceForClient')->andReturn(0.0)->byDefault();
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
 

@@ -152,3 +152,12 @@ it('answers null for a package or delivery type it does not know rather than inv
     expect(PackageType::fromV2Name('HOVERCRAFT'))->toBeNull()
         ->and(DeliveryType::fromV2Name('TELEPORT_DELIVERY'))->toBeNull();
 });
+
+it('prices every SDK delivery type per type, minus the named exceptions', function () {
+    // the full list except the exceptions, so a type the SDK adds needs no entry here
+    $exceptions = [DeliveryType::SAME_DAY_NAME, DeliveryType::EXPRESS_NAME, DeliveryType::EARLY_MORNING_NAME];
+    $known      = array_filter(array_map([DeliveryType::class, 'fromV2Name'], RefTypesDeliveryTypeV2::getAllowableEnumValues()));
+
+    expect(DeliveryType::pricedPerTypeNames())->toBe(array_values(array_diff($known, $exceptions)))
+        ->and(array_intersect(DeliveryType::pricedPerTypeNames(), $exceptions))->toBe([]);
+});

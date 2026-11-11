@@ -8,6 +8,7 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Settings;
@@ -66,6 +67,20 @@ class DeliveryCostsMatrix extends Field
         ];
     }
 
+    /**
+     * Get the delivery types the matrix can price, keyed by the name the checkout stores as delivery
+     * type, which the delivery_type condition compares.
+     */
+    public function getDeliveryTypes(): array
+    {
+        $deliveryTypes = [];
+        foreach (DeliveryType::pricedPerTypeNames() as $name) {
+            $deliveryTypes[$name] = __(DeliveryType::TITLES[$name]);
+        }
+
+        return $deliveryTypes;
+    }
+
     public function getCountryCodes(): array
     {
         return CountryCodes::ALL;
@@ -116,6 +131,10 @@ class DeliveryCostsMatrix extends Field
             'Package type' => __('Package type'),
             'Maximum weight (in grams)' => __('Maximum weight (in grams)'),
             'Country part of' => __('Country part of'),
+            'Minimum order amount' => __('Minimum order amount'),
+            'Maximum order amount' => __('Maximum order amount'),
+            'Delivery type' => __('Delivery type'),
+            'Set the fees to 0 if you fully set the price per delivery type via the matrix.' => __('Set the fees to 0 if you fully set the price per delivery type via the matrix.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
             'Invalid JSON in textarea' => __('Invalid JSON in textarea'),
