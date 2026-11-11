@@ -51,6 +51,14 @@ fetching. The last one is a lock taken with a zero wait, not a queue: after `cac
 concurrent render misses the same request at once, and making them wait for one call is the cost being
 avoided, not the fix.
 
+**The SDK decides which options exist.** `Capabilities\Client` sends the request that the generated
+`ShipmentApi` builds on its own Guzzle client and returns the raw response entries.
+`CapabilitySet` reads each entry into the generated response model and skips an entry that does not
+read, so one malformed entry does not cost the whole answer. An option the SDK does not know is not
+offered until an SDK update; the export could not send it anyway. A new carrier, package type or
+delivery type reads as a plain string (`EnumFallback`), but a model that holds one throws on
+`json_encode()`. So the cache keeps the raw entries, never a model.
+
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
 render pays is one connect timeout per *distinct* request it asks: `CapabilitiesLookup` memoises per
@@ -70,8 +78,8 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
    `return → setReturnOnFirstFailedDelivery`, `printerless_return → setPrintReturnLabelAtDropOff`),
    and it normalises `null` to an empty object, because `null` means "enabled, unconfigured" while
    `false` and `0` are meaningful.
-2. **`filterSupportedCapabilities()` is not ported.** A capability allow-list is the mechanism by
-   which upstream additions break integrations.
+2. **`filterSupportedCapabilities()` is not ported.** A module allow-list is the mechanism by
+   which upstream additions break integrations. The generated models are the only filter.
 3. **`InsuranceTierMath` is not ported.** The API accepts any amount in range.
 4. **An option the package type cannot carry narrows the package type; the PDK drops the option.**
    `CapabilitiesOptionCalculator` forces any option the narrowed response omits to `DISABLED`, so a
@@ -92,9 +100,11 @@ Four vocabularies for the same five facts. Hand each boundary the one it expects
 
 One map per kind, on the facade that owns the names. `Carrier::V2_NAMES_MAP` is keyed by the SDK's
 own carrier names; the map itself is the module's. `Carrier::V2_NAMES_MAP`,
-`PackageType::V2_NAMES_MAP`, `DeliveryType::V2_NAMES_MAP`, `ShipmentOption::V2_NAMES_MAP`. Each has
-a `toV2*()` and a `fromV2*()`. **`fromV2*()` returns null for a value the module does not know, and
-the caller logs it** rather than substituting one.
+`PackageType::V2_NAMES_MAP` and `DeliveryType::V2_NAMES_MAP` each have a `toV2*()` and a
+`fromV2*()`. Shipment option names come from the SDK's `ShipmentOptionMapper`. **`fromV2*()` returns
+null for a value the module does not know, and the caller leaves it out** rather than substituting
+one. `CapabilitySet::unknownValues()` reports a carrier, package type or delivery type that the SDK's
+generated enums do not know, as a sign that the SDK needs an update.
 
 `Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
 `mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private and the map is
@@ -126,17 +136,16 @@ Each workaround names what to delete once the fix lands.
 
 | # | Defect | Workaround, delete when fixed |
 |---|---|---|
-| 1 | `HttpCapabilitiesClient` calls `postCapabilities()` with the pre-beta.25 argument order | `Capabilities\Client` posts the request itself |
-| 2 | The capabilities client accepts no API key, and `ShipmentApiFactory`, `WebhookApiFactory`, `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | Same client; `ShipmentApiProvider` raises before any factory sees an empty key |
-| 3 | `CapabilitiesMapper::mapFromCoreApi()` keeps only option keys, dropping insurance bounds | The module reads the decoded body into its own value objects |
+| 2 | `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | `ShipmentApiProvider` raises before any factory sees an empty key. `Capabilities\Client` uses no factory |
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the PPS status poll is the one unidentified call |
 | 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
-Defect 1 breaks capabilities for every SDK consumer on beta.25 and later, so other integrations will
-hit it.
+Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
+the generated models, so it has no workaround for them; the numbers stay so references to the others
+hold.
 
 Two generation traps worth knowing: `RefShipmentCustomsDeclarationItem::setCountry()` accepts only
 `''`, so the country goes in through the constructor and `ShipmentValidator` skips customs; and

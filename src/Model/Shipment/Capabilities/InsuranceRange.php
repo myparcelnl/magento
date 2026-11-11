@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
+
 /**
  * The insurance option's bounds, in whole euros.
  *
@@ -28,29 +31,29 @@ final class InsuranceRange
      * Make the range, or null when the option is absent or has no maximum of at least one euro.
      * On null the caller must fall open and not refuse insurance.
      *
-     * @param array<string,mixed>|null $raw the option value as OptionSet::valueFor() returns it
+     * @param ModelInterface|null $option the insurance option as CapabilitySet::optionValue() returns it
      */
-    public static function fromOptionValue(?array $raw): ?self
+    public static function fromOptionValue(?ModelInterface $option): ?self
     {
-        if (empty($raw)) {
+        if (null === $option || ! method_exists($option, 'getMax') || ! method_exists($option, 'getMin')) {
             return null;
         }
 
-        $max = self::centsIn($raw, 'max');
+        $max = self::cents($option->getMax());
 
         if (null === $max) {
             return null;
         }
 
-        // A min that is present but not Money-shaped voids the range, exactly as a bad max does.
+        // A min that is present but has no amount voids the range, exactly as a bad max does.
         // Reading it as zero would let allows(0) pass an isRequired contract uninsured.
-        if (isset($raw['min']) && null === self::centsIn($raw, 'min')) {
+        if (null !== $option->getMin() && null === self::cents($option->getMin())) {
             return null;
         }
 
         // Round inwards, so a fractional bound can never widen the range: a min of 1050 cents
         // permits €11, not €10.
-        $minCents = self::centsIn($raw, 'min') ?? 0;
+        $minCents = self::cents($option->getMin()) ?? 0;
         $min      = (int) ceil($minCents / 100);
         $maximum  = (int) floor($max / 100);
 
@@ -60,7 +63,7 @@ final class InsuranceRange
             return null;
         }
 
-        return new self($min, $maximum, true === ($raw['isRequired'] ?? false));
+        return new self($min, $maximum, true === $option->getIsRequired());
     }
 
     /** Get the lowest insured amount, in whole euros. */
@@ -81,6 +84,7 @@ final class InsuranceRange
         return $this->required;
     }
 
+    /** Check whether the amount is within the bounds, both included. allows() also accepts zero. */
     public function contains(int $euros): bool
     {
         return $euros >= $this->min && $euros <= $this->max;
@@ -104,15 +108,15 @@ final class InsuranceRange
         return max($this->min, min($this->max, $euros));
     }
 
-    /** @param array<string,mixed> $source */
-    private static function centsIn(array $source, string $key): ?int
+    /**
+     * Only the Money shape. A bare number states no scale, and guessing one is how an amount
+     * silently becomes a hundredth of itself. The SDK reads a bare number as Money without an amount.
+     * The SDK already cast the amount to int, so "100000oops" arrives as 100000: this checks only presence.
+     */
+    private static function cents($money): ?int
     {
-        $money = $source[$key] ?? null;
+        $amount = $money instanceof RefTypesMoney ? $money->getAmount() : null;
 
-        // Only the Money shape. A bare number states no scale, and guessing one is how an amount
-        // silently becomes a hundredth of itself.
-        return is_array($money) && isset($money['amount']) && is_numeric($money['amount'])
-            ? (int) $money['amount']
-            : null;
+        return is_int($amount) ? $amount : null;
     }
 }
