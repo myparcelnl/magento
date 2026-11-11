@@ -32,10 +32,19 @@ function mappedOptionKeys(string $moduleOption): array
     return array_keys((array) ObjectSerializer::sanitizeForSerialization($core->getOptions()));
 }
 
-// The request model has no setter for these two, so the SDK cannot ask about them. They still
-// appear in a response, so the module keeps reading them; Client logs a request that sends one.
+/** @return string[] every option name the module defines as a constant */
+function moduleOptionNames(): array
+{
+    return array_values(array_filter(
+        (new ReflectionClass(ShipmentOption::class))->getConstants(),
+        'is_string'
+    ));
+}
+
 it('agrees with the SDK request mapper on every option wire key', function () {
-    foreach (ShipmentOption::V2_NAMES_MAP as $moduleName => $v2Key) {
+    foreach (moduleOptionNames() as $moduleName) {
+        $v2Key = ShipmentOption::toV2Name($moduleName);
+
         expect(mappedOptionKeys($moduleName))
             ->toBe([$v2Key], "option '$moduleName' should map to '$v2Key'");
     }
@@ -52,16 +61,18 @@ it('carries fresh food and frozen, which the request model could not always ask 
     }
 });
 
-it('covers every shipment option the module defines', function () {
-    $constants = (new ReflectionClass(ShipmentOption::class))->getConstants();
+it('round-trips every stored option name through its wire key', function () {
+    expect(moduleOptionNames())->toHaveCount(14);
 
-    foreach ($constants as $name => $value) {
-        if (! is_string($value) || 0 === strpos($name, 'EXTRA_') || 'V2_NAMES_MAP' === $name) {
-            continue;
-        }
-
-        expect(ShipmentOption::V2_NAMES_MAP)->toHaveKey($value);
+    foreach (moduleOptionNames() as $moduleName) {
+        expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName);
     }
+});
+
+it('takes the aliases from the SDK', function () {
+    expect(ShipmentOption::toV2Name(ShipmentOption::RETURN))->toBe('returnOnFirstFailedDelivery')
+        ->and(ShipmentOption::toV2Name(ShipmentOption::PRINTERLESS_RETURN))->toBe('printReturnLabelAtDropOff')
+        ->and(ShipmentOption::fromV2Name('requiresSignature'))->toBe(ShipmentOption::SIGNATURE);
 });
 
 it('maps every package type to a v2 enum value the SDK allows', function () {

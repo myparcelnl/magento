@@ -157,12 +157,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
         $deliveryType    = $deliveryOptions->getDeliveryType();
-        $shipmentFees    = [
-            'delivery/only_recipient_fee'   => $shipmentOptions->option(ShipmentOption::ONLY_RECIPIENT),
-            'delivery/signature_fee'        => $shipmentOptions->option(ShipmentOption::SIGNATURE),
-            'delivery/receipt_code_fee'     => $shipmentOptions->option(ShipmentOption::RECEIPT_CODE),
-            'mailbox/priority_delivery_fee' => $shipmentOptions->option(ShipmentOption::PRIORITY_DELIVERY),
-        ];
+        $shipmentFees    = [];
+
+        foreach (['delivery' => 'checkout', 'mailbox' => 'mailbox'] as $group => $flag) {
+            foreach (ShipmentOption::having($flag) as $option) {
+                $shipmentFees["$group/{$option}_fee"] = $shipmentOptions->option($option);
+            }
+        }
 
         // the nulls take carrier, package type and country from the quote
         $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryType);
