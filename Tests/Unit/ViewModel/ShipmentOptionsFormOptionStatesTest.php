@@ -22,7 +22,7 @@ function postnlPackageOffering(array $options, array $deliveryTypes = ['STANDARD
 
 /**
  * A form for an NL order, with the package answer the carrier offers and the answers per filtered
- * shape. $ticked are the options DefaultOptions answers as on.
+ * request. $ticked are the options DefaultOptions answers as on.
  *
  * @param array<string,CapabilitySet> $filtered
  */
