@@ -9,7 +9,9 @@ declare(strict_types=1);
            "myparcelnl_massaction": {
                 "has_api_key": "true",
                 "url": "<?= $block->getShipmentAjaxUrl() ?>",
+                "grid_data_source": "<?= $block->getGridDataSource() ?>",
                 "settings": <?= $block->getPrintSettings() ?>,
+                "label_warning_header": "<?= $escaper->escapeJs($block->getLabelWarningHeader()) ?>",
                 "button_present": false,
                 "action_options": {
                     "request_type": true,

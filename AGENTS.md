@@ -55,6 +55,8 @@ Magento order -> Adapter -> SDK consignment -> MyParcel API
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) send orders and shipments to the SDK in batches. A new SDK call goes through them: controller or observer, then collection, then adapter, then SDK.
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
+- **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
+- **Insurance** is a range per carrier from the account's capabilities (`Model\Shipment\Capabilities\InsuranceRange`). `Model\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API (`src/Model/Rest/`)
 
@@ -73,7 +75,12 @@ Admin settings are in `etc/dynamic_settings.json`, a temporary solution until th
 3. Save with `Magento\Framework\App\Config\Storage\WriterInterface::save()`.
 4. To check whether a scope has its own value, use `Settings::hasOwnValue($path, $scope, $scopeId)`. It does not fall back to the parent scope.
 
-A new carrier also needs insurance virtual types in `etc/di.xml`, one per region, as the existing carriers have.
+For insurance, a new carrier needs the amount fields `insurance_local_amount`, `insurance_belgium_amount`, `insurance_eu_amount` and `insurance_row_amount` with the `InsuranceAmount` frontend model in `etc/dynamic_settings.json`. The range comes from capabilities, so `etc/di.xml` needs nothing.
+
+### Adding a shipment option
+
+Use the `add-shipment-option` skill. It follows "Adding a shipment option" in
+[`CONTRIBUTING.md`](CONTRIBUTING.md), which also covers a toggle on the product.
 
 ## Module rules
 
@@ -89,6 +96,7 @@ These rules are specific to this module. A reviewer can not read them from the c
 ## Documentation
 
 - Requirements are in `docs/` (business requirements, functional requirements, technical requirements, user stories). ADRs are in [mypadev/engineering-adr](https://github.com/mypadev/engineering-adr/tree/main/01-adr), not here.
+- [`docs/sdk-v11.md`](docs/sdk-v11.md) says why the module owns its shipment domain layer, where it differs from `myparcelnl/pdk` on purpose, which vocabulary each boundary takes, the three money scales, and which SDK defects it works around. Read it before you change `src/Model/Shipment/` or `src/Service/Export/`.
 - Core API spec: `https://api.myparcel.nl/openapi.min.json`. Order API spec, with the enums and `ShipmentOptions`: `https://order.api.myparcel.nl/openapi.json`.
 
 ## Versioning

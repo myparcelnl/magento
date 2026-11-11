@@ -10,6 +10,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\History;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderNote;
 
@@ -17,11 +18,13 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
 {
     private Config        $config;
     private ObjectManager $objectManager;
+    private UserAgent     $userAgent;
 
     public function __construct()
     {
         $this->objectManager = ObjectManager::getInstance();
         $this->config        = $this->objectManager->get(Config::class);
+        $this->userAgent     = $this->objectManager->get(UserAgent::class);
     }
 
     /**
@@ -54,7 +57,8 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
 
         $apiKey = $this->config->getGeneralConfig('api/key', (int) $magentoOrder->getStoreId());
 
-        (new OrderNotesCollection())->push(
+        (new OrderNotesCollection())->setUserAgents($this->userAgent->map())
+                                    ->push(
                                         new OrderNote(
                                             [
                                                 'orderUuid' => $uuid,
