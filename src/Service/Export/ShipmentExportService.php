@@ -512,7 +512,6 @@ class ShipmentExportService
         }
     }
 
-    /** @return int[] deduplicated, reindexed, without empties */
     /**
      * Run $call per account. An empty group is skipped, and one account's failure costs only its own work.
      *
@@ -555,6 +554,7 @@ class ShipmentExportService
             ->setUserAgents($this->userAgent->map());
     }
 
+    /** @return int[] deduplicated, reindexed, without empties */
     private function normalizeIds(array $shipmentIds): array
     {
         return IdList::ints($shipmentIds);
