@@ -275,11 +275,10 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
-     * Reload what this save wrote, and nothing else, the same way Magento's own config save does.
+     * Reload what this save wrote, and nothing else.
      *
-     * Do not use cleanType('config'): it also drops the merged system.xml structure, which every next
-     * request then rebuilds. Only an api key change drops the capabilities, which are keyed on the
-     * key. Rendered output is marked invalid, not flushed.
+     * Do not use cleanType('config'): it also drops the merged system.xml structure. Only an api key
+     * change drops the capabilities. Rendered output is marked invalid, not flushed.
      */
     private function reinitConfig(bool $apiKeyChanged): void
     {
