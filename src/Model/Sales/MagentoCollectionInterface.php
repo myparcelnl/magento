@@ -23,7 +23,5 @@ interface MagentoCollectionInterface
 {
     public function setOptionsFromParameters();
 
-    public function getOptions();
-
     public function getOption($option);
 }
