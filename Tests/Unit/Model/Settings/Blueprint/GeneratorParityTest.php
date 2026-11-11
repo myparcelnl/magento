@@ -19,6 +19,8 @@ const LEGACY_ALLOWED_MISSING = [
     // Nothing read it. Saturday delivery is the `saturday_delivery` option now.
     'myparcelnl_magento_gls_settings/delivery/saturday_active',
     'myparcelnl_magento_gls_settings/delivery/saturday_fee',
+    // Whether the account has order v1 decides it.
+    'myparcelnl_magento_general/print/export_mode',
 ];
 
 // What the contract adds where the legacy form had a per-carrier exception.

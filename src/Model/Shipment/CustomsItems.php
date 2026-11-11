@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\ProductAttributes;
@@ -26,6 +27,9 @@ class CustomsItems
 {
     /** The API's maximum. setDescription() throws above it, so a longer name is shortened. */
     public const MAX_DESCRIPTION_LENGTH = 50;
+
+    /** Magento's configurable product type code, without a dependency on Magento_ConfigurableProduct. */
+    public const CONFIGURABLE = 'configurable';
 
     /** The HS code length sent: TARIC, the Order API maximum. See "HS code length" in docs/sdk-v11.md. */
     private const MAX_CLASSIFICATION_LENGTH = 10;
@@ -66,15 +70,43 @@ class CustomsItems
     }
 
     /**
-     * Product setting first, the `print/country_of_origin` setting second.
+     * The HS code and country of origin of each customs line.
      *
-     * @param  int[] $productIds
-     * @return array<int,string> product id => ISO country
+     * A line lists its products most specific first: a configurable item's variant, then its parent.
+     * The first product with a value wins. A country falls back to the store's `print/country_of_origin`
+     * setting, then to the account's home country; an HS code has no fallback.
+     *
+     * @return array<int|string, array{classification: string, country: string}>
      */
-    public function countriesOfOriginFor(array $productIds): array
+    public function customsDataFor(array $productIdsByLine, int $storeId): array
     {
-        $fallback = (string) $this->config->getGeneralConfig('print/country_of_origin');
+        $productIds = [];
 
+        foreach ($productIdsByLine as $ids) {
+            array_push($productIds, ...$ids);
+        }
+
+        $productIds      = array_values(array_unique($productIds));
+        $classifications = $productIds ? $this->classificationsFor($productIds) : [];
+        $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
+        $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
+            ?: $this->objectManager->get(StoredAccount::class)->homeCountryForStore($storeId);
+
+        $data = [];
+
+        foreach ($productIdsByLine as $line => $ids) {
+            $data[$line] = [
+                'classification' => self::firstOf($ids, $classifications) ?? '',
+                'country'        => self::firstOf($ids, $countries) ?? $fallback,
+            ];
+        }
+
+        return $data;
+    }
+
+    /** Product id => country of manufacture, only for a product that has one. */
+    private function manufacturingCountriesFor(array $productIds): array
+    {
         /** @var ProductCollection $collection */
         $collection = $this->objectManager->create(ProductCollection::class);
         $collection->addIdFilter($productIds)
@@ -83,11 +115,25 @@ class CustomsItems
         $countries = [];
 
         foreach ($collection->getItems() as $product) {
-            $countries[(int) $product->getId()] = (string) ($product->getCountryOfManufacture() ?: $fallback);
+            $country = (string) $product->getCountryOfManufacture();
+
+            if ('' !== $country) {
+                $countries[(int) $product->getId()] = $country;
+            }
         }
 
-        // A product that no longer exists still needs a country on its customs item.
-        return $countries + array_fill_keys($productIds, $fallback);
+        return $countries;
+    }
+
+    private static function firstOf(array $ids, array $values): ?string
+    {
+        foreach ($ids as $id) {
+            if ('' !== (string) ($values[$id] ?? '')) {
+                return (string) $values[$id];
+            }
+        }
+
+        return null;
     }
 
     /** The SDK's refusal of a customs item, with the product named so the merchant can find it. */

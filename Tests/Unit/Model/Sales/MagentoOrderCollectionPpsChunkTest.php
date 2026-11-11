@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Magento\Service\Weight;
@@ -33,6 +34,7 @@ function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null): ob
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with(Weight::class)->andReturn(new Weight($config));
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)->andReturn($apiProvider);
+    $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn(storedAccountAt('NL'));
 
     $userAgent = Mockery::mock(UserAgent::class);
     $userAgent->shouldReceive('map')->andReturn([]);

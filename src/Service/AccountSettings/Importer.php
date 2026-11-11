@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -20,11 +21,9 @@ use Throwable;
 /**
  * Fetches a MyParcel account's settings and caches them under the api key's fingerprint.
  *
- * Two sources, one row: the account and its shop come from the SDK's account web service, the
- * contract definitions from the capabilities client in a single unfiltered call.
- *
- * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
- * observer catches it.
+ * One row from three sources: the account web service, one unfiltered contract definitions call
+ * and whoami. Throws what the SDK throws: an invalid key must surface, so the observer catches it
+ * to keep a config save from failing.
  */
 class Importer
 {
@@ -34,6 +33,7 @@ class Importer
     private LoggerInterface      $logger;
     private Client               $client;
     private UserAgent            $userAgent;
+    private AccountFeatures      $accountFeatures;
 
     public function __construct(
         WriterInterface      $configWriter,
@@ -41,25 +41,27 @@ class Importer
         Fingerprint          $fingerprint,
         LoggerInterface      $logger,
         Client               $client,
-        UserAgent            $userAgent
+        UserAgent            $userAgent,
+        AccountFeatures      $accountFeatures
     ) {
-        $this->configWriter = $configWriter;
-        $this->scopeConfig  = $scopeConfig;
-        $this->fingerprint  = $fingerprint;
-        $this->logger       = $logger;
-        $this->client       = $client;
-        $this->userAgent    = $userAgent;
+        $this->configWriter    = $configWriter;
+        $this->scopeConfig     = $scopeConfig;
+        $this->fingerprint     = $fingerprint;
+        $this->logger          = $logger;
+        $this->client          = $client;
+        $this->userAgent       = $userAgent;
+        $this->accountFeatures = $accountFeatures;
     }
 
     /**
-     * Whether this account's settings are already cached, so a caller can heal a missing row without
-     * paying for an API call on every save.
+     * Check whether this account's settings are cached in full.
+     * A row without features counts as missing, because the export reads them.
      */
     public function hasSettingsFor(string $apiKey): bool
     {
-        return (bool) $this->scopeConfig->getValue(
+        return null !== self::featuresOf($this->scopeConfig->getValue(
             Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey)
-        );
+        ));
     }
 
     /**
@@ -77,7 +79,9 @@ class Importer
         $fingerprint = $this->fingerprint->of($apiKey);
         $path        = Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint;
         $before      = $this->scopeConfig->getValue($path);
-        $row         = (string) json_encode($this->createArray($this->fetchConfigurations($apiKey)));
+        $row         = (string) json_encode(
+            $this->createArray($this->fetchConfigurations($apiKey), self::featuresOf($before))
+        );
 
         $this->configWriter->save($path, $row);
 
@@ -114,6 +118,7 @@ class Importer
                 'shop'                 => $shop,
                 'account'              => $account,
                 'contract_definitions' => $this->fetchContractDefinitions($apiKey),
+                'features'             => $this->fetchFeatures($apiKey),
             ]
         );
     }
@@ -149,18 +154,51 @@ class Importer
     }
 
     /**
+     * Fetch the account features, or null when whoami fails.
+     * On null, createArray() keeps the stored features, so a transient failure does not change the export.
+     *
+     * @return string[]|null
+     */
+    private function fetchFeatures(string $apiKey): ?array
+    {
+        try {
+            return $this->accountFeatures->forApiKey($apiKey);
+        } catch (Throwable $e) {
+            Logger::warning(
+                'The account features could not be fetched. The stored features stay until the next import; an account without any cannot export until then.',
+                LogContext::of($e)
+            );
+
+            return null;
+        }
+    }
+
+    /**
+     * @param mixed $storedRow the raw config value
+     *
+     * @return string[]|null
+     */
+    private static function featuresOf($storedRow): ?array
+    {
+        $decoded = is_string($storedRow) ? json_decode($storedRow, true) : null;
+
+        return is_array($decoded) ? AccountSettings::featuresIn($decoded) : null;
+    }
+
+    /**
      * @param \MyParcelNL\Sdk\Support\Collection $settings
+     * @param string[]|null                      $storedFeatures of the replaced row, kept when whoami failed
      *
      * @return array
      */
-    private function createArray(Collection $settings): array
+    private function createArray(Collection $settings, ?array $storedFeatures = null): array
     {
         /** @var \MyParcelNL\Sdk\Model\Account\Shop $shop */
         $shop = $settings->get('shop');
         /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
 
-        return [
+        $row = [
             'shop'                 => [
                 'id'   => $shop->getId(),
                 'name' => $shop->getName(),
@@ -170,5 +208,13 @@ class Importer
             // bounds the settings screen reads.
             'contract_definitions' => $settings->get('contract_definitions'),
         ];
+
+        $features = $settings->get('features') ?? $storedFeatures;
+
+        if (null !== $features) {
+            $row['features'] = $features;
+        }
+
+        return $row;
     }
 }
