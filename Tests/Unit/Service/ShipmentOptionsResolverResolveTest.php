@@ -30,13 +30,13 @@ it('resolves every option to a non-null value outside NL too', function () {
 
 it('types every resolved option as the setters expect', function () {
     $resolved = createShipmentOptions(CountryCode::CC_NL, CarrierPostNL::NAME, [])->resolve();
+    $values   = $resolved->toArray();
 
     expect($resolved->getInsurance())->toBeInt()
-        ->and($resolved->getLabelDescription())->toBeString()
-        ->and($resolved->option(ShipmentOption::SIGNATURE))->toBeBool()
-        ->and($resolved->option(ShipmentOption::AGE_CHECK))->toBeBool()
-        ->and($resolved->option(ShipmentOption::RECEIPT_CODE))->toBeBool()
-        ->and($resolved->option(ShipmentOption::PRIORITY_DELIVERY))->toBeBool()
-        ->and($resolved->option(ShipmentOption::FRESH_FOOD))->toBeBool()
-        ->and($resolved->option(ShipmentOption::FROZEN))->toBeBool();
+        ->and($resolved->getLabelDescription())->toBeString();
+
+    // toArray(), not option(): option() casts, so a stored 1 would pass as a bool.
+    foreach (ShipmentOption::having('toggle') as $option) {
+        expect($values[$option])->toBeBool("'$option' is not a bool");
+    }
 });
