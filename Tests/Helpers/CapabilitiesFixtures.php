@@ -341,8 +341,10 @@ function assertFlatInsuranceShape(array $results): void
  * A CapabilitiesLookup that already holds its answers. Reaching the repository fatals: that is the
  * assertion that the code asked only the requests the test seeded.
  *
- * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
- * single CapabilitySet to seed every request at once, for a test the request distinction is not about.
+ * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup, and
+ * '<package type>|<option,option>|<delivery type>' for a lookup with an option filter or a delivery
+ * type; options in sorted order. Pass a single CapabilitySet to seed every unfiltered request at once,
+ * for a test the request distinction is not about.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
@@ -354,9 +356,12 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
 
     $seeded = [];
 
-    foreach ($answers as $packageType => $set) {
-        // Same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
+    foreach ($answers as $request => $set) {
+        [$packageType, $options, $deliveryType] = array_pad(explode('|', (string) $request, 3), 3, '');
+
+        // The same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier, delivery
+        // type, options. Carrier stays empty.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '||' . $deliveryType . '|' . $options] = $set;
     }
 
     $lookup = newInstanceWithoutConstructor(CapabilitiesLookup::class);

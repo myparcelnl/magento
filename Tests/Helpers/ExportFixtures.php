@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\App\RequestInterface;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
@@ -303,12 +302,7 @@ function makeLabelPositions(?string $paperType = null): LabelPositions
  */
 function optionsFromParams(array $params, ?string $paperType = null): array
 {
-    $request = Mockery::mock(RequestInterface::class);
-    $request->shouldReceive('getParam')
-        ->andReturnUsing(static function (string $name, $default = null) use ($params) {
-            return $params[$name] ?? $default;
-        });
-
+    $request    = mockRequestWithParams($params);
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
     setPrivateProperty($collection, 'request', $request);
     setPrivateProperty($collection, 'labelPositions', makeLabelPositions($paperType));

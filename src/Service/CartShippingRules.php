@@ -27,16 +27,15 @@ class CartShippingRules
     }
 
     /**
-     * The limiting options this cart carries whatever the shopper picks, so a package type that
-     * cannot carry one of them is not a candidate.
+     * Get the keepAtCheckout options that a product or the carrier's default option setting forces on.
      *
      * @param  \Magento\Quote\Model\Quote\Item[] $items
      * @return string[]
      */
-    public function forcedLimitingOptions(array $items, string $carrierPath, ?int $storeId = null): array
+    public function forcedCheckoutOptions(array $items, string $carrierPath, ?int $storeId = null): array
     {
         return array_values(array_filter(
-            ShipmentOption::LIMIT_PACKAGE_TYPE,
+            ShipmentOption::having('keepAtCheckout'),
             fn(string $option): bool => $this->optionForcedOn($items, $carrierPath, $option, $storeId)
         ));
     }

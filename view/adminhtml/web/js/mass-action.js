@@ -129,6 +129,8 @@ define(
                     shipmentOptions.open({
                         formUrl: this.options.url_options_form,
                         saveUrl: this.options.url_options_save,
+                        refreshUrl: this.options.url_options_refresh,
+                        pickupLocationsUrl: this.options.url_pickup_locations,
                         ids: this.selectedIds,
                         idType: this.options.id_type || 'order',
                         title: $.mage.__('MyParcel options'),
