@@ -27,10 +27,21 @@ final class ShipmentOptions
     /** @var array<string,mixed> every keys() entry; null where nothing was stored */
     private $values = [];
 
-    private function __construct(array $values)
+    /** @var array<string,bool|null> options only capabilities named, after every keys() entry */
+    private $discovered = [];
+
+    private function __construct(array $values, bool $keepDiscovered = false)
     {
         foreach (self::keys() as $key) {
             $this->values[$key] = $values[$key] ?? null;
+        }
+
+        if (! $keepDiscovered) {
+            return;
+        }
+
+        foreach (array_diff_key($values, $this->values) as $key => $value) {
+            $this->discovered[(string) $key] = null === $value ? null : (bool) $value;
         }
     }
 
@@ -49,11 +60,18 @@ final class ShipmentOptions
      * A set that needs no reading of a stored shape: the resolver's own output, or nothing at all.
      *
      * fromLegacyCheckoutData() and fromMagentoOptions() exist because those two shapes disagree on
-     * what an absent option means. This one takes the values as they are.
+     * what an absent option means. This one takes the values as they are, and drops a key keys() does
+     * not name: the checkout's data passes through here into a persisted format.
      */
     public static function of(array $values): self
     {
         return new self($values);
+    }
+
+    /** ShipmentOptionsResolver's answer, which keeps the options only capabilities named. */
+    public static function resolved(array $values): self
+    {
+        return new self($values, true);
     }
 
     /**
@@ -87,10 +105,10 @@ final class ShipmentOptions
         return new self($values);
     }
 
-    /** A shipment option by its ShipmentOption name; null is inherit. */
+    /** A shipment option by its ShipmentOption name, also one only capabilities named; null is inherit. */
     public function option(string $name): ?bool
     {
-        $value = $this->values[$name] ?? null;
+        $value = $this->values[$name] ?? $this->discovered[$name] ?? null;
 
         return null === $value ? null : (bool) $value;
     }
@@ -106,8 +124,18 @@ final class ShipmentOptions
         return $this->values[self::LABEL_DESCRIPTION];
     }
 
+    /**
+     * The options only capabilities named, which keys() does not list.
+     *
+     * @return array<string,bool|null>
+     */
+    public function discovered(): array
+    {
+        return $this->discovered;
+    }
+
     public function toArray(): array
     {
-        return $this->values;
+        return $this->values + $this->discovered;
     }
 }

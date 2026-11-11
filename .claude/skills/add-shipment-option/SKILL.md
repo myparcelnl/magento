@@ -18,7 +18,7 @@ Ask these questions one at a time. Ask all of them.
 3. **Fee.** "Does the merchant charge for it at checkout?" A checkout fee also needs the widget to
    support the option.
 4. **Mailbox.** "Can it ship in a mailbox, with its fee in the mailbox group?"
-5. **Form.** "Must the New Shipment form show it?"
+5. **Fail-open.** "Must the form show it when capabilities cannot be read?"
 6. **Rule.** "Does a rule decide it that capabilities do not give, such as a country rule?"
 7. **Product toggle.** "Must a product be able to switch it on? If yes: does the product decide the
    option at export, or what the consumer may choose at checkout?"
@@ -30,7 +30,6 @@ For each yes, follow the matching subsection of `CONTRIBUTING.md`:
 | Answer | Subsection |
 |---|---|
 | 2, 3, 4, 5 | A row in `ShipmentOption::DEFINITIONS`: only the facts these answers need |
-| 5 | The New Shipment form |
 | 3 | An option in the checkout |
 | 6 | A rule that capabilities do not give |
 | 7 | A toggle on the product |
