@@ -18,8 +18,8 @@ class DeliveryCosts
     private Config $config;
     private Tax    $tax;
 
-    /** Decoded once per JSON value, the checkout reads the matrix for every delivery type of every carrier. */
-    private array $matrixPerJson = [];
+    /** The checkout prices every delivery type of every carrier, so decode the matrix once. */
+    private array $decodedMatrixCache = [];
 
     /**
      * The points will be added to the total points for each condition that is met.
@@ -163,7 +163,7 @@ class DeliveryCosts
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
-        $matrix = $this->matrixPerJson[$json] ??= (json_decode($json, true, 8) ?? []);
+        $matrix = $this->decodedMatrixCache[$json] ??= (json_decode($json, true, 8) ?? []);
         $return = [];
 
         foreach ($matrix as $definition) {
