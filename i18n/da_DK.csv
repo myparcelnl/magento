@@ -328,6 +328,7 @@ Minimum order amount,Minimumsordrebeløb
 Maximum order amount,Maksimalt ordrebeløb
 Delivery type,Leveringstype
 Set the fees to 0 if you fully set the price per delivery type via the matrix.,"Sæt gebyrerne til 0, når matrixen fastsætter prisen pr. leveringstype fuldt ud."
+"The order amount is the subtotal after discount, including tax.","Ordrebeløbet er subtotalen efter rabat, inkl. moms."
 No rules defined. Click Add rule to create a new rule.,Ingen regler defineret. Klik på 'Tilføj regel' for at oprette en ny regel.
 Add rule,Tilføj regel
 Price,Pris

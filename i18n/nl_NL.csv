@@ -341,6 +341,7 @@ Minimum order amount,Minimaal bestelbedrag
 Maximum order amount,Maximaal bestelbedrag
 Delivery type,Bezorgtype
 Set the fees to 0 if you fully set the price per delivery type via the matrix.,Zet de toeslagen op 0 als de matrix de prijs per bezorgtype volledig bepaalt.
+"The order amount is the subtotal after discount, including tax.","Het bestelbedrag is het subtotaal na korting, incl. btw."
 No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
 Add rule,Regel toevoegen
 Price,Prijs

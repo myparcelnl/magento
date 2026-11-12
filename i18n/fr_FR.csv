@@ -328,6 +328,7 @@ Minimum order amount,Montant minimum de commande
 Maximum order amount,Montant maximum de commande
 Delivery type,Type de livraison
 Set the fees to 0 if you fully set the price per delivery type via the matrix.,Mettez les frais à 0 si la matrice fixe entièrement le prix par type de livraison.
+"The order amount is the subtotal after discount, including tax.","Le montant de la commande est le sous-total après remise, TVA comprise."
 No rules defined. Click Add rule to create a new rule.,Aucune règle définie. Cliquez sur Ajouter une règle pour en créer une nouvelle.
 Add rule,Ajouter une règle
 Price,Prix

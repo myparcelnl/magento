@@ -14,14 +14,15 @@ define(
                     this.translations = this.options.getTranslations;
                     this.conditionOptionsList = [
                         {value: '', text: this.translations['Select a condition']},
-                        {value: 'carrier_name', text: this.translations['Carrier name']},
+                        // highest rank first, the order of DeliveryCosts::CONDITIONS
                         {value: 'country', text: this.translations['Country']},
-                        {value: 'package_type', text: this.translations['Package type']},
-                        {value: 'maximum_weight', text: this.translations['Maximum weight (in grams)']},
                         {value: 'country_part_of', text: this.translations['Country part of']},
+                        {value: 'delivery_type', text: this.translations['Delivery type']},
                         {value: 'minimum_order_amount', text: this.translations['Minimum order amount']},
                         {value: 'maximum_order_amount', text: this.translations['Maximum order amount']},
-                        {value: 'delivery_type', text: this.translations['Delivery type']},
+                        {value: 'package_type', text: this.translations['Package type']},
+                        {value: 'carrier_name', text: this.translations['Carrier name']},
+                        {value: 'maximum_weight', text: this.translations['Maximum weight (in grams)']},
                     ];
                     // Conditions whose value is typed in rather than picked from a list
                     this.numberConditions = ['maximum_weight', 'minimum_order_amount', 'maximum_order_amount'];
@@ -73,10 +74,15 @@ define(
                 render: function() {
                     this.matrixElement.innerHTML = '';
 
-                    const helpText = document.createElement('p');
-                    helpText.className = 'note';
-                    helpText.textContent = this.translations['Set the fees to 0 if you fully set the price per delivery type via the matrix.'];
-                    this.matrixElement.appendChild(helpText);
+                    [
+                        'The order amount is the subtotal after discount, including tax.',
+                        'Set the fees to 0 if you fully set the price per delivery type via the matrix.',
+                    ].forEach((text) => {
+                        const helpText = document.createElement('p');
+                        helpText.className = 'note';
+                        helpText.textContent = this.translations[text];
+                        this.matrixElement.appendChild(helpText);
+                    });
 
                     // If there are no rules, show an empty message
                     if (this.ruleData.length === 0) {
