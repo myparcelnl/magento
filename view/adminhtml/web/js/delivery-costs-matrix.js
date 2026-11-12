@@ -73,17 +73,6 @@ define(
                 // Create the matrix UI
                 render: function() {
                     this.matrixElement.innerHTML = '';
-
-                    [
-                        'The order amount is the subtotal after discount, including tax.',
-                        'Set the fees to 0 if you fully set the price per delivery type via the matrix.',
-                    ].forEach((text) => {
-                        const helpText = document.createElement('p');
-                        helpText.className = 'note';
-                        helpText.textContent = this.translations[text];
-                        this.matrixElement.appendChild(helpText);
-                    });
-
                     // If there are no rules, show an empty message
                     if (this.ruleData.length === 0) {
                         const emptyMessage = document.createElement('p');

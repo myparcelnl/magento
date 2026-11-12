@@ -13,6 +13,21 @@
         }
     }
 
+    /* the template renders the tooltip after the matrix: lift it to where the other fields have it */
+    .with-tooltip {
+        position: relative;
+
+        > .tooltip {
+            position: absolute;
+            top: 6px;
+            right: -8px;
+            left: auto;
+            width: auto;
+            margin: 0;
+            float: none;
+        }
+    }
+
     .label {
         label {
             display: none;
@@ -47,6 +62,9 @@
 #delivery-costs-matrix {
     position: relative;
     margin: 20px 0;
+    /* Magento sets font-size 0 on a field with a tooltip, which empties the CSS tooltips of the buttons */
+    font-size: 1.4rem;
+    line-height: 1.36;
 
     .form-field {
         margin-right: 15px;

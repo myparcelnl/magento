@@ -106,8 +106,6 @@ class DeliveryCostsMatrix extends Field
             'Minimum order amount' => __('Minimum order amount'),
             'Maximum order amount' => __('Maximum order amount'),
             'Delivery type' => __('Delivery type'),
-            'Set the fees to 0 if you fully set the price per delivery type via the matrix.' => __('Set the fees to 0 if you fully set the price per delivery type via the matrix.'),
-            'The order amount is the subtotal after discount, including tax.' => __('The order amount is the subtotal after discount, including tax.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
             'Invalid JSON in textarea' => __('Invalid JSON in textarea'),
