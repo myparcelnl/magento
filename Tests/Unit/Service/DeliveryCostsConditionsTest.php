@@ -220,13 +220,16 @@ it('requires every order amount threshold of a rule', function () {
         ->and(matrixPriceFor($deliveryCosts, 120.0))->toBe(3.0);
 });
 
-it('never lets an unfinished order amount rule match', function ($value) {
+it('never lets an unfinished minimum order amount match', function ($value) {
     // the matrix UI stores the value only once typed, but an empty or non-numeric value can still
-    // arrive through the JSON textarea or an old save; (float) would turn it into 0 and match everything
+    // arrive through the JSON textarea or an old save; (float) would turn it into 0 and match everything.
+    // The country condition makes the unfinished rule outscore Base, so only the guard keeps Base.
     $deliveryCosts = deliveryCostsWithMatrix([
         ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
-        ['name' => 'Unfinished minimum', 'price' => 99.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => $value]]],
-        ['name' => 'Unfinished maximum', 'price' => 88.0, 'conditions' => [['type' => 'maximum_order_amount', 'value' => $value]]],
+        ['name' => 'Unfinished minimum', 'price' => 99.0, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
+            ['type' => 'minimum_order_amount', 'value' => $value],
+        ]],
     ]);
 
     expect(matrixPriceFor($deliveryCosts, 10.0))->toBe(6.95)

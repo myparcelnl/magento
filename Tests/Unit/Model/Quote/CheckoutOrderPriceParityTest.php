@@ -21,8 +21,12 @@ afterEach(function () {
     (new ReflectionProperty(ObjectManager::class, '_instance'))->setValue(null, null);
 });
 
-/** NL 6.95, free pickup, standard 1.00 from 50. */
-function parityConfig(bool $totalView, string $carrier = 'postnl'): Config
+/**
+ * NL 6.95, free pickup, standard 1.00 from 50.
+ *
+ * @param array<string, float> $fees by key, such as 'evening/fee'; the checkout and the order read the same values
+ */
+function parityConfig(bool $totalView, array $fees = [], string $carrier = 'postnl'): Config
 {
     $matrix = [
         ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
@@ -37,7 +41,7 @@ function parityConfig(bool $totalView, string $carrier = 'postnl'): Config
         ]],
     ];
 
-    $config = checkoutPriceConfig($totalView, [], [], $carrier);
+    $config = checkoutPriceConfig($totalView, $fees, array_map('strval', $fees), $carrier);
     $config->shouldReceive('getGeneralConfig')->with('matrix/delivery_costs')->andReturn(json_encode($matrix));
     $config->shouldReceive('getGeneralConfig')->andReturn('')->byDefault();
     $config->shouldReceive('getMagentoCarrierConfig')->with('shipping_cost')->andReturn('9.99');
@@ -117,7 +121,8 @@ function parityOrderAmount(Config $config, Quote $quote, string $deliveryType, s
 }
 
 it('the checkout shows per delivery type the price the order charges', function (float $orderAmount) {
-    $config = parityConfig(true);
+    // a positive fee, and a negative one that takes morning below 0, so both paths must floor the same way
+    $config = parityConfig(true, ['pickup/fee' => 1.5, 'morning/fee' => -10.0, 'evening/fee' => 2.5]);
     parityObjectManager($config);
 
     $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config), parityQuote($orderAmount));
