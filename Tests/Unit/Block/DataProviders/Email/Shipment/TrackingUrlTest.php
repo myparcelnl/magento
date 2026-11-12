@@ -4,43 +4,51 @@ declare(strict_types=1);
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Address;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Block\DataProviders\Email\Shipment\TrackingUrl;
+use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
 
 /**
- * Builds the track and trace url for a shipment track whose order has the given shipping address.
+ * The shipment email lists every carrier's tracks. The bootstrap's empty stub of Magento's provider
+ * has no getUrl(), so it is declared here first with one that marks the delegation.
  */
-function trackingUrlForAddress(?string $postcode, string $countryId): string
-{
-    $address = Mockery::mock(Address::class);
-    $address->shouldReceive('getPostcode')->andReturn($postcode);
-    $address->shouldReceive('getCountryId')->andReturn($countryId);
-
-    $order = Mockery::mock(Order::class);
-    $order->shouldReceive('load')->andReturnSelf();
-    $order->shouldReceive('getShippingAddress')->andReturn($address);
-
-    $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('create')->with(Order::class)->andReturn($order);
-    ObjectManager::setInstance($objectManager);
-
-    $track = Mockery::mock(Track::class);
-    $track->shouldReceive('getOrderId')->andReturn(1);
-    $track->shouldReceive('getNumber')->andReturn('3SMYPA000000001');
-
-    return (new TrackingUrl())->getUrl($track);
+if (! class_exists(Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl::class, false)) {
+    eval('namespace Magento\Sales\Block\DataProviders\Email\Shipment;
+        class TrackingUrl { public function getUrl(\\Magento\\Sales\\Model\\Order\\Shipment\\Track $track): string { return "magento-popup"; } }');
 }
 
-afterEach(function () {
-    (new ReflectionProperty(ObjectManager::class, '_instance'))->setValue(null, null);
-});
+function emailTrack(?string $carrierCode): Track
+{
+    $track = Mockery::mock(Track::class . ', ArrayAccess');
+    $track->shouldReceive('offsetExists')->with('carrier_code')->andReturn(null !== $carrierCode);
+    $track->shouldReceive('offsetGet')->with('carrier_code')->andReturn($carrierCode);
 
-it('builds the url with the postcode without spaces', function () {
-    expect(trackingUrlForAddress('2132 JE', 'NL'))->toEndWith('/3SMYPA000000001/2132JE/NL');
-});
+    return $track;
+}
 
-it('builds the url instead of crashing when the postcode is null', function () {
-    expect(trackingUrlForAddress(null, 'BE'))->toEndWith('/3SMYPA000000001//BE');
+function resolverReturning(string $url): LinkResolver
+{
+    $resolver = Mockery::mock(LinkResolver::class);
+    $resolver->shouldReceive('forTrack')->andReturn($url);
+
+    $objectManager = Mockery::mock(ObjectManagerInterface::class);
+    $objectManager->shouldReceive('get')->with(LinkResolver::class)->andReturn($resolver);
+    ObjectManager::setInstance($objectManager);
+
+    return $resolver;
+}
+
+it('links a MyParcel track to the MyParcel portal', function (?string $carrierCode) {
+    resolverReturning('https://portal.example/track');
+
+    expect((new TrackingUrl())->getUrl(emailTrack($carrierCode)))->toBe('https://portal.example/track');
+})->with([
+    'our carrier code'                => ['myparcel'],
+    'a track built before the column' => [null],
+]);
+
+it('hands another carrier\'s track to Magento\'s own provider', function () {
+    resolverReturning('https://portal.example/track')->shouldNotReceive('forTrack');
+
+    expect((new TrackingUrl())->getUrl(emailTrack('dhl')))->toBe('magento-popup');
 });

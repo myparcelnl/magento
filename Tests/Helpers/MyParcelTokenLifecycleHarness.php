@@ -20,9 +20,8 @@ use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 use Mockery;
 
 /**
- * Shared in-memory backing for the writer + collection factory so TokenService writes/deletes
- * and ApiAccessTokenUserContext / TokenScopeContext reads operate on the same row set — the
- * shape used by every token-lifecycle test (rotation, revocation, future operations).
+ * In-memory config rows behind the writer and the collection factory for token lifecycle tests.
+ * TokenService writes and the ApiAccessTokenUserContext and TokenScopeContext reads use the same rows.
  */
 final class MyParcelTokenLifecycleHarness
 {

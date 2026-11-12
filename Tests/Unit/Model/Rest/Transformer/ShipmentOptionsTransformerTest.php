@@ -10,54 +10,56 @@ it('returns null for null input', function () {
 });
 
 it('returns null when no options are set', function () {
-    expect((new ShipmentOptionsTransformer())->transform(mockShipmentOptions()))->toBeNull();
+    expect((new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture()))->toBeNull();
 });
 
 it('maps each boolean option to the Order API camelCase field from attributeMap', function () {
     $apiFields = OrderApiShipmentOptions::attributeMap();
 
     $cases = [
-        'hasAgeCheck'        => $apiFields['requires_age_verification'],
-        'hasSignature'       => $apiFields['requires_signature'],
-        'hasOnlyRecipient'   => $apiFields['recipient_only_delivery'],
-        'hasLargeFormat'     => $apiFields['oversized_package'],
-        'isReturn'           => $apiFields['print_return_label_at_drop_off'],
-        'hasHideSender'      => $apiFields['hide_sender'],
-        'isPriorityDelivery' => $apiFields['priority_delivery'],
-        'hasReceiptCode'     => $apiFields['requires_receipt_code'],
-        'isSameDayDelivery'  => $apiFields['same_day_delivery'],
-        'hasCollect'         => $apiFields['scheduled_collection'],
+        'age_check'         => $apiFields['requires_age_verification'],
+        'signature'         => $apiFields['requires_signature'],
+        'only_recipient'    => $apiFields['recipient_only_delivery'],
+        'large_format'      => $apiFields['oversized_package'],
+        'return'            => $apiFields['return_on_first_failed_delivery'],
+        'hide_sender'       => $apiFields['hide_sender'],
+        'priority_delivery' => $apiFields['priority_delivery'],
+        'receipt_code'      => $apiFields['requires_receipt_code'],
+        'same_day_delivery' => $apiFields['same_day_delivery'],
+        'collect'           => $apiFields['scheduled_collection'],
+        'fresh_food'        => $apiFields['fresh_food'],
+        'frozen'            => $apiFields['frozen'],
     ];
 
-    foreach ($cases as $getter => $expectedField) {
-        $result = (new ShipmentOptionsTransformer())->transform(mockShipmentOptions([$getter => true]));
+    foreach ($cases as $option => $expectedField) {
+        $result = (new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture([$option => true]));
 
         expect($result)->toBeObject();
         expect(property_exists($result, $expectedField))
-            ->toBeTrue("option {$getter}() did not produce {$expectedField} field");
+            ->toBeTrue("option {$option} did not produce {$expectedField} field");
         expect($result->$expectedField)->toEqual(new stdClass());
     }
 });
 
 it('formats insurance as a micro-amount EUR object', function () {
     $insuranceField = OrderApiShipmentOptions::attributeMap()['insurance'];
-    $result = (new ShipmentOptionsTransformer())->transform(mockShipmentOptions(['getInsurance' => 5]));
+    $result = (new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture(['insurance' => 5]));
 
     expect($result->$insuranceField)->toEqual((object) ['amount' => 5_000_000, 'currency' => 'EUR']);
 });
 
 it('ignores insurance when zero or null', function () {
-    expect((new ShipmentOptionsTransformer())->transform(mockShipmentOptions(['getInsurance' => 0])))->toBeNull();
-    expect((new ShipmentOptionsTransformer())->transform(mockShipmentOptions(['getInsurance' => null])))->toBeNull();
+    expect((new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture(['insurance' => 0])))->toBeNull();
+    expect((new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture(['insurance' => null])))->toBeNull();
 });
 
 it('formats label description as customLabelText object', function () {
     $labelField = OrderApiShipmentOptions::attributeMap()['custom_label_text'];
-    $result = (new ShipmentOptionsTransformer())->transform(mockShipmentOptions(['getLabelDescription' => 'PO-123']));
+    $result = (new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture(['label_description' => 'PO-123']));
 
     expect($result->$labelField)->toEqual((object) ['text' => 'PO-123']);
 });
 
 it('ignores empty label description', function () {
-    expect((new ShipmentOptionsTransformer())->transform(mockShipmentOptions(['getLabelDescription' => ''])))->toBeNull();
+    expect((new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture(['label_description' => ''])))->toBeNull();
 });

@@ -10,6 +10,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
+use MyParcelNL\Magento\Service\LogContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -18,7 +19,7 @@ use Throwable;
  *
  * Invariants:
  *  - Idempotent, so calling it after every config save costs nothing when there is nothing to do.
- *  - Never deletes when the live key set is empty — that means a fresh install or a failed read.
+ *  - Never deletes when the live key set is empty: that means a fresh install or a failed read.
  */
 class Maintenance
 {
@@ -97,9 +98,9 @@ class Maintenance
     }
 
     /**
-     * Read twice on purpose: the config rows are a direct database read, so they reflect a write made
-     * earlier in this request — reconcile() runs right after one — and the scoped reads additionally
-     * catch a key locked into app/etc/env.php, which has no row at all.
+     * Get every configured api key. Reads twice on purpose: the database rows see a write made earlier
+     * in this request (reconcile() runs right after one), and the scoped reads see a key locked
+     * into app/etc/env.php, which has no row.
      *
      * @return string[]
      */
@@ -115,7 +116,8 @@ class Maintenance
             $coordinates = $this->config->getScopeCoordinates();
         } catch (Throwable $e) {
             $this->logger->warning(
-                'Could not enumerate scopes while reconciling MyParcel account settings: ' . $e->getMessage()
+                'Could not enumerate scopes while reconciling MyParcel account settings',
+                LogContext::of($e)
             );
             return [];
         }
