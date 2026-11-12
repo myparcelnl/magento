@@ -14,9 +14,10 @@ class DeliveryCosts
 {
     use NeedsQuoteProps;
 
-    private Weight $weight;
-    private Config $config;
-    private Tax    $tax;
+    private Weight      $weight;
+    private Config      $config;
+    private Tax         $tax;
+    private OrderAmount $orderAmount;
 
     /** The checkout prices every delivery type of every carrier, so decode the matrix once. */
     private array $decodedMatrixCache = [];
@@ -46,11 +47,12 @@ class DeliveryCosts
     /** The quote values every calculate() call must supply, see getBasePrice(). */
     private const REQUIRED_CONDITIONS = ['carrier_name', 'package_type', 'country', 'weight', 'order_amount', 'delivery_type'];
 
-    public function __construct(Weight $weight, Config $config, Tax $tax)
+    public function __construct(Weight $weight, Config $config, Tax $tax, OrderAmount $orderAmount)
     {
-        $this->weight = $weight;
-        $this->config = $config;
-        $this->tax    = $tax;
+        $this->weight      = $weight;
+        $this->config      = $config;
+        $this->tax         = $tax;
+        $this->orderAmount = $orderAmount;
     }
 
     /**
@@ -110,32 +112,10 @@ class DeliveryCosts
         );
     }
 
-    /**
-     * The amount the order amount conditions compare: the subtotal after discount, including tax, in the currency of
-     * the store view. Shipping and its discount are no part of it. Summed from the items, whose totals (subtotal,
-     * subtotal including tax and discount) Magento collects before it collects the shipping rates.
-     */
+    /** Get the subtotal after discount, including tax, which the order amount conditions compare, see OrderAmount. */
     public function getOrderAmount(Quote $quote): float
     {
-        // the item discount excludes tax, unless Magento applies discounts on prices including tax
-        $discountIncludesTax = $this->tax->discountIncludesTax($quote);
-        $taxAfterDiscount    = $this->tax->appliesTaxAfterDiscount($quote);
-        $amount              = 0.0;
-
-        foreach ($quote->getAllVisibleItems() as $item) {
-            $rowTotal        = (float) $item->getRowTotal();
-            $rowTotalInclTax = (float) ($item->getRowTotalInclTax() ?? $rowTotal);
-            $discount        = (float) $item->getDiscountAmount();
-
-            if (! $discountIncludesTax && $taxAfterDiscount && $rowTotal > 0) {
-                // tax calculated after the discount lowers the tax too, so raise the discount by the item's tax rate
-                $discount *= $rowTotalInclTax / $rowTotal;
-            }
-
-            $amount += $rowTotalInclTax - $discount;
-        }
-
-        return max(0.0, $amount);
+        return $this->orderAmount->get($quote);
     }
 
     /**

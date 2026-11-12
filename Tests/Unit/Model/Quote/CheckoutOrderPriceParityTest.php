@@ -6,10 +6,10 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
-use Magento\Quote\Model\Quote\Item;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\OrderAmount;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
@@ -53,35 +53,29 @@ function parityTax(): Tax
 {
     $tax = Mockery::mock(Tax::class);
     $tax->shouldReceive('shippingPrice')->andReturnUsing(static fn ($price) => $price);
-    $tax->shouldReceive('discountIncludesTax')->andReturn(false);
-    $tax->shouldReceive('appliesTaxAfterDiscount')->andReturn(true);
 
     return $tax;
 }
 
-function parityDeliveryCosts(Config $config): DeliveryCosts
+function parityDeliveryCosts(Config $config, float $orderAmount): DeliveryCosts
 {
     $weight = Mockery::mock(Weight::class);
     $weight->shouldReceive('getEmptyPackageWeightInGrams')->andReturn(0);
     $weight->shouldReceive('getQuoteWeightInGrams')->andReturn(1000);
 
-    return new DeliveryCosts($weight, $config, parityTax());
+    $amount = Mockery::mock(OrderAmount::class);
+    $amount->shouldReceive('get')->andReturn($orderAmount);
+
+    return new DeliveryCosts($weight, $config, parityTax(), $amount);
 }
 
-/** One visible item sets the order amount. */
-function parityQuote(float $orderAmount): Quote
+function parityQuote(): Quote
 {
-    $item = Mockery::mock(Item::class);
-    $item->shouldReceive('getRowTotal')->andReturn($orderAmount / 1.21);
-    $item->shouldReceive('getRowTotalInclTax')->andReturn($orderAmount);
-    $item->shouldReceive('getDiscountAmount')->andReturn(0.0);
-
     $address = Mockery::mock(Address::class);
     $address->shouldReceive('getCountryId')->andReturn('NL');
 
     $quote = Mockery::mock(Quote::class)->shouldIgnoreMissing();
     $quote->shouldReceive('getAllItems')->andReturn([])->byDefault();
-    $quote->shouldReceive('getAllVisibleItems')->andReturn([$item]);
     $quote->shouldReceive('getStoreId')->andReturn(1);
     $quote->shouldReceive('getShippingAddress')->andReturn($address);
 
@@ -96,10 +90,11 @@ function parityObjectManager(Config $config): void
 }
 
 /** What the order charges for the chosen delivery type, through the real Carrier. */
-function parityOrderAmount(Config $config, Quote $quote, string $deliveryType, string $carrier = 'postnl', array $shipmentOptions = []): float
+function parityOrderAmount(Config $config, float $orderAmount, string $deliveryType, string $carrier = 'postnl', array $shipmentOptions = []): float
 {
+    $quote         = parityQuote();
     $method        = newInstanceWithoutConstructor(Carrier::class);
-    $deliveryCosts = parityDeliveryCosts($config);
+    $deliveryCosts = parityDeliveryCosts($config, $orderAmount);
     setPrivateProperty($method, 'config', $config);
     setPrivateProperty($method, 'deliveryCosts', $deliveryCosts);
 
@@ -125,7 +120,7 @@ it('the checkout shows per delivery type the price the order charges', function 
     $config = parityConfig(true, ['pickup/fee' => 1.5, 'morning/fee' => -10.0, 'evening/fee' => 2.5]);
     parityObjectManager($config);
 
-    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config), parityQuote($orderAmount));
+    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config, $orderAmount), parityQuote());
 
     foreach ([
         'standard' => $widget['priceStandardDelivery'],
@@ -133,7 +128,7 @@ it('the checkout shows per delivery type the price the order charges', function 
         'morning'  => $widget['priceMorningDelivery'],
         'evening'  => $widget['priceEveningDelivery'],
     ] as $deliveryType => $widgetPrice) {
-        $orderPrice = parityOrderAmount($config, parityQuote($orderAmount), $deliveryType);
+        $orderPrice = parityOrderAmount($config, $orderAmount, $deliveryType);
         expect($orderPrice)->toBe($widgetPrice, "order and widget disagree on $deliveryType at $orderAmount");
     }
 })->with(['below the threshold' => [30.0], 'above the threshold' => [120.0]]);
@@ -142,7 +137,7 @@ it('surcharge view shows the difference with standard delivery', function () {
     $config = parityConfig(false);
     parityObjectManager($config);
 
-    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config), parityQuote(120.0));
+    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config, 120.0), parityQuote());
 
     expect($widget['priceStandardDelivery'])->toBe(0.0)
         ->and($widget['pricePickup'])->toBe(-1.0)          // free pickup against the 1.00 standard tier

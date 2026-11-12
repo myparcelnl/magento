@@ -41,6 +41,12 @@ $knownStubConstants = [
         'USER_TYPE_CUSTOMER'    => 3,
         'USER_TYPE_GUEST'       => 4,
     ],
+    'Magento\\Tax\\Model\\Sales\\Total\\Quote\\CommonTaxCollector' => [
+        'ITEM_TYPE_PRODUCT' => 'product',
+    ],
+    'Magento\\Tax\\Api\\Data\\TaxClassKeyInterface' => [
+        'TYPE_ID' => 'id',
+    ],
 ];
 
 spl_autoload_register(function (string $class) use ($knownStubConstants): void {

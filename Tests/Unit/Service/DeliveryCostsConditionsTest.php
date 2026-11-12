@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Item;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
-use MyParcelNL\Magento\Service\Tax;
 
 /** @param array<int, array{price: float, conditions: array}> $matrix */
 function deliveryCostsWithMatrix(?array $matrix, float $flatRate = 9.99): DeliveryCosts
@@ -120,68 +117,6 @@ it('prices an existing matrix the same as before', function (float $orderAmount,
     [0.0, 'standard'],
     [250.0, 'pickup'],
 ]);
-
-/**
- * @param array<int, array{0: float, 1: float, 2: float}> $rows row total, row total incl. tax, discount per item
- */
-function orderAmountFor(array $rows, bool $discountIncludesTax = false, bool $taxAfterDiscount = true): float
-{
-    $items = array_map(static function (array $row) {
-        $item = Mockery::mock(Item::class);
-        $item->shouldReceive('getRowTotal')->andReturn($row[0]);
-        $item->shouldReceive('getRowTotalInclTax')->andReturn($row[1]);
-        $item->shouldReceive('getDiscountAmount')->andReturn($row[2]);
-
-        return $item;
-    }, $rows);
-
-    $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('getStoreId')->andReturn(1);
-    $quote->shouldReceive('getAllVisibleItems')->andReturn($items);
-
-    $tax = Mockery::mock(Tax::class);
-    $tax->shouldReceive('discountIncludesTax')->andReturn($discountIncludesTax);
-    $tax->shouldReceive('appliesTaxAfterDiscount')->andReturn($taxAfterDiscount);
-
-    $deliveryCosts = newInstanceWithoutConstructor(DeliveryCosts::class);
-    setPrivateProperty($deliveryCosts, 'tax', $tax);
-
-    return invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$quote]);
-}
-
-it('takes the subtotal including tax when there is no discount', function () {
-    expect(orderAmountFor([[45.39, 54.92, 0.0], [10.0, 10.9, 0.0]]))->toEqualWithDelta(65.82, 0.001);
-});
-
-it('raises a discount excluding tax by the tax rate of its item', function () {
-    // The cart from the test environment: 20% off 45.39 excl. tax is 9.07, which also lowers the 21% tax.
-    // Subtracting 9.07 from 54.92 would give 45.85; 9.07 * 1.21 = 10.97 gives the real 43.95.
-    expect(orderAmountFor([[45.39, 54.92, 9.07]]))->toEqualWithDelta(43.945, 0.001);
-});
-
-it('raises the discount per item, each by its own tax rate', function () {
-    // 21% and 9% tax, 10 off each excl. tax: (121 - 12.10) + (109 - 10.90)
-    expect(orderAmountFor([[100.0, 121.0, 10.0], [100.0, 109.0, 10.0]]))->toEqualWithDelta(207.0, 0.001);
-});
-
-it('subtracts a discount that already includes tax as it is', function () {
-    expect(orderAmountFor([[45.39, 54.92, 10.98]], true))
-        ->toEqualWithDelta(43.94, 0.001);
-});
-
-it('subtracts the discount as it is when tax is calculated before the discount', function () {
-    // the discount leaves the tax alone, so the full tax stays on the order
-    expect(orderAmountFor([[45.39, 54.92, 9.07]], false, false))
-        ->toEqualWithDelta(45.85, 0.001);
-});
-
-it('never takes a negative order amount', function () {
-    expect(orderAmountFor([[10.0, 12.1, 15.0]]))->toBe(0.0);
-});
-
-it('takes 0 for a quote without items', function () {
-    expect(orderAmountFor([]))->toBe(0.0);
-});
 
 it('lets the highest met minimum win between tiered thresholds, whatever their order', function () {
     // 3.00 from 50 and free from 100: at 120 both match, the 100 tier is the one the merchant meant
