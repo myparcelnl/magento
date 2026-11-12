@@ -117,6 +117,19 @@ function(
       }
       quote.billingAddress.subscribe(reloadConfig);
       quote.shippingAddress.subscribe(reloadConfig);
+
+      // The delivery costs matrix can price by order amount, so a discount code changes the prices.
+      let subtotalAfterDiscount = getSubtotalAfterDiscount(quote.totals());
+      quote.totals.subscribe(function(totals) {
+        const newSubtotalAfterDiscount = getSubtotalAfterDiscount(totals);
+
+        if (newSubtotalAfterDiscount === subtotalAfterDiscount) {
+          return;
+        }
+
+        subtotalAfterDiscount = newSubtotalAfterDiscount;
+        doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
+      });
     },
 
     onReFetchDeliveryOptionsConfig: function(response) {
@@ -263,6 +276,23 @@ function(
   };
 
   return Model;
+
+  /**
+   * Subtotal incl. tax minus item discounts: only a change detector, the backend computes the amount the matrix compares.
+   * Shipping is left out, so choosing a delivery option does not fetch the prices again.
+   *
+   * @param {Object|null} totals - Totals of the quote.
+   * @returns {number|null}
+   */
+  function getSubtotalAfterDiscount(totals) {
+    if (!totals) {
+      return null;
+    }
+
+    return (totals.items || []).reduce(function(amount, item) {
+      return amount - Number(item.discount_amount || 0);
+    }, Number(totals.subtotal_incl_tax || 0));
+  }
 
   function updateAllowedShippingMethods() {
     // if the shipping methods are not yet loaded in the DOM, try again shortly

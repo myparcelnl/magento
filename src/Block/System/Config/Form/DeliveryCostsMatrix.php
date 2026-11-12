@@ -8,6 +8,7 @@ use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
@@ -39,6 +40,17 @@ class DeliveryCostsMatrix extends Field
             AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => __('Digital stamp'),
             AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => __('Small package'),
         ];
+    }
+
+    /** Delivery type titles by the name the delivery_type condition compares. */
+    public function getDeliveryTypes(): array
+    {
+        $deliveryTypes = [];
+        foreach (PricedDeliveryType::NAMES as $name) {
+            $deliveryTypes[$name] = __(PricedDeliveryType::TITLES[$name]);
+        }
+
+        return $deliveryTypes;
     }
 
     public function getCountryCodes(): array
@@ -91,6 +103,10 @@ class DeliveryCostsMatrix extends Field
             'Package type' => __('Package type'),
             'Maximum weight (in grams)' => __('Maximum weight (in grams)'),
             'Country part of' => __('Country part of'),
+            'Minimum order amount' => __('Minimum order amount'),
+            'Maximum order amount' => __('Maximum order amount'),
+            'Delivery type' => __('Delivery type'),
+            'Set the fees to 0 if you fully set the price per delivery type via the matrix.' => __('Set the fees to 0 if you fully set the price per delivery type via the matrix.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
             'Invalid JSON in textarea' => __('Invalid JSON in textarea'),
