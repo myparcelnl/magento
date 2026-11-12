@@ -42,7 +42,7 @@ class DeliveryCostsMatrix extends Field
         ];
     }
 
-    /** Delivery type titles by the name the delivery_type condition compares. */
+    /** Get the delivery type titles, keyed by the name the delivery_type condition compares. */
     public function getDeliveryTypes(): array
     {
         $deliveryTypes = [];

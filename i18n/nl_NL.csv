@@ -340,7 +340,7 @@ Country part of,Land onderdeel van
 Minimum order amount,Minimaal bestelbedrag
 Maximum order amount,Maximaal bestelbedrag
 Delivery type,Bezorgtype
-"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Het bestelbedrag is het subtotaal na korting, incl. btw en zonder verzendkosten. Zet de toeslagen op 0 als de matrix de prijs per bezorgtype volledig bepaalt."
+"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Het bestelbedrag is het subtotaal na korting, incl. btw en zonder verzendkosten. Zet de kosten per bezorgtype op 0 als de matrix de prijs per bezorgtype volledig bepaalt."
 No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
 Add rule,Regel toevoegen
 Price,Prijs

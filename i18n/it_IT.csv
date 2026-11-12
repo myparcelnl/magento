@@ -327,7 +327,7 @@ Country part of,Paese parte di
 Minimum order amount,Importo minimo dell'ordine
 Maximum order amount,Importo massimo dell'ordine
 Delivery type,Tipo di consegna
-"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","L'importo dell'ordine è il subtotale dopo lo sconto, IVA inclusa e spedizione esclusa. Imposta le tariffe a 0 se la matrice stabilisce interamente il prezzo per tipo di consegna."
+"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","L'importo dell'ordine è il subtotale dopo lo sconto, IVA inclusa e spedizione esclusa. Imposta i costi per tipo di consegna a 0 se la matrice stabilisce interamente il prezzo per tipo di consegna."
 No rules defined. Click Add rule to create a new rule.,Nessuna regola definita. Clicca su 'Aggiungi regola' per crearne una nuova.
 Add rule,Aggiungi regola
 Price,Prezzo

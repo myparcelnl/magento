@@ -10,7 +10,7 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
  * The subset of AbstractConsignment::DELIVERY_TYPES_NAMES that the delivery costs matrix prices per type.
  *
  * Other delivery types take the standard price, see DeliveryCosts::calculate().
- * TITLES is the shop-wide label of each type: the carrier's method title and the matrix UI read it.
+ * TITLES is the label of each type in the carrier's method title and in the matrix UI.
  */
 class PricedDeliveryType
 {
