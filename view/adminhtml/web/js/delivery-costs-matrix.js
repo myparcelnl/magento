@@ -139,7 +139,7 @@ define(
                         </div>
                         <div class="form-field">
                             <label for="price-${ruleId}">${this.translations["Price"]}</label>
-                            <input id="price-${ruleId}" class="price" type="number" value="${rule.price || ''}">
+                            <input id="price-${ruleId}" name="delivery_costs_price_${ruleIndex}" class="price required-entry validate-number" type="number" step="any" value="${null == rule.price ? '' : rule.price}">
                         </div>
                         <a class="display-rule-button">
                             <img class="display-rule-button-icon" src="${options.chevronDownIcon}" alt="${this.translations['Toggle conditions']}">

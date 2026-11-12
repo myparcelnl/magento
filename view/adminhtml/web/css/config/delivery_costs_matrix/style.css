@@ -52,7 +52,7 @@
         margin-right: 15px;
         position: relative;
 
-        label {
+        label:not(.mage-error) {
             color: #303030;
             font-size: 14px;
             font-weight: 600;
@@ -60,6 +60,16 @@
             position: absolute;
             top: -20px;
             left: 0;
+        }
+
+        /* below the input and out of the flow, so the row does not move */
+        label.mage-error {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 2px;
+            white-space: nowrap;
+            z-index: 5;
         }
     }
 
