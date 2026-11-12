@@ -46,7 +46,11 @@ function orderAmountFor(array $rows, bool $priceIncludesTax = false): float
         $taxedItems[$code] = $taxed;
     }
 
-    $quoteItems = $rows ? [Mockery::mock(Item::class)] : [];
+    // inside a collect: the tax subtotal collector gave the item a tax calculation price
+    $quoteItem = Mockery::mock(Item::class);
+    $quoteItem->shouldReceive('getParentItem')->andReturn(null);
+    $quoteItem->shouldReceive('getTaxCalculationPrice')->andReturn(66.07);
+    $quoteItems = $rows ? [$quoteItem] : [];
     $address    = Mockery::mock(Address::class);
     $store      = Mockery::mock(Store::class);
     $store->shouldReceive('getStoreId')->andReturn('3');
@@ -138,4 +142,95 @@ it('never takes a negative order amount', function () {
 
 it('takes 0 for a quote without items, without asking the tax service', function () {
     expect(orderAmountFor([]))->toBe(0.0);
+});
+
+/**
+ * A quote item with the totals Magento saved at its last collect. Without a tax calculation price it was not
+ * mapped in this request, as on a quote that the session loaded without collecting it.
+ */
+function savedQuoteItem(
+    float $rowTotal,
+    float $discount,
+    float $tax,
+    float $compensation = 0.0,
+    ?Item $parent = null,
+    bool $childrenCalculated = false,
+    ?float $taxCalculationPrice = null
+): Item {
+    $item = Mockery::mock(Item::class);
+    $item->shouldReceive('getParentItem')->andReturn($parent);
+    $item->shouldReceive('getHasChildren')->andReturn($childrenCalculated);
+    $item->shouldReceive('isChildrenCalculated')->andReturn($childrenCalculated);
+    $item->shouldReceive('getTaxCalculationPrice')->andReturn($taxCalculationPrice);
+    $item->shouldReceive('getRowTotal')->andReturn($rowTotal);
+    $item->shouldReceive('getDiscountAmount')->andReturn($discount);
+    $item->shouldReceive('getTaxAmount')->andReturn($tax);
+    $item->shouldReceive('getDiscountTaxCompensationAmount')->andReturn($compensation);
+
+    return $item;
+}
+
+/** Runs OrderAmount on a quote that was not collected: it must not map the items nor ask the tax service. */
+function savedOrderAmountFor(array $quoteItems): float
+{
+    $quote = Mockery::mock(Quote::class);
+    $quote->shouldReceive('getAllItems')->andReturn($quoteItems);
+
+    // mapItems() would write the saved net price back to the item as its tax calculation price
+    $collector = Mockery::mock(CommonTaxCollector::class);
+    $collector->shouldNotReceive('mapItems');
+    $taxCalculation = Mockery::mock(TaxCalculationInterface::class);
+    $taxCalculation->shouldNotReceive('calculateTax');
+
+    return (new OrderAmount(
+        $taxCalculation,
+        $collector,
+        Mockery::mock(QuoteDetailsInterfaceFactory::class),
+        Mockery::mock(TaxClassKeyInterfaceFactory::class),
+        Mockery::mock(ShippingAssignmentInterfaceFactory::class),
+        Mockery::mock(TaxConfig::class)
+    ))->get($quote);
+}
+
+it('takes the saved totals of a quote that is not collected, without mapping its items', function () {
+    // Freek's case: 79.00 incl. tax, saved by the last collect as 65.29 net and 13.71 tax
+    expect(savedOrderAmountFor([savedQuoteItem(65.29, 0.0, 13.71)]))->toBe(79.0)
+        ->and(savedOrderAmountFor([savedQuoteItem(19.99, 0.0, 4.2), savedQuoteItem(19.99, 0.0, 4.2)]))->toBe(48.38);
+});
+
+it('subtracts the saved discount and adds its tax compensation', function () {
+    expect(savedOrderAmountFor([
+        savedQuoteItem(66.07, 0.78, 13.71),
+        savedQuoteItem(82.64, 10.0, 15.62, 1.74),
+    ]))->toBe(169.0);
+});
+
+it('counts the children of a dynamic bundle from the saved totals, not the parent that sums them', function () {
+    $bundle = savedQuoteItem(30.0, 0.0, 6.3, 0.0, null, true);
+
+    expect(savedOrderAmountFor([
+        $bundle,
+        savedQuoteItem(10.0, 0.0, 2.1, 0.0, $bundle),
+        savedQuoteItem(20.0, 0.0, 4.2, 0.0, $bundle),
+    ]))->toBe(36.3);
+});
+
+it('counts a configurable through its parent, not through its child', function () {
+    $configurable = savedQuoteItem(50.0, 0.0, 10.5);
+
+    expect(savedOrderAmountFor([$configurable, savedQuoteItem(50.0, 0.0, 10.5, 0.0, $configurable)]))->toBe(60.5);
+});
+
+it('treats a quote as mapped when only the child of a configurable has no tax calculation price', function () {
+    // mapItems() skips that child, so inside a collect it never gets one
+    $configurable = savedQuoteItem(50.0, 0.0, 10.5, 0.0, null, false, 50.0);
+    $child        = savedQuoteItem(0.0, 0.0, 0.0, 0.0, $configurable);
+    $isMapped     = static fn (array $items): bool => invokePrivateMethod(newInstanceWithoutConstructor(OrderAmount::class), 'isMappedForTax', [$items]);
+
+    expect($isMapped([$configurable, $child]))->toBeTrue()
+        ->and($isMapped([savedQuoteItem(65.29, 0.0, 13.71)]))->toBeFalse();
+});
+
+it('never takes a negative amount from the saved totals', function () {
+    expect(savedOrderAmountFor([savedQuoteItem(10.0, 15.0, 0.0)]))->toBe(0.0);
 });

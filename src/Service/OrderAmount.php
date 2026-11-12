@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Api\Data\ShippingAssignmentInterfaceFactory;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Item\AbstractItem;
 use Magento\Tax\Api\Data\QuoteDetailsInterfaceFactory;
 use Magento\Tax\Api\Data\QuoteDetailsItemInterface;
 use Magento\Tax\Api\Data\TaxClassKeyInterface;
@@ -18,9 +19,10 @@ use Magento\Tax\Model\Sales\Total\Quote\CommonTaxCollector;
 /**
  * The subtotal after discount, including tax, that the order amount conditions of the delivery costs matrix compare.
  *
- * Magento's tax total runs after the shipping rates are collected, so the items hold no tax after discount yet.
+ * Inside a collect, Magento's tax total runs after the shipping rates, so the items hold no tax after discount yet.
  * This asks Magento's tax service for it, with the items mapped as the tax collector maps them, so the rounding
- * is Magento's own. The shipping line is left out: Magento adds it after the items, so the item taxes are the same.
+ * is Magento's own. Outside a collect, mapping would read the saved net price as gross and write it back to the
+ * item, which corrupts the next collect, so the saved totals of the last collect are summed instead.
  */
 class OrderAmount
 {
@@ -56,6 +58,10 @@ class OrderAmount
             return 0.0;
         }
 
+        if (! self::isMappedForTax($quoteItems)) {
+            return max(0.0, round(self::sumSavedTotals($quoteItems), 2));
+        }
+
         $store = $quote->getStore();
         $items = $this->taxCollector->mapItems(
             $this->shippingAssignmentFactory->create()->setItems($quoteItems),
@@ -76,6 +82,54 @@ class OrderAmount
         $taxedItems = $this->taxCalculation->calculateTax($quoteDetails, (int) $store->getStoreId())->getItems();
 
         return max(0.0, round($this->sumProducts($items, $taxedItems), 2));
+    }
+
+    /**
+     * Whether the tax subtotal collector mapped the items in this request, which it does before the shipping rates.
+     * Only the items that mapItems() maps count: a child of a configurable never gets a tax calculation price.
+     *
+     * @param AbstractItem[] $quoteItems
+     */
+    private static function isMappedForTax(array $quoteItems): bool
+    {
+        foreach ($quoteItems as $item) {
+            $parent = $item->getParentItem();
+
+            if (($parent && ! $parent->isChildrenCalculated()) || null !== $item->getTaxCalculationPrice()) {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Adds up the totals Magento saved on the items at its last collect, the same sum as sumProducts().
+     * A parent priced through its children counts through those children, any other child through its parent.
+     *
+     * @param AbstractItem[] $quoteItems
+     */
+    private static function sumSavedTotals(array $quoteItems): float
+    {
+        $amount = 0.0;
+        foreach ($quoteItems as $item) {
+            $parent             = $item->getParentItem();
+            $childOfPlainParent = $parent && ! $parent->isChildrenCalculated();
+            $parentOfCalculated = $item->getHasChildren() && $item->isChildrenCalculated();
+
+            if ($childOfPlainParent || $parentOfCalculated) {
+                continue;
+            }
+
+            $amount += (float) $item->getRowTotal()
+                       - (float) $item->getDiscountAmount()
+                       + (float) $item->getTaxAmount()
+                       + (float) $item->getDiscountTaxCompensationAmount();
+        }
+
+        return $amount;
     }
 
     /**
