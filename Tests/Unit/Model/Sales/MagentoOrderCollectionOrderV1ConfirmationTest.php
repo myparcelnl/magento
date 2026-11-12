@@ -10,6 +10,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\UserAgent;
+use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Helper\MyParcelCurl;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
@@ -151,4 +152,61 @@ it('does not mark an order exported when the answer leaves it out', function () 
         ->and($run['errors'])->toHaveCount(1)
         ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.')
         ->and($run['rows'])->toBe(['100000001' => $run['errors'][0], '100000002' => $run['errors'][0]]);
+});
+
+it('marks the other orders exported and names the one whose save failed', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once()
+        ->with('MyParcel export: order 100000001 created but not marked exported', Mockery::any());
+
+    $did = new class { public array $errors = []; public array $exported = []; };
+
+    $messageManager = Mockery::mock(ManagerInterface::class);
+    $messageManager->shouldReceive('addErrorMessage')->andReturnUsing(
+        static function ($message) use ($messageManager, $did) {
+            $did->errors[] = (string) $message;
+
+            return $messageManager;
+        }
+    );
+
+    $orderResource = Mockery::mock(OrderResource::class);
+    $orderResource->shouldReceive('save')->andReturnUsing(
+        static function (Order $order) use ($did): void {
+            if ('100000001' === $order->getIncrementId()) {
+                throw new RuntimeException('Deadlock found');
+            }
+
+            $did->exported[] = $order->getIncrementId();
+        }
+    );
+
+    $objectManager = Mockery::mock(ObjectManagerInterface::class);
+    $objectManager->shouldReceive('get')->with(OrderResource::class)->andReturn($orderResource);
+
+    $magentoOrders = [];
+
+    foreach (['100000001', '100000002'] as $incrementId) {
+        $order = Mockery::mock(Order::class);
+        $order->shouldReceive('getIncrementId')->andReturn($incrementId);
+        $order->shouldReceive('setData')->andReturnSelf();
+        $order->shouldReceive('setIsInProcess')->andReturnSelf();
+        $magentoOrders[] = $order;
+    }
+
+    $savedOrders = new OrderCollection([conceptApiOrder('100000001'), conceptApiOrder('100000002')]);
+
+    $collection = Mockery::mock(MagentoOrderCollection::class)->makePartial();
+    setPrivateProperty($collection, 'messageManager', $messageManager);
+    setPrivateProperty($collection, 'objectManager', $objectManager);
+
+    $unconfirmed = Closure::bind(function () use ($magentoOrders, $savedOrders): array {
+        return $this->setMagentoOrdersAsExported($magentoOrders, $savedOrders);
+    }, $collection, MagentoOrderCollection::class)();
+
+    expect($unconfirmed)->toBe([])
+        ->and($did->exported)->toBe(['100000002'])
+        ->and($did->errors)->toBe([
+            'MyParcel created these orders, but they could not be marked as exported: 100000001. Do not export them again. Please check the log.',
+        ]);
 });

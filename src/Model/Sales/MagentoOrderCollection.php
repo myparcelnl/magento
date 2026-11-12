@@ -359,6 +359,7 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $byExternalIdentifier = [];
         $unconfirmed          = [];
+        $unrecorded           = [];
 
         foreach ($savedOrders as $savedOrder) {
             $byExternalIdentifier[(string) $savedOrder->getExternalIdentifier()] = $savedOrder;
@@ -375,7 +376,23 @@ class MagentoOrderCollection extends MagentoCollection
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
             $magentoOrder->setData('myparcel_uuid', $orderV1Order->getUuid());
             $magentoOrder->setIsInProcess(true);
-            $this->objectManager->get(OrderResource::class)->save($magentoOrder);
+
+            try {
+                $this->objectManager->get(OrderResource::class)->save($magentoOrder);
+            } catch (Throwable $e) {
+                Logger::warning(
+                    sprintf('MyParcel export: order %s created but not marked exported', $magentoOrder->getIncrementId()),
+                    LogContext::of($e)
+                );
+                $unrecorded[] = $magentoOrder;
+            }
+        }
+
+        if ($unrecorded) {
+            $this->messageManager->addErrorMessage(__(
+                'MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.',
+                implode(', ', array_map(static fn (Order $order): string => (string) $order->getIncrementId(), $unrecorded))
+            ));
         }
 
         return $unconfirmed;

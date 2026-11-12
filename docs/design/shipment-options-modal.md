@@ -11,7 +11,7 @@ A stored shipment option is tri-state: `null` inherits, `true` is on, `false` is
 `false` beats every default, an 18+ product included.
 
 - The checkout widget writes `false` for an option the customer did not tick. Every checkout write
-  turns it into `null` (`DeliveryOptions::inheritUnticked()`), and the 5.11.0 upgrade does the same
+  turns it into `null` (`DeliveryOptions::inheritUnticked()`), and the 6.0.0 upgrade does the same
   to older rows (`Setup\Migrations\ShipmentOptionsFalseToNull`).
 - A save writes only the fields the merchant changed (`OptionChanges`), so a later configuration
   change still reaches the others.

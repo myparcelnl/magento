@@ -8,7 +8,7 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 use MyParcelNL\Magento\Setup\Migrations\RenameMyParcelShipmentIdColumn;
 
 /**
- * The track column takes the code's name. It runs on every upgrade below 5.11.0, also when an earlier
+ * The track column takes the code's name. It runs on every upgrade below 6.0.0, also when an earlier
  * run already renamed it, so the guards are what keep a second run from failing.
  *
  * @param string[] $columns the columns sales_shipment_track has before the run

@@ -206,72 +206,63 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
         }
-        $tableTrack = $setup->getTable('sales_shipment_track');
+        if (version_compare($context->getVersion(), '6.0.0', '<')) {
+            $tableTrack = $setup->getTable('sales_shipment_track');
 
-        // Length above 255 makes this a TEXT column, not a varchar(1023): Magento maps TYPE_TEXT to
-        // varchar only up to 255. This is deliberate: a tokenised portal link must not be truncated,
-        // and nothing indexes or filters on it.
-        if (
-            version_compare($context->getVersion(), '5.11.0', '<')
-            && $setup->getConnection()->isTableExists($tableTrack)
-            && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_tracktrace_url')
-        ) {
-            $setup->getConnection()->addColumn(
-                $tableTrack,
-                'myparcel_tracktrace_url',
-                [
-                    'type'     => Table::TYPE_TEXT,
-                    'length'   => 1023,
-                    'nullable' => true,
-                    'comment'  => 'MyParcel consumer portal link as received from the api',
-                ]
-            );
-        }
+            // Length above 255 makes this a TEXT column, not a varchar(1023): Magento maps TYPE_TEXT to
+            // varchar only up to 255. This is deliberate: a tokenised portal link must not be truncated,
+            // and nothing indexes or filters on it.
+            if (
+                $setup->getConnection()->isTableExists($tableTrack)
+                && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_tracktrace_url')
+            ) {
+                $setup->getConnection()->addColumn(
+                    $tableTrack,
+                    'myparcel_tracktrace_url',
+                    [
+                        'type'     => Table::TYPE_TEXT,
+                        'length'   => 1023,
+                        'nullable' => true,
+                        'comment'  => 'MyParcel consumer portal link as received from the api',
+                    ]
+                );
+            }
 
-        // A JSON list: every return mail sent for this track adds the return shipment it created.
-        if (
-            version_compare($context->getVersion(), '5.11.0', '<')
-            && $setup->getConnection()->isTableExists($tableTrack)
-            && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_return_ids')
-        ) {
-            $setup->getConnection()->addColumn(
-                $tableTrack,
-                'myparcel_return_ids',
-                [
-                    'type'     => Table::TYPE_TEXT,
-                    'length'   => 1023,
-                    'nullable' => true,
-                    'comment'  => 'MyParcel return shipment ids created by the return mail',
-                ]
-            );
-        }
+            // A JSON list: every return mail sent for this track adds the return shipment it created.
+            if (
+                $setup->getConnection()->isTableExists($tableTrack)
+                && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_return_ids')
+            ) {
+                $setup->getConnection()->addColumn(
+                    $tableTrack,
+                    'myparcel_return_ids',
+                    [
+                        'type'     => Table::TYPE_TEXT,
+                        'length'   => 1023,
+                        'nullable' => true,
+                        'comment'  => 'MyParcel return shipment ids created by the return mail',
+                    ]
+                );
+            }
 
-        // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
-        // over the whole table (no order narrows it first), and had no index to start from.
-        // carrier_code leads because it is the equality; myparcel_status is the IN().
-        //
-        // No index on myparcel_shipment_id: that query already filters it, but only alongside
-        // these two, and nothing else filters it at all. A second index would just be maintained.
-        // The EXISTS subqueries in ordersAwaitingBarcode() correlate on order_id, which core's own
-        // SALES_SHIPMENT_TRACK_ORDER_ID already covers.
-        if (
-            version_compare($context->getVersion(), '5.11.0', '<')
-            && $setup->getConnection()->isTableExists($tableTrack)
-        ) {
-            $this->addIndexOnce($setup, $tableTrack, ['carrier_code', 'myparcel_status']);
-        }
+            // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
+            // over the whole table (no order narrows it first), and had no index to start from.
+            // carrier_code leads because it is the equality; myparcel_status is the IN().
+            //
+            // No index on myparcel_shipment_id: that query already filters it, but only alongside
+            // these two, and nothing else filters it at all. A second index would just be maintained.
+            // The EXISTS subqueries in ordersAwaitingBarcode() correlate on order_id, which core's own
+            // SALES_SHIPMENT_TRACK_ORDER_ID already covers.
+            if ($setup->getConnection()->isTableExists($tableTrack)) {
+                $this->addIndexOnce($setup, $tableTrack, ['carrier_code', 'myparcel_status']);
+            }
 
-        if (version_compare($context->getVersion(), '5.11.0', '<')) {
             $this->addUuidPrefixIndex($setup, $tableSalesOrder);
-        }
 
-        // Installs from before 5.11.0 still have the old name.
-        if (version_compare($context->getVersion(), '5.11.0', '<')) {
+            // Installs from before 6.0.0 still have the old name.
             (new RenameMyParcelShipmentIdColumn())->run($setup);
-        }
 
-        // Why the API refused the order's last export. Cleared by the next export that succeeds.
-        if (version_compare($context->getVersion(), '5.11.0', '<')) {
+            // Why the API refused the order's last export. Cleared by the next export that succeeds.
             foreach ([$tableSalesOrder, $setup->getTable('sales_order_grid')] as $table) {
                 if (! $setup->getConnection()->isTableExists($table)
                     || $setup->getConnection()->tableColumnExists($table, Config::FIELD_EXPORT_ERROR)) {

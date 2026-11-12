@@ -55,3 +55,21 @@ it('gives every order in a batch only its own products', function () {
 
     expect($skus)->toBe([['FIRST'], ['SECOND']]);
 });
+
+it('rounds the price and the VAT of an order line to cents', function () {
+    [$order] = buildBatch([[createOrderItem(['price' => 0.29, 'tax_amount' => 0.0659])]]);
+    $line    = $order->getOrderLines()->first();
+
+    // Truncating gave 28 and 6.
+    expect($line->getPrice())->toBe(29)
+        ->and($line->getVat())->toBe(7)
+        ->and($line->getPriceAfterVat())->toBe(36);
+});
+
+it('reads a price that the database gives as a string', function () {
+    [$order] = buildBatch([[createOrderItem(['price' => '19.9900', 'tax_amount' => '4.1979'])]]);
+    $line    = $order->getOrderLines()->first();
+
+    expect($line->getPrice())->toBe(1999)
+        ->and($line->getVat())->toBe(420);
+});

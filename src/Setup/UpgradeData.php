@@ -1157,7 +1157,7 @@ class UpgradeData implements UpgradeDataInterface
             $this->fingerprintAccountSettingsPaths->run();
         }
 
-        if (version_compare($context->getVersion(), '5.11.0', '<')) {
+        if (version_compare($context->getVersion(), '6.0.0', '<')) {
             $this->enableCapabilitiesCache->run();
             $this->classificationToVarchar->run($eavSetup);
             $this->unscopeWeightIndication->run();
