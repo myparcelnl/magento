@@ -15,6 +15,7 @@ use Magento\Tax\Api\Data\TaxDetailsItemInterface;
 use Magento\Tax\Api\TaxCalculationInterface;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\Sales\Total\Quote\CommonTaxCollector;
+use MyParcelNL\Magento\Facade\Logger;
 
 /**
  * The subtotal after discount, including tax, that the order amount conditions of the delivery costs matrix compare.
@@ -59,7 +60,7 @@ class OrderAmount
         }
 
         if (! self::isMappedForTax($quoteItems)) {
-            return max(0.0, round(self::sumSavedTotals($quoteItems), 2));
+            return round(self::sumSavedTotals($quoteItems), 2);
         }
 
         $store = $quote->getStore();
@@ -79,9 +80,13 @@ class OrderAmount
         $quoteDetails->setItems($items);
         $quoteDetails->setCustomerId($quote->getCustomerId());
 
-        $taxedItems = $this->taxCalculation->calculateTax($quoteDetails, (int) $store->getStoreId())->getItems();
+        // the interface promises no keys and may return null, so key the result by code as CommonTaxCollector does
+        $taxedItems = [];
+        foreach ($this->taxCalculation->calculateTax($quoteDetails, (int) $store->getStoreId())->getItems() ?? [] as $taxed) {
+            $taxedItems[$taxed->getCode()] = $taxed;
+        }
 
-        return max(0.0, round($this->sumProducts($items, $taxedItems), 2));
+        return round($this->sumProducts($items, $taxedItems), 2);
     }
 
     /**
@@ -136,7 +141,8 @@ class OrderAmount
      * Adds up the products as Magento's grand total does: row total - discount + tax + discount tax compensation.
      *
      * A parent priced through its children (a dynamic bundle) holds the sum of those children, so only the children
-     * count. Other types, such as FPT, are no part of the subtotal.
+     * count. Other types, such as FPT, are no part of the subtotal. A product the tax service did not return, as a
+     * third-party implementation may do, is left out and logged: a thrown warning would break the checkout.
      *
      * @param QuoteDetailsItemInterface[] $items
      * @param TaxDetailsItemInterface[]   $taxedItems keyed by item code
@@ -150,14 +156,19 @@ class OrderAmount
             }
         }
 
-        $amount = 0.0;
+        $amount  = 0.0;
+        $missing = [];
         foreach ($items as $item) {
-            $taxed = $taxedItems[$item->getCode()] ?? null;
-
-            if (null === $taxed
-                || CommonTaxCollector::ITEM_TYPE_PRODUCT !== $item->getType()
+            if (CommonTaxCollector::ITEM_TYPE_PRODUCT !== $item->getType()
                 || isset($parentCodes[$item->getCode()])
             ) {
+                continue;
+            }
+
+            $taxed = $taxedItems[$item->getCode()] ?? null;
+
+            if (null === $taxed) {
+                $missing[] = $item->getCode();
                 continue;
             }
 
@@ -165,6 +176,13 @@ class OrderAmount
                        - (float) $item->getDiscountAmount()
                        + (float) $taxed->getRowTax()
                        + (float) $taxed->getDiscountTaxCompensationAmount();
+        }
+
+        if ($missing) {
+            Logger::notice(
+                'The tax service returned no item for these codes, the order amount leaves them out',
+                ['codes' => $missing]
+            );
         }
 
         return $amount;

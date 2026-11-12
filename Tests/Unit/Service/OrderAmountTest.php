@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Api\Data\ShippingAssignmentInterfaceFactory;
 use Magento\Quote\Model\Quote;
@@ -19,14 +21,21 @@ use Magento\Tax\Api\TaxCalculationInterface;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\Sales\Total\Quote\CommonTaxCollector;
 use MyParcelNL\Magento\Service\OrderAmount;
+use Psr\Log\LoggerInterface;
+
+afterEach(function () {
+    (new ReflectionProperty(ObjectManager::class, '_instance'))->setValue(null, null);
+});
 
 /**
  * Runs OrderAmount on items as Magento's tax service returns them. Each row: code, type, parent code, discount,
  * and the row total, row tax and discount tax compensation that Magento calculated.
  *
  * @param array<int, array{0: string, 1: string, 2: ?string, 3: float, 4: float, 5: float, 6: float}> $rows
+ * @param bool     $asList      the tax service returns its items as a plain list, not keyed by code
+ * @param string[] $notReturned codes the tax service leaves out of its result
  */
-function orderAmountFor(array $rows, bool $priceIncludesTax = false): float
+function orderAmountFor(array $rows, bool $priceIncludesTax = false, bool $asList = false, array $notReturned = []): float
 {
     $asked      = $rows ? 1 : 0;
     $items      = [];
@@ -40,6 +49,7 @@ function orderAmountFor(array $rows, bool $priceIncludesTax = false): float
         $items[] = $item;
 
         $taxed = Mockery::mock(TaxDetailsItemInterface::class);
+        $taxed->shouldReceive('getCode')->andReturn($code);
         $taxed->shouldReceive('getRowTotal')->andReturn($rowTotal);
         $taxed->shouldReceive('getRowTax')->andReturn($rowTax);
         $taxed->shouldReceive('getDiscountTaxCompensationAmount')->andReturn($compensation);
@@ -89,7 +99,8 @@ function orderAmountFor(array $rows, bool $priceIncludesTax = false): float
     $collector->shouldReceive('populateAddressData')->with($quoteDetails, $address)->times($asked)->andReturn($quoteDetails);
 
     $taxDetails = Mockery::mock(TaxDetailsInterface::class);
-    $taxDetails->shouldReceive('getItems')->andReturn($taxedItems);
+    $returned = array_diff_key($taxedItems, array_flip($notReturned));
+    $taxDetails->shouldReceive('getItems')->andReturn($asList ? array_values($returned) : $returned);
     $taxCalculation = Mockery::mock(TaxCalculationInterface::class);
     $taxCalculation->shouldReceive('calculateTax')->with($quoteDetails, 3)->times($asked)->andReturn($taxDetails);
 
@@ -103,7 +114,7 @@ function orderAmountFor(array $rows, bool $priceIncludesTax = false): float
     ))->get($quote);
 }
 
-it('takes the tax Magento calculates after the discount, so an order on a threshold stays on it', function () {
+it('adds row total and tax and subtracts the discount, so the review case comes to exactly 79.00', function () {
     // the review case: 66.07 excl. tax, 0.78 discount, and Magento's 13.71 tax on the discounted 65.29
     expect(orderAmountFor([['a', 'product', null, 0.78, 66.07, 13.71, 0.0]]))->toBe(79.0);
 });
@@ -116,12 +127,12 @@ it('adds up every product and rounds the sum to cents', function () {
     ]))->toBe(48.38);
 });
 
-it('adds the discount tax compensation, for prices that include tax', function () {
+it('adds the discount tax compensation', function () {
     // 100.00 incl. 21% tax with 10.00 off: 82.64 - 10.00 + 15.62 tax + 1.74 compensation
     expect(orderAmountFor([['a', 'product', null, 10.0, 82.64, 15.62, 1.74]], true))->toBe(90.0);
 });
 
-it('counts the children of a bundle, not the parent that sums them', function () {
+it('counts the items with a parent code, not their parent', function () {
     expect(orderAmountFor([
         ['bundle', 'product', null, 0.0, 30.0, 6.3, 0.0],
         ['child-1', 'product', 'bundle', 0.0, 10.0, 2.1, 0.0],
@@ -129,15 +140,11 @@ it('counts the children of a bundle, not the parent that sums them', function ()
     ]))->toBe(36.3);
 });
 
-it('leaves out item types that are no part of the subtotal, such as FPT', function () {
+it('leaves out items whose type is not product', function () {
     expect(orderAmountFor([
         ['a', 'product', null, 0.0, 10.0, 2.1, 0.0],
         ['a-weee', 'weee', null, 0.0, 5.0, 1.05, 0.0],
     ]))->toBe(12.1);
-});
-
-it('never takes a negative order amount', function () {
-    expect(orderAmountFor([['a', 'product', null, 15.0, 10.0, 0.0, 0.0]]))->toBe(0.0);
 });
 
 it('takes 0 for a quote without items, without asking the tax service', function () {
@@ -231,6 +238,22 @@ it('treats a quote as mapped when only the child of a configurable has no tax ca
         ->and($isMapped([savedQuoteItem(65.29, 0.0, 13.71)]))->toBeFalse();
 });
 
-it('never takes a negative amount from the saved totals', function () {
-    expect(savedOrderAmountFor([savedQuoteItem(10.0, 15.0, 0.0)]))->toBe(0.0);
+it('keys the result of the tax service by code, as the interface promises no keys', function () {
+    expect(orderAmountFor([
+        ['a', 'product', null, 0.0, 19.99, 4.2, 0.0],
+        ['b', 'product', null, 0.0, 19.99, 4.2, 0.0],
+    ], false, true))->toBe(48.38);
+});
+
+it('leaves out and logs a product the tax service did not return, instead of breaking the checkout', function () {
+    $logger = Mockery::mock(LoggerInterface::class);
+    $logger->shouldReceive('notice')->once()->with(Mockery::type('string'), ['codes' => ['b']]);
+    $objectManager = Mockery::mock(ObjectManagerInterface::class);
+    $objectManager->shouldReceive('get')->with(LoggerInterface::class)->andReturn($logger);
+    ObjectManager::setInstance($objectManager);
+
+    expect(orderAmountFor([
+        ['a', 'product', null, 0.0, 10.0, 2.1, 0.0],
+        ['b', 'product', null, 0.0, 5.0, 1.05, 0.0],
+    ], false, false, ['b']))->toBe(12.1);
 });
