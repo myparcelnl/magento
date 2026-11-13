@@ -12,6 +12,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
@@ -176,10 +177,11 @@ class Checkout
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
         $quote = $this->quote;
+        // once per request: every delivery type of every carrier compares the same amount
+        $orderAmount = $this->deliveryCosts->getOrderAmount($quote);
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
-            $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country);
 
             try {
                 $consignment = ConsignmentFactory::createByCarrierName($carrierName);
@@ -189,12 +191,20 @@ class Checkout
                 continue;
             }
 
+            $basePrices          = [];
+            $canHaveDeliveryType = [];
+
+            // the matrix can price each delivery type differently, the fees come on top of that
+            foreach (PricedDeliveryType::NAMES as $deliveryType) {
+                $basePrices[$deliveryType]          = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType, $orderAmount);
+                $canHaveDeliveryType[$deliveryType] = $consignment->canHaveDeliveryType($deliveryType);
+            }
+
+            $basePrice = $basePrices[PricedDeliveryType::DEFAULT];
+
             $canHaveSameDay          = $consignment->canHaveExtraOption(AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY);
             $canHaveMonday           = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
-            $canHaveMorning          = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
-            $canHaveEvening          = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
             $canHaveExpress          = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EXPRESS_NAME);
-            $canHavePickup           = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
             $canHaveSignature        = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
             $canHaveCollect          = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_COLLECT);
             $canHaveReceiptCode      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
@@ -204,8 +214,6 @@ class Checkout
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
             $mondayFee           = $canHaveMonday ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice : 0;
-            $morningFee          = $canHaveMorning ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'morning/fee'), $quote) + $addBasePrice : 0;
-            $eveningFee          = $canHaveEvening ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'evening/fee'), $quote) + $addBasePrice : 0;
             $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
             $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
             $collectFee          = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
@@ -214,10 +222,22 @@ class Checkout
             $onlyRecipientFee    = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
             $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
+            // the price per delivery type, with the fee of its own config group on top (standard has none)
+            $deliveryTypePrices = [];
+            foreach (PricedDeliveryType::NAMES as $deliveryType) {
+                $typeFee = PricedDeliveryType::DEFAULT === $deliveryType
+                    ? 0.0
+                    : $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, "$deliveryType/fee"), $quote);
+
+                $deliveryTypePrices[self::getPriceKeyFromDeliveryType($deliveryType)] = $canHaveDeliveryType[$deliveryType]
+                    ? self::deliveryTypePrice($basePrices, $deliveryType, $typeFee, $showTotalPrice)
+                    : 0;
+            }
+
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->config->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->config->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->config->getBoolConfig($carrierPath, 'evening/active');
+            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[AbstractConsignment::DELIVERY_TYPE_MORNING_NAME] && $this->config->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[AbstractConsignment::DELIVERY_TYPE_EVENING_NAME] && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
             $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
@@ -238,7 +258,7 @@ class Checkout
                 'allowPriorityDelivery' => $canHavePriorityDelivery && $this->package->getPriorityDelivery($quote->getAllItems(), $carrierPath),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
-                'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath, $country),
+                'allowPickupLocations'  => $canHaveDeliveryType[AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $country),
                 'allowMondayDelivery'   => $canHaveMonday && $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->config->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
                 'allowExpressDelivery'  => $allowExpressDelivery,
@@ -250,21 +270,50 @@ class Checkout
                 'priceReceiptCode'      => $receiptCodeFee,
                 'priceOnlyRecipient'    => $onlyRecipientFee,
                 'pricePriorityDelivery' => $priorityDeliveryFee,
-                'priceStandardDelivery' => $addBasePrice,
                 'priceMondayDelivery'   => $mondayFee,
-                'priceMorningDelivery'  => $morningFee,
-                'priceEveningDelivery'  => $eveningFee,
                 'priceSameDayDelivery'  => $sameDayFee,
-                'pricePickup'           => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0),
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
                 'pricePackageTypePackageSmall' => $basePrice,
                 // if you want separate package type prices, get them with this: $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $country);
-            ];
+            ] + $deliveryTypePrices;
         }
 
         return $myParcelConfig;
+    }
+
+    /**
+     * The widget takes pickup as pricePickup, every other delivery type as price{Name}Delivery.
+     *
+     * @see https://github.com/myparcelnl/delivery-options/blob/main/libs/shared/src/utils/capabilitiesMapping.ts
+     *      toDeliveryPriceKey() builds the same keys in the widget, keep the two the same
+     */
+    private static function getPriceKeyFromDeliveryType(string $deliveryType): string
+    {
+        if (AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME === $deliveryType) {
+            return 'pricePickup';
+        }
+
+        return 'price' . str_replace('_', '', ucwords($deliveryType, '_')) . 'Delivery';
+    }
+
+    /**
+     * The price the widget shows for a delivery type: the total, or the surcharge on standard delivery. Either way
+     * standard delivery plus the surcharge comes to the total, which is never negative.
+     *
+     * @param array<string, float> $basePrices by delivery type name, holding at least standard
+     */
+    private static function deliveryTypePrice(array $basePrices, string $deliveryType, float $fee, bool $showTotalPrice): float
+    {
+        $standard = $basePrices[PricedDeliveryType::DEFAULT];
+
+        if ($showTotalPrice) {
+            return max(0.0, $basePrices[$deliveryType] + $fee);
+        }
+
+        // the difference first, so equal base prices leave the fee exactly as it was
+        return max(-$standard, $basePrices[$deliveryType] - $standard + $fee);
     }
 
     /**

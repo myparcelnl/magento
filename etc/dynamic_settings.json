@@ -56,7 +56,8 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "frontend_model": "\\MyParcelNL\\Magento\\Block\\System\\Config\\Form\\DeliveryCostsMatrix"
+              "frontend_model": "\\MyParcelNL\\Magento\\Block\\System\\Config\\Form\\DeliveryCostsMatrix",
+              "tooltip": "The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type."
             },
             {
               "id": "delivery_costs",

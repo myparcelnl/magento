@@ -324,6 +324,10 @@ Country,Land
 Package type,Pakettyp
 Maximum weight (in grams),Maximalgewicht (in Gramm)
 Country part of,Land Teil von
+Minimum order amount,Mindestbestellwert
+Maximum order amount,Höchstbestellwert
+Delivery type,Zustellart
+"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Der Bestellwert ist die Zwischensumme nach Rabatt, inklusive MwSt. und ohne Versandkosten. Setzen Sie die Kosten pro Zustellart auf 0, wenn die Matrix den Preis pro Zustellart vollständig festlegt."
 No rules defined. Click Add rule to create a new rule.,"Keine Regeln definiert. Klicken Sie auf 'Regel hinzufügen', um eine neue Regel zu erstellen."
 Add rule,Regel hinzufügen
 Price,Preis

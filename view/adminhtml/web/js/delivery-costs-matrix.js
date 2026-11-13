@@ -14,12 +14,22 @@ define(
                     this.translations = this.options.getTranslations;
                     this.conditionOptionsList = [
                         {value: '', text: this.translations['Select a condition']},
-                        {value: 'carrier_name', text: this.translations['Carrier name']},
+                        // highest rank first, the order of DeliveryCosts::CONDITIONS
                         {value: 'country', text: this.translations['Country']},
-                        {value: 'package_type', text: this.translations['Package type']},
-                        {value: 'maximum_weight', text: this.translations['Maximum weight (in grams)']},
                         {value: 'country_part_of', text: this.translations['Country part of']},
+                        {value: 'delivery_type', text: this.translations['Delivery type']},
+                        {value: 'minimum_order_amount', text: this.translations['Minimum order amount']},
+                        {value: 'maximum_order_amount', text: this.translations['Maximum order amount']},
+                        {value: 'package_type', text: this.translations['Package type']},
+                        {value: 'carrier_name', text: this.translations['Carrier name']},
+                        {value: 'maximum_weight', text: this.translations['Maximum weight (in grams)']},
                     ];
+                    // Conditions whose value is typed in rather than picked from a list
+                    this.numberConditions = ['maximum_weight', 'minimum_order_amount', 'maximum_order_amount'];
+                    // grams are whole numbers; only the order amounts take decimals
+                    this.decimalConditions = ['minimum_order_amount', 'maximum_order_amount'];
+                    // jQuery Validate checks one element per name, so every value input gets its own
+                    this.valueInputCount = 0;
 
                     // This is the first place where the JSON is being parsed, if the JSON is invalid,
                     // this will be shown to the user and the matrix will not be rendered
@@ -124,7 +134,7 @@ define(
                         </div>
                         <div class="form-field">
                             <label for="price-${ruleId}">${this.translations["Price"]}</label>
-                            <input id="price-${ruleId}" class="price" type="number" value="${rule.price || ''}">
+                            <input id="price-${ruleId}" name="delivery_costs_price_${ruleIndex}" class="price required-entry validate-number" type="number" step="any" value="${null == rule.price ? '' : rule.price}">
                         </div>
                         <a class="display-rule-button">
                             <img class="display-rule-button-icon" src="${options.chevronDownIcon}" alt="${this.translations['Toggle conditions']}">
@@ -258,10 +268,13 @@ define(
 
                     // Create the input for the condition value based on the type
                     let conditionValues;
-                    // If the condition type is 'maximum_weight', use an input, otherwise use a select with the available values
-                    if (condition.type === 'maximum_weight') {
+                    // If the condition type takes a number, use an input, otherwise use a select with the available values
+                    if (this.numberConditions.includes(condition.type)) {
                         conditionValues = document.createElement('input');
                         conditionValues.type = 'number';
+                        conditionValues.step = this.decimalConditions.includes(condition.type) ? 'any' : '1';
+                        conditionValues.name = `delivery_costs_condition_value_${++this.valueInputCount}`;
+                        conditionValues.className = 'required-entry validate-number'; // the config form blocks saving an empty value
                         conditionValues.value = condition.value;
                         conditionValues.addEventListener('change', (e) => this.updateCondition(ruleIndex, conditionIndex, 'value', e.target.value));
                     } else {
@@ -284,10 +297,13 @@ define(
                         const newType = e.target.value;
                         let newValueInput;
 
-                        // If the new type is 'maximum_weight', create an input, otherwise create a select with the available values
-                        if (newType === 'maximum_weight') {
+                        // If the new type takes a number, create an input, otherwise create a select with the available values
+                        if (this.numberConditions.includes(newType)) {
                             newValueInput = document.createElement('input');
                             newValueInput.type = 'number';
+                            newValueInput.step = this.decimalConditions.includes(newType) ? 'any' : '1';
+                            newValueInput.name = `delivery_costs_condition_value_${++this.valueInputCount}`;
+                            newValueInput.className = 'required-entry validate-number'; // the config form blocks saving an empty value
                             newValueInput.value = '';
                             newValueInput.addEventListener('change', (ev) => this.updateCondition(ruleIndex, conditionIndex, 'value', ev.target.value));
                         } else {
@@ -315,7 +331,8 @@ define(
 
                 // Update a specific condition's field value
                 updateCondition: function(ruleIndex, conditionIndex, field, value) {
-                    if (false === isNaN(value)) value = Number(value);
+                    // an empty value stays empty (the backend skips the rule) instead of Number('') making it 0
+                    if ('' !== value && false === isNaN(value)) value = Number(value);
                     this.ruleData[ruleIndex].conditions[conditionIndex][field] = value;
                     this.save();
                 },
@@ -347,6 +364,15 @@ define(
                     if (conditionValue ==='carrier_name') {
                         const carriers = options.carriers;
                         Object.entries(carriers).forEach(([value, text]) => {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.textContent = text;
+                            valueSelect.appendChild(option);
+                        });
+                    }
+
+                    if (conditionValue === 'delivery_type') {
+                        Object.entries(options.deliveryTypes).forEach(([value, text]) => {
                             const option = document.createElement('option');
                             option.value = value;
                             option.textContent = text;

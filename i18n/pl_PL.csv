@@ -324,6 +324,10 @@ Country,Kraj
 Package type,Typ paczki
 Maximum weight (in grams),Maksymalna waga (w gramach)
 Country part of,Kraj należy do
+Minimum order amount,Minimalna kwota zamówienia
+Maximum order amount,Maksymalna kwota zamówienia
+Delivery type,Typ dostawy
+"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Kwota zamówienia to suma częściowa po rabacie, z VAT i bez kosztów wysyłki. Ustaw koszty dla każdego typu dostawy na 0, jeśli macierz w pełni ustala cenę dla każdego typu dostawy."
 No rules defined. Click Add rule to create a new rule.,"Nie zdefiniowano reguł. Kliknij 'Dodaj regułę', aby utworzyć nową regułę."
 Add rule,Dodaj regułę
 Price,Cena
