@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.11.0](https://github.com/myparcelnl/magento/compare/v5.10.5...v5.11.0) (2026-11-13)
+
+### :sparkles: New Features
+
+* price delivery costs by order amount and delivery type ([#1039](https://github.com/myparcelnl/magento/issues/1039)) ([359f7e5](https://github.com/myparcelnl/magento/commit/359f7e5fc153b26a7538c81bec29b0ff1d4e94f4)), closes [#1017](https://github.com/myparcelnl/magento/issues/1017) [#1017](https://github.com/myparcelnl/magento/issues/1017)
+
 ## [5.10.5](https://github.com/myparcelnl/magento/compare/v5.10.4...v5.10.5) (2026-11-09)
 
 ### :bug: Bug Fixes
