@@ -254,9 +254,9 @@ define(
         document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(detail);
 
         /**
-         * If the delivery options were emptied, don't request a new shipping method.
+         * Without a selection (null or empty), the server returns no shipping method, so skip the request.
          */
-        if (JSON.stringify(deliveryOptions.deliveryOptions) === '{}') {
+        if (!detail || JSON.stringify(detail) === '{}') {
           return;
         }
 
