@@ -10,8 +10,8 @@ use MyParcelNL\Magento\Model\Rest\AbstractVersionedResource;
 use MyParcelNL\Magento\Model\Rest\VersionContext;
 
 /**
- * Concrete AbstractEndpoint for testing — exposes negotiate() and createResource()
- * publicly and lets each test supply its own handler maps.
+ * Concrete AbstractEndpoint for tests. It exposes negotiate() and createResource() and takes its
+ * handler maps from each test.
  */
 if (!class_exists(AbstractEndpointTestFixture::class, false)) {
     class AbstractEndpointTestFixture extends AbstractEndpoint
@@ -167,8 +167,8 @@ it('defaults to the lowest supported request version when no headers are present
 });
 
 it('uses min(requestSupported) as default when v1 is not in the request handler set', function () {
-    // PDK hardcodes v1 as default and 406's here; Magento uses min(supported) = v2,
-    // which is supported — documents the intentional divergence from PDK.
+    // PDK hardcodes v1 as default and answers 406 here. Magento uses min(supported) = v2 on
+    // purpose.
     $v2       = makeRequestHandler();
     $v3       = makeRequestHandler();
     $endpoint = makeEndpoint(
@@ -290,7 +290,7 @@ it('Content-Type drives request while Accept drives response', function () {
     $v1       = makeRequestHandler();
     $v2       = makeRequestHandler();
     $ctx      = new VersionContext();
-    // Content-Type=v1, Accept lists v2 and v1 — first Accept version is v2
+    // Content-Type=v1, Accept lists v2 and v1: the first Accept version is v2.
     $endpoint = makeEndpoint(
         [
             'Content-Type' => 'application/json; version=1',

@@ -11,17 +11,11 @@ use Magento\Integration\Api\IntegrationServiceInterface;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
 /**
- * UserContextInterface for MyParcel-token-authenticated REST requests.
+ * User context for REST requests that send `Authorization: myparcel <token>`.
  *
- * Reads the `Authorization: myparcel <token>` header (with a REDIRECT_HTTP_AUTHORIZATION
- * fallback for installs whose DocumentRoot is the Magento root rather than pub/), matches
- * the plaintext against stored SHA-256 hashes via {@see TokenScopeContext}, and on success
- * exposes user type USER_TYPE_INTEGRATION resolved against the "MyParcel API" integration.
- * Bearer / OAuth / admin-session / guest requests pass through untouched.
- *
- * Must keep implementing ResetAfterRequestInterface, in lockstep with {@see TokenScopeContext}: a
- * reused singleton would otherwise keep the memoized identity while the scope owner is already
- * null, which disables every store-scope filter.
+ * A match makes the caller the "MyParcel API" integration. Other requests pass through untouched.
+ * Keep ResetAfterRequestInterface in lockstep with {@see TokenScopeContext}: a reused singleton
+ * otherwise keeps the identity while the scope owner is null, which disables every store-scope filter.
  */
 class ApiAccessTokenUserContext implements UserContextInterface, ResetAfterRequestInterface
 {
@@ -95,10 +89,7 @@ class ApiAccessTokenUserContext implements UserContextInterface, ResetAfterReque
         $this->userId   = $integrationId;
     }
 
-    /**
-     * Returns the plaintext token if the Authorization header carries our scheme,
-     * otherwise null. Scheme match is case-insensitive; native Bearer is left untouched.
-     */
+    /** Get the plaintext token when the header uses our scheme (case-insensitive), else null. */
     private function extractToken(): ?string
     {
         $header = $this->readAuthorizationHeader();
@@ -110,11 +101,10 @@ class ApiAccessTokenUserContext implements UserContextInterface, ResetAfterReque
     }
 
     /**
-     * Apache prefixes every env var with REDIRECT_ on each internal redirect.
-     * On installs whose DocumentRoot is the Magento root (not pub/), the
-     * default .htaccess redirects /<path> -> /pub/<path>, after which the
-     * Authorization header lives in $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
-     * and Magento's Request::getHeader() can no longer see it.
+     * Get the Authorization header, also after an Apache internal redirect.
+     *
+     * When the DocumentRoot is the Magento root, .htaccess redirects to pub/ and the header moves
+     * to REDIRECT_HTTP_AUTHORIZATION, which Request::getHeader() cannot see.
      */
     private function readAuthorizationHeader(): ?string
     {
