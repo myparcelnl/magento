@@ -108,10 +108,7 @@ function priceBeforeChoice(bool $pickupDefault, array $configValues = [], bool $
             return 5.0;
         });
 
-    $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturnNull();
-    $quote->shouldReceive('getShippingAddress')->andReturnNull();
-    $quote->shouldReceive('getStoreId')->andReturn(1);
+    $quote = quoteWithChoice();
 
     $method = carrierForPricing(carrierPricingConfig($configValues, $pickupDefault, $pickupActive), $deliveryCosts);
     $amount = invokePrivateMethod($method, 'getMethodAmount', [$quote]);
@@ -141,10 +138,7 @@ it('titles the rate as pickup of the default carrier before the customer chooses
     $config = carrierPricingConfig([], true);
     $config->shouldReceive('getGeneralConfig')->with('shipping_methods/show_details_in_summary')->andReturn('1');
 
-    $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturnNull();
-    $quote->shouldReceive('getShippingAddress')->andReturnNull();
-    $quote->shouldReceive('getStoreId')->andReturn(1);
+    $quote = quoteWithChoice();
 
     $method = carrierForPricing($config, Mockery::mock(DeliveryCosts::class));
 

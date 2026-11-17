@@ -43,8 +43,19 @@ function checkoutPriceConfig(bool $totalView, array $floatConfig = [], array $co
     return $config;
 }
 
-/** The real Checkout with only the collaborators getDeliveryData() reads; returns the settings of one carrier. */
-function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote, string $carrier = 'postnl'): array
+/** A quote in store 1 with the delivery options the customer chose, or none. */
+function quoteWithChoice(?string $savedDeliveryOptions = null): Quote
+{
+    $quote = Mockery::mock(Quote::class);
+    $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturn($savedDeliveryOptions)->byDefault();
+    $quote->shouldReceive('getShippingAddress')->andReturnNull()->byDefault();
+    $quote->shouldReceive('getStoreId')->andReturn(1)->byDefault();
+
+    return $quote;
+}
+
+/** The real Checkout with only the collaborators getDeliveryData() reads. */
+function checkoutForPricing(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote): Checkout
 {
     $package = Mockery::mock(PackageRepository::class)->shouldIgnoreMissing();
     $package->shouldReceive('selectPackageType')->andReturn(AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME);
@@ -59,7 +70,14 @@ function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $delive
     setPrivateProperty($checkout, 'package', $package);
     setPrivateProperty($checkout, 'quote', $quote);
 
-    $data = invokePrivateMethod($checkout, 'getDeliveryData', [AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME, 'NL']);
+    return $checkout;
+}
+
+/** Returns the settings of one carrier, as the real Checkout builds them. */
+function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote, string $carrier = 'postnl'): array
+{
+    $checkout = checkoutForPricing($config, $tax, $deliveryCosts, $quote);
+    $data     = invokePrivateMethod($checkout, 'getDeliveryData', [AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME, 'NL']);
 
     return $data['carrierSettings'][$carrier];
 }
