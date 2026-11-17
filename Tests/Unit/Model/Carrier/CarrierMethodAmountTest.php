@@ -9,6 +9,28 @@ use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
+/** @param array<string, string> $configValues by full path */
+function carrierPricingConfig(array $configValues = [], bool $pickupDefault = false): Config
+{
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($configValues) {
+        return $configValues[$path] ?? null;
+    });
+    $config->shouldReceive('isPickupDefault')->andReturn($pickupDefault);
+    $config->shouldReceive('getDefaultCarrierName')->andReturn('postnl');
+
+    return $config;
+}
+
+function carrierForPricing(Config $config, DeliveryCosts $deliveryCosts): Carrier
+{
+    $method = newInstanceWithoutConstructor(Carrier::class);
+    setPrivateProperty($method, 'config', $config);
+    setPrivateProperty($method, 'deliveryCosts', $deliveryCosts);
+
+    return $method;
+}
+
 /**
  * @param array<string, string> $configValues by full path
  * @param array<string, bool>   $shipmentOptions
@@ -21,19 +43,12 @@ function methodAmountFor(
     float  $basePrice = 5.0,
     ?DeliveryCosts $deliveryCosts = null
 ): float {
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($configValues) {
-        return $configValues[$path] ?? null;
-    });
-
     if (null === $deliveryCosts) {
         $deliveryCosts = Mockery::mock(DeliveryCosts::class);
         $deliveryCosts->shouldReceive('getBasePrice')->andReturn($basePrice);
     }
 
-    $method = newInstanceWithoutConstructor(Carrier::class);
-    setPrivateProperty($method, 'config', $config);
-    setPrivateProperty($method, 'deliveryCosts', $deliveryCosts);
+    $method = carrierForPricing(carrierPricingConfig($configValues), $deliveryCosts);
 
     setPrivateProperty($method, 'deliveryOptions', new DeliveryOptionsV3Adapter([
         'carrier'         => $carrier,
@@ -82,15 +97,6 @@ it('floors the delivery type at 0 before the option fees, as the checkout shows 
  */
 function priceBeforeChoice(bool $pickupDefault, array $configValues = []): array
 {
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($configValues) {
-        return $configValues[$path] ?? null;
-    });
-    $config->shouldReceive('getBoolConfig')
-        ->with(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default')
-        ->andReturn($pickupDefault);
-    $config->shouldReceive('getDefaultCarrierName')->andReturn('postnl');
-
     $pricedDeliveryType = null;
     $deliveryCosts      = Mockery::mock(DeliveryCosts::class);
     $deliveryCosts->shouldReceive('getBasePrice')
@@ -105,10 +111,7 @@ function priceBeforeChoice(bool $pickupDefault, array $configValues = []): array
     $quote->shouldReceive('getShippingAddress')->andReturnNull();
     $quote->shouldReceive('getStoreId')->andReturn(1);
 
-    $method = newInstanceWithoutConstructor(Carrier::class);
-    setPrivateProperty($method, 'config', $config);
-    setPrivateProperty($method, 'deliveryCosts', $deliveryCosts);
-
+    $method = carrierForPricing(carrierPricingConfig($configValues, $pickupDefault), $deliveryCosts);
     $amount = invokePrivateMethod($method, 'getMethodAmount', [$quote]);
 
     return ['deliveryType' => $pricedDeliveryType, 'amount' => $amount];

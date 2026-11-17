@@ -27,6 +27,7 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
  *
  * @property AbstractDeliveryOptionsAdapter $deliveryOptions
+ * @property Config                         $config the class that uses this trait must have it
  */
 trait NeedsQuoteProps
 {
@@ -98,7 +99,7 @@ trait NeedsQuoteProps
      */
     private function getDefaultDeliveryOptions(Quote $quote): AbstractDeliveryOptionsAdapter
     {
-        if (! $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default')) {
+        if (! $this->config->isPickupDefault()) {
             return new DeliveryOptionsV3Adapter();
         }
 
