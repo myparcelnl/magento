@@ -13,12 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: pnpm/setup@v3
         with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: yarn install --immutable
+          cache: true
+          require-lockfile: true
 
       - name: Run ESLint
-        run: yarn lint
+        run: pnpm lint

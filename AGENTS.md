@@ -33,7 +33,7 @@ Run Magento CLI commands from the root of your local Magento install, as `php -d
 | After a change to | Run |
 | --- | --- |
 | PHP | `cache:clean`, `setup:upgrade`, `setup:di:compile` |
-| JavaScript | `yarn install` in this module when dependencies changed, then `setup:static-content:deploy`, `cache:clean` |
+| JavaScript | `pnpm install` in this module when dependencies changed, then `setup:static-content:deploy`, `cache:clean` |
 | XML configuration | `cache:clean config` |
 | Database schema | `setup:upgrade` |
 
