@@ -91,6 +91,7 @@ Express delivery,Express-Zustellung
 Express delivery fee,Express-Zustellung Kosten
 Express delivery active,Express-Zustellung aktiviert
 Same day delivery,Taggleiche Zustellung
+Early morning delivery,Zustellung am frühen Morgen
 Same day title,Titel taggleiche Zustellung
 Morning delivery active,Morgenzustellung aktiviert
 If age check is active then the evening delivery is not possible,"Wenn die Altersprüfung aktiv ist, ist die Abendzustellung nicht möglich"
