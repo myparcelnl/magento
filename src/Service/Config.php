@@ -29,7 +29,6 @@ class Config extends AbstractHelper
     public const XML_PATH_MAGENTO_CARRIER           = 'carriers/' . Carrier::CODE . '/';
     public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
     public const XML_PATH_API_KEY                   = self::XML_PATH_GENERAL . 'api/key';
-    public const XML_PATH_PICKUP_DEFAULT            = self::XML_PATH_GENERAL . 'shipping_methods/pickup_default';
     /**
      * Prefix; append the fingerprint of the api key the settings belong to.
      *
