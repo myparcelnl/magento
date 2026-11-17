@@ -35,6 +35,13 @@ composer require myparcelnl/magento
 
 ## For developers
 
+The JavaScript tooling needs:
+
+- Node.js 24, version 24.21 or later
+- pnpm 12, version 12.11 or later
+
+Volta must not be installed: its `yarn` ignores `packageManager` and `devEngines`.
+
 Clone this repository in `app/code/MyParcelNL/Magento/` using git and run the following commands in the root directory of your Magento installation:
 
 ```bash
