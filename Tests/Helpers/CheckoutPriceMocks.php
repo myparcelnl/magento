@@ -43,8 +43,17 @@ function checkoutPriceConfig(bool $totalView, array $floatConfig = [], array $co
     return $config;
 }
 
+/** A Tax that passes every price through unchanged. */
+function passThroughTax(): Tax
+{
+    $tax = Mockery::mock(Tax::class);
+    $tax->shouldReceive('shippingPrice')->andReturnUsing(static fn ($price) => $price);
+
+    return $tax;
+}
+
 /** A quote in store 1 with the delivery options the customer chose, or none. */
-function quoteWithChoice(?string $savedDeliveryOptions = null): Quote
+function quoteWithDeliveryOptions(?string $savedDeliveryOptions = null): Quote
 {
     $quote = Mockery::mock(Quote::class);
     $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturn($savedDeliveryOptions)->byDefault();

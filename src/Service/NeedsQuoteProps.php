@@ -99,9 +99,14 @@ trait NeedsQuoteProps
     private function getDefaultDeliveryOptions(Quote $quote): AbstractDeliveryOptionsAdapter
     {
         $storeId = (int) $quote->getStoreId();
+
+        if (! $this->config->isPickupDefault($storeId)) {
+            return new DeliveryOptionsV3Adapter();
+        }
+
         $carrier = $this->config->getDefaultCarrierName($quote->getShippingAddress(), $storeId);
 
-        if (! $this->config->isPickupDefault() || '1' !== $this->config->getCarrierConfig($carrier, 'pickup/active', $storeId)) {
+        if ('1' !== $this->config->getCarrierConfig($carrier, 'pickup/active', $storeId)) {
             return new DeliveryOptionsV3Adapter();
         }
 
