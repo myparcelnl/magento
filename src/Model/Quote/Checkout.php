@@ -529,7 +529,7 @@ class Checkout
 
     /**
      * Whether the widget opens on pickup: only before the customer chose, and only when the carrier
-     * that prices the rate before a choice offers pickup, so the tab and the price agree.
+     * that prices the rate before a choice offers pickup.
      *
      * @param array<string, array<string, mixed>> $carrierSettings by carrier
      */
