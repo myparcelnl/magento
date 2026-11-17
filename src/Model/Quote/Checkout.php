@@ -89,6 +89,7 @@ class Checkout
         $data = [
             'carrierCode'     => Carrier::CODE,
             'useFreeShipping' => '1' === $this->config->getGeneralConfig('matrix/use_free_shipping'),
+            'pickupDefault'   => $this->config->isPickupDefault(),
             'config'          => array_merge(
                 $this->getGeneralData(),
                 $this->getDeliveryData($packageType, $country),
@@ -129,7 +130,6 @@ class Checkout
             'allowPickupLocationsViewSelection' => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view_change_allowed'),
             'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
             'excludeParcelLockers'              => $this->isExcludeParcelLockersActive($carrierPath),
-            'pickupDefault'                     => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default'),
             'compactView'                       => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view'),
             'popUpMap'                          => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pop_up_map'),
         ];

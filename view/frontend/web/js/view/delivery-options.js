@@ -144,9 +144,7 @@ define(
        * @param {HTMLElement} container - The delivery options div.
        */
       selectPickupByDefault: function(container) {
-        const config = window.MyParcelConfig.config;
-
-        if (!config.pickupDefault || config.compactView) {
+        if (!window.MyParcelConfig.pickupDefault || window.MyParcelConfig.config.compactView) {
           return;
         }
 
