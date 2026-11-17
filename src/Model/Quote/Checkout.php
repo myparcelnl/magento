@@ -86,13 +86,15 @@ class Checkout
 
         $packageType = $this->getPackageType($country);
 
+        $deliveryData = $this->getDeliveryData($packageType, $country);
+
         $data = [
             'carrierCode'     => Carrier::CODE,
             'useFreeShipping' => '1' === $this->config->getGeneralConfig('matrix/use_free_shipping'),
-            'pickupDefault'   => $this->config->isPickupDefault(),
+            'preselectPickup' => $this->shouldPreselectPickup($deliveryData['carrierSettings'] ?? []),
             'config'          => array_merge(
                 $this->getGeneralData(),
-                $this->getDeliveryData($packageType, $country),
+                $deliveryData,
                 ['packageType' => $packageType]
             ),
             'strings'         => $this->getDeliveryOptionsStrings(),
@@ -523,6 +525,26 @@ class Checkout
         $this->package->productWithoutDeliveryOptions($products);
 
         return $this;
+    }
+
+    /**
+     * Whether the widget opens on pickup: only before the customer chose, and only when the carrier
+     * that prices the rate before a choice offers pickup, so the tab and the price agree.
+     *
+     * @param array<string, array<string, mixed>> $carrierSettings by carrier
+     */
+    private function shouldPreselectPickup(array $carrierSettings): bool
+    {
+        if (! $this->config->isPickupDefault()
+            || $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view')
+            || $this->quote->getData(Config::FIELD_DELIVERY_OPTIONS)
+        ) {
+            return false;
+        }
+
+        $carrier = $this->config->getDefaultCarrierName($this->quote->getShippingAddress(), (int) $this->quote->getStoreId());
+
+        return (bool) ($carrierSettings[$carrier]['allowPickupLocations'] ?? false);
     }
 
     /**

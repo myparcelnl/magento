@@ -10,7 +10,7 @@ use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /** @param array<string, string> $configValues by full path */
-function carrierPricingConfig(array $configValues = [], bool $pickupDefault = false): Config
+function carrierPricingConfig(array $configValues = [], bool $pickupDefault = false, bool $pickupActive = true): Config
 {
     $config = Mockery::mock(Config::class);
     $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($configValues) {
@@ -18,6 +18,7 @@ function carrierPricingConfig(array $configValues = [], bool $pickupDefault = fa
     });
     $config->shouldReceive('isPickupDefault')->andReturn($pickupDefault);
     $config->shouldReceive('getDefaultCarrierName')->andReturn('postnl');
+    $config->shouldReceive('getCarrierConfig')->with('postnl', 'pickup/active', 1)->andReturn($pickupActive ? '1' : '0');
 
     return $config;
 }
@@ -95,7 +96,7 @@ it('floors the delivery type at 0 before the option fees, as the checkout shows 
  * @param array<string, string> $configValues by full path
  * @return array{deliveryType: ?string, amount: float}
  */
-function priceBeforeChoice(bool $pickupDefault, array $configValues = []): array
+function priceBeforeChoice(bool $pickupDefault, array $configValues = [], bool $pickupActive = true): array
 {
     $pricedDeliveryType = null;
     $deliveryCosts      = Mockery::mock(DeliveryCosts::class);
@@ -111,7 +112,7 @@ function priceBeforeChoice(bool $pickupDefault, array $configValues = []): array
     $quote->shouldReceive('getShippingAddress')->andReturnNull();
     $quote->shouldReceive('getStoreId')->andReturn(1);
 
-    $method = carrierForPricing(carrierPricingConfig($configValues, $pickupDefault), $deliveryCosts);
+    $method = carrierForPricing(carrierPricingConfig($configValues, $pickupDefault, $pickupActive), $deliveryCosts);
     $amount = invokePrivateMethod($method, 'getMethodAmount', [$quote]);
 
     return ['deliveryType' => $pricedDeliveryType, 'amount' => $amount];
@@ -129,4 +130,8 @@ it('adds the pickup fee of the default carrier before the customer chooses', fun
 
 it('prices standard delivery before the customer chooses by default', function () {
     expect(priceBeforeChoice(false)['deliveryType'])->toBe(AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME);
+});
+
+it('prices standard delivery before the customer chooses when the default carrier has no pickup', function () {
+    expect(priceBeforeChoice(true, [], false)['deliveryType'])->toBe(AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME);
 });

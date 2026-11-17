@@ -99,13 +99,16 @@ trait NeedsQuoteProps
      */
     private function getDefaultDeliveryOptions(Quote $quote): AbstractDeliveryOptionsAdapter
     {
-        if (! $this->config->isPickupDefault()) {
+        $storeId = (int) $quote->getStoreId();
+        $carrier = $this->config->getDefaultCarrierName($quote->getShippingAddress(), $storeId);
+
+        if (! $this->config->isPickupDefault() || '1' !== $this->config->getCarrierConfig($carrier, 'pickup/active', $storeId)) {
             return new DeliveryOptionsV3Adapter();
         }
 
         // the carrier selects the pickup fee; pickup is only offered for packages
         return new DeliveryOptionsFromOrderAdapter([
-            'carrier'      => $this->config->getDefaultCarrierName($quote->getShippingAddress(), (int) $quote->getStoreId()),
+            'carrier'      => $carrier,
             'deliveryType' => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME,
             'packageType'  => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
         ]);
