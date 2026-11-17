@@ -74,14 +74,22 @@ it('floors the delivery type at 0 before the option fees, as the checkout shows 
     ], AbstractConsignment::DELIVERY_TYPE_EVENING_NAME, ['signature' => true], 3.0))->toBe(1.0);
 });
 
-/** Prices a quote without delivery options and returns the delivery type sent to getBasePrice(). */
-function deliveryTypeBeforeChoice(bool $pickupDefault): ?string
+/**
+ * Prices a quote without delivery options.
+ *
+ * @param array<string, string> $configValues by full path
+ * @return array{deliveryType: ?string, amount: float}
+ */
+function priceBeforeChoice(bool $pickupDefault, array $configValues = []): array
 {
     $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getConfigValue')->andReturnNull();
+    $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($configValues) {
+        return $configValues[$path] ?? null;
+    });
     $config->shouldReceive('getBoolConfig')
         ->with(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default')
         ->andReturn($pickupDefault);
+    $config->shouldReceive('getDefaultCarrierName')->andReturn('postnl');
 
     $pricedDeliveryType = null;
     $deliveryCosts      = Mockery::mock(DeliveryCosts::class);
@@ -89,25 +97,33 @@ function deliveryTypeBeforeChoice(bool $pickupDefault): ?string
         ->andReturnUsing(static function ($quote, $carrier, $packageType, $country, $deliveryType) use (&$pricedDeliveryType) {
             $pricedDeliveryType = $deliveryType;
 
-            return 0.0;
+            return 5.0;
         });
 
     $quote = Mockery::mock(Quote::class);
     $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturnNull();
+    $quote->shouldReceive('getShippingAddress')->andReturnNull();
+    $quote->shouldReceive('getStoreId')->andReturn(1);
 
     $method = newInstanceWithoutConstructor(Carrier::class);
     setPrivateProperty($method, 'config', $config);
     setPrivateProperty($method, 'deliveryCosts', $deliveryCosts);
 
-    invokePrivateMethod($method, 'getMethodAmount', [$quote]);
+    $amount = invokePrivateMethod($method, 'getMethodAmount', [$quote]);
 
-    return $pricedDeliveryType;
+    return ['deliveryType' => $pricedDeliveryType, 'amount' => $amount];
 }
 
 it('prices pickup before the customer chooses when pickup is the default', function () {
-    expect(deliveryTypeBeforeChoice(true))->toBe(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
+    expect(priceBeforeChoice(true)['deliveryType'])->toBe(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
+});
+
+it('adds the pickup fee of the default carrier before the customer chooses', function () {
+    $path = Config::CARRIERS_XML_PATH_MAP['postnl'];
+
+    expect(priceBeforeChoice(true, [$path . 'pickup/fee' => '-4.5'])['amount'])->toBe(0.5);
 });
 
 it('prices standard delivery before the customer chooses by default', function () {
-    expect(deliveryTypeBeforeChoice(false))->toBe(AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME);
+    expect(priceBeforeChoice(false)['deliveryType'])->toBe(AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME);
 });

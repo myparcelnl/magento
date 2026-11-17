@@ -83,10 +83,10 @@ trait NeedsQuoteProps
                 $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($deliveryOptions, true, 512, JSON_THROW_ON_ERROR));
             } catch (\Throwable $e) {
                 Logger::log('warning', "Failed to retrieve delivery options from quote {$quote->getId()}", (array) $deliveryOptions);
-                $this->deliveryOptions = $this->getDefaultDeliveryOptions();
+                $this->deliveryOptions = $this->getDefaultDeliveryOptions($quote);
             }
         } else {
-            $this->deliveryOptions = $this->getDefaultDeliveryOptions();
+            $this->deliveryOptions = $this->getDefaultDeliveryOptions($quote);
         }
 
         return $this->deliveryOptions;
@@ -96,13 +96,18 @@ trait NeedsQuoteProps
      * Delivery options to use before the customer chooses.
      * The SDK adapter crashes on pickup without a pickup location, the module adapter does not.
      */
-    private function getDefaultDeliveryOptions(): AbstractDeliveryOptionsAdapter
+    private function getDefaultDeliveryOptions(Quote $quote): AbstractDeliveryOptionsAdapter
     {
         if (! $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default')) {
             return new DeliveryOptionsV3Adapter();
         }
 
-        return new DeliveryOptionsFromOrderAdapter(['deliveryType' => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME]);
+        // the carrier selects the pickup fee; pickup is only offered for packages
+        return new DeliveryOptionsFromOrderAdapter([
+            'carrier'      => $this->config->getDefaultCarrierName($quote->getShippingAddress(), (int) $quote->getStoreId()),
+            'deliveryType' => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME,
+            'packageType'  => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
+        ]);
     }
 
     /**
