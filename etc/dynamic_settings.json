@@ -296,6 +296,17 @@
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
             },
             {
+              "id": "pickup_default",
+              "path": "myparcelnl_magento_general/shipping_methods/pickup_default",
+              "type": "select",
+              "label": "Pickup as default",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "When enabled, pickup is the default delivery method until the customer selects an option.",
+              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
+            },
+            {
               "id": "compact_view",
               "path": "myparcelnl_magento_general/shipping_methods/compact_view",
               "type": "select",

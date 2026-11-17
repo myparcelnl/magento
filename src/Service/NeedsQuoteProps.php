@@ -15,11 +15,13 @@ use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagem
 use Magento\Quote\Model\EstimateAddress;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
+use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
@@ -81,13 +83,26 @@ trait NeedsQuoteProps
                 $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($deliveryOptions, true, 512, JSON_THROW_ON_ERROR));
             } catch (\Throwable $e) {
                 Logger::log('warning', "Failed to retrieve delivery options from quote {$quote->getId()}", (array) $deliveryOptions);
-                $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+                $this->deliveryOptions = $this->getDefaultDeliveryOptions();
             }
         } else {
-            $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+            $this->deliveryOptions = $this->getDefaultDeliveryOptions();
         }
 
         return $this->deliveryOptions;
+    }
+
+    /**
+     * Delivery options to use before the customer chooses.
+     * The SDK adapter crashes on pickup without a pickup location, the module adapter does not.
+     */
+    private function getDefaultDeliveryOptions(): AbstractDeliveryOptionsAdapter
+    {
+        if (! $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default')) {
+            return new DeliveryOptionsV3Adapter();
+        }
+
+        return new DeliveryOptionsFromOrderAdapter(['deliveryType' => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME]);
     }
 
     /**
