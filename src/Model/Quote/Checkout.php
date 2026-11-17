@@ -17,7 +17,6 @@ use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
@@ -206,13 +205,13 @@ class Checkout
             $canHaveDeliveryType = [];
 
             // the matrix can price each delivery type differently, the fees come on top of that
-            foreach (PricedDeliveryType::NAMES as $deliveryType) {
+            foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
                 $basePrices[$deliveryType]          = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType, $orderAmount);
-                $canHaveDeliveryType[$deliveryType] = PricedDeliveryType::DEFAULT === $deliveryType
+                $canHaveDeliveryType[$deliveryType] = DeliveryType::DEFAULT_NAME === $deliveryType
                                                       || $capabilities->hasDeliveryType($carrierName, $packageType, $deliveryType);
             }
 
-            $basePrice = $basePrices[PricedDeliveryType::DEFAULT];
+            $basePrice = $basePrices[DeliveryType::DEFAULT_NAME];
 
             $canHaveSameDay          = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
             $canHaveExpress          = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
@@ -238,8 +237,8 @@ class Checkout
 
             // the price per delivery type, with the fee of its own config group on top (standard has none)
             $deliveryTypePrices = [];
-            foreach (PricedDeliveryType::NAMES as $deliveryType) {
-                $typeFee = PricedDeliveryType::DEFAULT === $deliveryType
+            foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
+                $typeFee = DeliveryType::DEFAULT_NAME === $deliveryType
                     ? 0.0
                     : $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, "$deliveryType/fee"), $quote);
 
@@ -336,7 +335,7 @@ class Checkout
      */
     private static function deliveryTypePrice(array $basePrices, string $deliveryType, float $fee, bool $showTotalPrice): float
     {
-        $standard = $basePrices[PricedDeliveryType::DEFAULT];
+        $standard = $basePrices[DeliveryType::DEFAULT_NAME];
 
         if ($showTotalPrice) {
             return max(0.0, $basePrices[$deliveryType] + $fee);

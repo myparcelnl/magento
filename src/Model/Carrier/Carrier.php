@@ -32,8 +32,8 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
@@ -197,7 +197,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $carrierHuman = $carrierName;
         }
 
-        $deliveryTypeTitle = PricedDeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
+        $deliveryTypeTitle = DeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
         ob_start();

@@ -46,6 +46,20 @@ final class DeliveryType
     public const DEFAULT      = self::STANDARD;
     public const DEFAULT_NAME = self::STANDARD_NAME;
 
+    /** One label per delivery type, for the carrier's method title and the delivery costs matrix. */
+    public const TITLES = [
+        self::MORNING_NAME       => 'Morning delivery',
+        self::STANDARD_NAME      => 'Standard delivery',
+        self::EVENING_NAME       => 'Evening delivery',
+        self::PICKUP_NAME        => 'Pickup locations',
+        self::SAME_DAY_NAME      => 'Same day delivery',
+        self::EXPRESS_NAME       => 'Express delivery',
+        self::EARLY_MORNING_NAME => 'Early morning delivery',
+    ];
+
+    /** Delivery types that the checkout prices as a fee on standard delivery, not per type. */
+    private const PRICED_AS_FEE = [self::SAME_DAY_NAME, self::EXPRESS_NAME, self::EARLY_MORNING_NAME];
+
     public const NAMES_IDS_MAP
         = [
             self::MORNING_NAME       => self::MORNING,
@@ -56,6 +70,17 @@ final class DeliveryType
             self::EXPRESS_NAME       => self::EXPRESS,
             self::EARLY_MORNING_NAME => self::EARLY_MORNING,
         ];
+
+    /**
+     * Get the delivery type names that the delivery costs matrix prices per type.
+     *
+     * @todo INT-1563 shrinks PRICED_AS_FEE with the capabilities refactor.
+     * @return string[]
+     */
+    public static function pricedPerTypeNames(): array
+    {
+        return array_values(array_diff(array_keys(self::NAMES_IDS_MAP), self::PRICED_AS_FEE));
+    }
 
     /**
      * Module name to the Core API v2 name a capabilities response speaks.
