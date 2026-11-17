@@ -73,3 +73,41 @@ it('floors the delivery type at 0 before the option fees, as the checkout shows 
         $path . 'delivery/signature_fee' => '1',
     ], AbstractConsignment::DELIVERY_TYPE_EVENING_NAME, ['signature' => true], 3.0))->toBe(1.0);
 });
+
+/** Prices a quote without delivery options and returns the delivery type sent to getBasePrice(). */
+function deliveryTypeBeforeChoice(bool $pickupDefault): ?string
+{
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getConfigValue')->andReturnNull();
+    $config->shouldReceive('getBoolConfig')
+        ->with(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_default')
+        ->andReturn($pickupDefault);
+
+    $pricedDeliveryType = null;
+    $deliveryCosts      = Mockery::mock(DeliveryCosts::class);
+    $deliveryCosts->shouldReceive('getBasePrice')
+        ->andReturnUsing(static function ($quote, $carrier, $packageType, $country, $deliveryType) use (&$pricedDeliveryType) {
+            $pricedDeliveryType = $deliveryType;
+
+            return 0.0;
+        });
+
+    $quote = Mockery::mock(Quote::class);
+    $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturnNull();
+
+    $method = newInstanceWithoutConstructor(Carrier::class);
+    setPrivateProperty($method, 'config', $config);
+    setPrivateProperty($method, 'deliveryCosts', $deliveryCosts);
+
+    invokePrivateMethod($method, 'getMethodAmount', [$quote]);
+
+    return $pricedDeliveryType;
+}
+
+it('prices pickup before the customer chooses when pickup is the default', function () {
+    expect(deliveryTypeBeforeChoice(true))->toBe(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
+});
+
+it('prices standard delivery before the customer chooses by default', function () {
+    expect(deliveryTypeBeforeChoice(false))->toBe(AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME);
+});

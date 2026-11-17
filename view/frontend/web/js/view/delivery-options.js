@@ -131,9 +131,39 @@ define(
           requestAnimationFrame(function() { // wait for the element to actually be added to the DOM
             deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent, deliveryOptions.getAddress());
           });
+          deliveryOptions.selectPickupByDefault(newDeliveryOptionsDiv);
         }
 
         deliveryOptions.rendered(true);
+      },
+
+      /**
+       * Select the pickup tab once, when the merchant enabled pickup as default.
+       * The widget has no setting for this, so this depends on its radio markup (not in compact view).
+       *
+       * @param {HTMLElement} container - The delivery options div.
+       */
+      selectPickupByDefault: function(container) {
+        const config = window.MyParcelConfig.config;
+
+        if (!config.pickupDefault || config.compactView || !('MutationObserver' in window)) {
+          return;
+        }
+
+        const observer = new MutationObserver(function() {
+          const pickupInput = container.querySelector('input[type="radio"][value="pickup"]');
+
+          if (!pickupInput) {
+            return;
+          }
+
+          observer.disconnect();
+          if (!pickupInput.checked) {
+            pickupInput.click();
+          }
+        });
+
+        observer.observe(container, {childList: true, subtree: true});
       },
 
       /**
