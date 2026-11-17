@@ -138,8 +138,7 @@ define(
       },
 
       /**
-       * Select the pickup tab, when the server asks for it, until the customer chooses.
-       * The widget has no setting for this, so this depends on its radio markup.
+       * Select the pickup tab until the customer chooses; depends on the radio markup of the widget.
        *
        * @param {HTMLElement} container - The delivery options div.
        */
@@ -168,7 +167,6 @@ define(
           container.removeEventListener('change', stop, true);
         }
 
-        // a choice of the customer ends the preselect
         container.addEventListener('change', stop, true);
         observer.observe(container, {childList: true, subtree: true});
       },
