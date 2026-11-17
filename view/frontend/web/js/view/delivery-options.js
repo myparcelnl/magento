@@ -138,13 +138,14 @@ define(
       },
 
       /**
-       * Select the pickup tab when the merchant enabled pickup as default, until the customer chooses.
+       * Select the pickup tab, when the server asks for it, until the customer chooses.
        * The widget has no setting for this, so this depends on its radio markup.
        *
        * @param {HTMLElement} container - The delivery options div.
        */
       selectPickupByDefault: function(container) {
-        if (!window.MyParcelConfig.pickupDefault || window.MyParcelConfig.config.compactView) {
+        // the widget replaces window.MyParcelConfig, so read the module's own copy
+        if (!checkout.configuration().preselectPickup) {
           return;
         }
 
