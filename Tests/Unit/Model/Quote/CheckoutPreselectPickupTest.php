@@ -8,7 +8,6 @@ use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
-use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
@@ -27,7 +26,7 @@ function preselectPickup(
 
     $checkout = newInstanceWithoutConstructor(Checkout::class);
     setPrivateProperty($checkout, 'config', $config);
-    setPrivateProperty($checkout, 'quote', quoteWithChoice($savedOptions));
+    setPrivateProperty($checkout, 'quote', quoteWithDeliveryOptions($savedOptions));
 
     return invokePrivateMethod($checkout, 'shouldPreselectPickup', [$carrierSettings]);
 }
@@ -69,12 +68,9 @@ it('sends the preselect in the checkout response, from the carrier settings the 
     $address = Mockery::mock(Address::class);
     $address->shouldReceive('getCountryId')->andReturn('NL');
 
-    $quote = quoteWithChoice();
+    $quote = quoteWithDeliveryOptions();
     $quote->shouldReceive('getAllItems')->andReturn([]);
     $quote->shouldReceive('getShippingAddress')->andReturn($address);
-
-    $tax = Mockery::mock(Tax::class);
-    $tax->shouldReceive('shippingPrice')->andReturnUsing(static fn ($price) => $price);
 
     $deliveryCosts = Mockery::mock(DeliveryCosts::class);
     $deliveryCosts->shouldReceive('getOrderAmount')->andReturn(0.0);
@@ -86,7 +82,7 @@ it('sends the preselect in the checkout response, from the carrier settings the 
     $storeManager = Mockery::mock(StoreManagerInterface::class);
     $storeManager->shouldReceive('getStore')->andReturn($store);
 
-    $checkout = checkoutForPricing($config, $tax, $deliveryCosts, $quote);
+    $checkout = checkoutForPricing($config, passThroughTax(), $deliveryCosts, $quote);
     setPrivateProperty($checkout, 'storeManager', $storeManager);
 
     expect($checkout->getDeliveryOptions()['root']['data']['preselectPickup'])->toBeTrue();

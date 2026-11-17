@@ -10,7 +10,6 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\OrderAmount;
-use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
@@ -49,14 +48,6 @@ function parityConfig(bool $totalView, array $fees = [], string $carrier = 'post
     return $config;
 }
 
-function parityTax(): Tax
-{
-    $tax = Mockery::mock(Tax::class);
-    $tax->shouldReceive('shippingPrice')->andReturnUsing(static fn ($price) => $price);
-
-    return $tax;
-}
-
 function parityDeliveryCosts(Config $config, float $orderAmount): DeliveryCosts
 {
     $weight = Mockery::mock(Weight::class);
@@ -66,7 +57,7 @@ function parityDeliveryCosts(Config $config, float $orderAmount): DeliveryCosts
     $amount = Mockery::mock(OrderAmount::class);
     $amount->shouldReceive('get')->andReturn($orderAmount);
 
-    return new DeliveryCosts($weight, $config, parityTax(), $amount);
+    return new DeliveryCosts($weight, $config, passThroughTax(), $amount);
 }
 
 function parityQuote(): Quote
@@ -120,7 +111,7 @@ it('the checkout shows per delivery type the price the order charges', function 
     $config = parityConfig(true, ['pickup/fee' => 1.5, 'morning/fee' => -10.0, 'evening/fee' => 2.5]);
     parityObjectManager($config);
 
-    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config, $orderAmount), parityQuote());
+    $widget = checkoutCarrierSettings($config, passThroughTax(), parityDeliveryCosts($config, $orderAmount), parityQuote());
 
     foreach ([
         'standard' => $widget['priceStandardDelivery'],
@@ -137,7 +128,7 @@ it('surcharge view shows the difference with standard delivery', function () {
     $config = parityConfig(false);
     parityObjectManager($config);
 
-    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config, 120.0), parityQuote());
+    $widget = checkoutCarrierSettings($config, passThroughTax(), parityDeliveryCosts($config, 120.0), parityQuote());
 
     expect($widget['priceStandardDelivery'])->toBe(0.0)
         ->and($widget['pricePickup'])->toBe(-1.0)          // free pickup against the 1.00 standard tier

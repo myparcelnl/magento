@@ -238,9 +238,9 @@ class Config extends AbstractHelper
     }
 
     /** Whether the checkout uses pickup until the customer chooses a delivery option. */
-    public function isPickupDefault(): bool
+    public function isPickupDefault(?int $storeId = null): bool
     {
-        return $this->getBoolConfig(self::XML_PATH_GENERAL, 'shipping_methods/pickup_default');
+        return '1' === $this->getConfigValue(self::XML_PATH_GENERAL . 'shipping_methods/pickup_default', $storeId);
     }
 
     /**
