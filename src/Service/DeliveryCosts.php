@@ -6,9 +6,9 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCosts
@@ -108,7 +108,7 @@ class DeliveryCosts
                 'country'       => $countryCode,
                 'weight'        => $weight,
                 'order_amount'  => $orderAmount ?? $this->getOrderAmount($quote),
-                'delivery_type' => $deliveryTypeName ?? PricedDeliveryType::DEFAULT,
+                'delivery_type' => $deliveryTypeName ?? DeliveryType::DEFAULT_NAME,
             ]
         );
     }
@@ -134,9 +134,9 @@ class DeliveryCosts
             }
         }
 
-        // a type outside PricedDeliveryType::NAMES is a fee on top of standard delivery
-        if (! in_array($conditions['delivery_type'], PricedDeliveryType::NAMES, true)) {
-            $conditions['delivery_type'] = PricedDeliveryType::DEFAULT;
+        // a type outside DeliveryType::pricedPerTypeNames() is a fee on top of standard delivery
+        if (! in_array($conditions['delivery_type'], DeliveryType::pricedPerTypeNames(), true)) {
+            $conditions['delivery_type'] = DeliveryType::DEFAULT_NAME;
         }
 
         $json = $this->config->getGeneralConfig('matrix/delivery_costs');
@@ -173,7 +173,7 @@ class DeliveryCosts
 
             $return[] = [
                 'definition' => $definition,
-                // the sort rank: points first, between equal points the tightest met threshold wins — the
+                // the sort rank: points first, between equal points the tightest met threshold wins, the
                 // highest minimum, then the lowest maximum (negated, so every key ranks higher-is-better)
                 'rank'       => [$totalPoints, $minimum, -$maximum],
             ];

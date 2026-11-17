@@ -8,8 +8,8 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
@@ -79,8 +79,8 @@ class DeliveryCostsMatrix extends Field
     public function getDeliveryTypes(): array
     {
         $deliveryTypes = [];
-        foreach (PricedDeliveryType::NAMES as $name) {
-            $deliveryTypes[$name] = __(PricedDeliveryType::TITLES[$name]);
+        foreach (DeliveryType::pricedPerTypeNames() as $name) {
+            $deliveryTypes[$name] = __(DeliveryType::TITLES[$name]);
         }
 
         return $deliveryTypes;
