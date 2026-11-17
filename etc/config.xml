@@ -27,6 +27,7 @@
             <shipping_methods>
                 <show_details_in_summary>1</show_details_in_summary>
                 <pickup_locations_view_change_allowed>1</pickup_locations_view_change_allowed>
+                <pickup_default>0</pickup_default>
                 <compact_view>0</compact_view>
                 <pop_up_map>0</pop_up_map>
             </shipping_methods>
