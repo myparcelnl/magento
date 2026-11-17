@@ -138,15 +138,15 @@ define(
       },
 
       /**
-       * Select the pickup tab once, when the merchant enabled pickup as default.
-       * The widget has no setting for this, so this depends on its radio markup (not in compact view).
+       * Select the pickup tab when the merchant enabled pickup as default, until the customer chooses.
+       * The widget has no setting for this, so this depends on its radio markup.
        *
        * @param {HTMLElement} container - The delivery options div.
        */
       selectPickupByDefault: function(container) {
         const config = window.MyParcelConfig.config;
 
-        if (!config.pickupDefault || config.compactView || !('MutationObserver' in window)) {
+        if (!config.pickupDefault || config.compactView) {
           return;
         }
 
@@ -157,12 +157,26 @@ define(
             return;
           }
 
-          observer.disconnect();
+          stop();
+
           if (!pickupInput.checked) {
             pickupInput.click();
           }
         });
 
+        // our own click() is not trusted, so only a choice of the customer stops the observer
+        function onCustomerChoice(event) {
+          if (event.isTrusted) {
+            stop();
+          }
+        }
+
+        function stop() {
+          observer.disconnect();
+          container.removeEventListener('change', onCustomerChoice, true);
+        }
+
+        container.addEventListener('change', onCustomerChoice, true);
         observer.observe(container, {childList: true, subtree: true});
       },
 
