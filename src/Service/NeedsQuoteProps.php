@@ -103,9 +103,9 @@ trait NeedsQuoteProps
             return new DeliveryOptionsV3Adapter();
         }
 
-        // the carrier selects the pickup fee; pickup is only offered for packages
+        // the first carrier with pickup selects the pickup fee; pickup is only offered for packages
         return new DeliveryOptionsFromOrderAdapter([
-            'carrier'      => $this->config->getDefaultCarrierName($quote->getShippingAddress(), (int) $quote->getStoreId()),
+            'carrier'      => $this->config->getDefaultCarrierName((int) $quote->getStoreId(), true),
             'deliveryType' => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME,
             'packageType'  => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
         ]);

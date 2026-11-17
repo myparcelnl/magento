@@ -218,6 +218,6 @@ class DefaultOptions
      */
     public function getCarrierName(): string
     {
-        return $this->chosenOptions['carrier'] ?? $this->config->getDefaultCarrierName($this->quote->getShippingAddress(), (int) $this->quote->getStoreId());
+        return $this->chosenOptions['carrier'] ?? $this->config->getDefaultCarrierName((int) $this->quote->getStoreId());
     }
 }

@@ -115,7 +115,7 @@ class Checkout
      */
     private function getGeneralData(): array
     {
-        $activeCarriers = $this->getActiveCarriers();
+        $activeCarriers = $this->config->getActiveCarriers();
         $carrierPath    = ! empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
         $deliveryDaysWindow = $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window');
 
@@ -144,7 +144,7 @@ class Checkout
     private function getPackageType(string $country): string
     {
         $packageType    = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-        $activeCarriers = $this->getActiveCarriers();
+        $activeCarriers = $this->config->getActiveCarriers();
 
         foreach ($activeCarriers as $carrier) {
             $tentativePackageType = $this->checkPackageType($carrier, $country);
@@ -173,7 +173,7 @@ class Checkout
     private function getDeliveryData(string $packageType, string $country): array
     {
         $myParcelConfig = [];
-        $activeCarriers = $this->getActiveCarriers();
+        $activeCarriers = $this->config->getActiveCarriers();
         $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
@@ -315,25 +315,6 @@ class Checkout
 
         // the difference first, so equal base prices leave the fee exactly as it was
         return max(-$standard, $basePrices[$deliveryType] - $standard + $fee);
-    }
-
-    /**
-     * Get the array of enabled carriers by checking if they have either delivery or pickup enabled.
-     *
-     * @return array
-     */
-    public function getActiveCarriers(): array
-    {
-        $carriers = [];
-        foreach (Config::CARRIERS_XML_PATH_MAP as $carrier => $path) {
-            if ($this->config->getBoolConfig($path, 'delivery/active') ||
-                $this->config->getBoolConfig($path, 'pickup/active')
-            ) {
-                $carriers[] = $carrier;
-            }
-        }
-
-        return $carriers;
     }
 
     private function getDropOffDays(string $carrierPath): array

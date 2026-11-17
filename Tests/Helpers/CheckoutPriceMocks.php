@@ -25,6 +25,7 @@ function checkoutPriceConfig(bool $totalView, array $floatConfig = [], array $co
     $config->shouldReceive('getBoolConfig')->andReturnUsing(static fn ($path) => $carrierPath === $path)->byDefault();
     $config->shouldReceive('getFloatConfig')->andReturnUsing(static fn ($path, $key) => $floatConfig[$key] ?? 0.0)->byDefault();
     $config->shouldReceive('getTimeConfig')->andReturn('')->byDefault();
+    $config->shouldReceive('getActiveCarriers')->andReturn([$carrier])->byDefault();
     $config->shouldReceive('getDefaultCarrierName')->andReturn($carrier)->byDefault();
     $config->shouldReceive('getConfigValue')->andReturnUsing(static function ($path) use ($totalView, $configValues) {
         if (false !== strpos((string) $path, 'delivery_options_prices')) {

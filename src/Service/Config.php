@@ -9,7 +9,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
-use Magento\Sales\Model\Order\Address;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
@@ -245,15 +244,30 @@ class Config extends AbstractHelper
     }
 
     /**
-     * @param Address|Magento\Quote\Model\Quote\Address\Interceptor|null $address
-     * @param int|null                                                   $storeId // for scoping
-     * @return string the carrier name configured for this address
+     * Carriers with delivery or pickup active, in the order of CARRIERS_XML_PATH_MAP.
+     *
+     * @return string[]
      */
-    public function getDefaultCarrierName($address, $storeId): string
+    public function getActiveCarriers(?int $storeId = null, bool $pickupOnly = false): array
     {
-        return 'postnl';
-        // todo make config value that allows carriers per country / region / etc, select it here based on address.
-        return $this->getConfigValue(self::XML_PATH_GENERAL . "default_carrier/$country");
+        $carriers = [];
+
+        foreach (self::CARRIERS_XML_PATH_MAP as $carrier => $path) {
+            $pickupActive   = '1' === $this->getConfigValue("{$path}pickup/active", $storeId);
+            $deliveryActive = ! $pickupOnly && '1' === $this->getConfigValue("{$path}delivery/active", $storeId);
+
+            if ($pickupActive || $deliveryActive) {
+                $carriers[] = $carrier;
+            }
+        }
+
+        return $carriers;
+    }
+
+    /** The first active carrier of the store, PostNL when none is active. */
+    public function getDefaultCarrierName(?int $storeId, bool $withPickup = false): string
+    {
+        return $this->getActiveCarriers($storeId, $withPickup)[0] ?? CarrierPostNL::NAME;
     }
 
     /**
