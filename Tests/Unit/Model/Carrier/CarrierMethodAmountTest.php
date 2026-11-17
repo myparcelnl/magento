@@ -7,6 +7,7 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
+use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /** @param array<string, string> $configValues by full path */
@@ -17,8 +18,8 @@ function carrierPricingConfig(array $configValues = [], bool $pickupDefault = fa
         return $configValues[$path] ?? null;
     });
     $config->shouldReceive('isPickupDefault')->andReturn($pickupDefault);
-    $config->shouldReceive('getDefaultCarrierName')->andReturn('postnl');
-    $config->shouldReceive('getCarrierConfig')->with('postnl', 'pickup/active', 1)->andReturn($pickupActive ? '1' : '0');
+    $config->shouldReceive('getDefaultCarrierName')->andReturn(CarrierPostNL::NAME);
+    $config->shouldReceive('getCarrierConfig')->with(CarrierPostNL::NAME, 'pickup/active', 1)->andReturn($pickupActive ? '1' : '0');
 
     return $config;
 }
@@ -62,9 +63,9 @@ function methodAmountFor(
 }
 
 it('adds the fee of the delivery type and of the options to the base price', function () {
-    $path = Config::CARRIERS_XML_PATH_MAP['postnl'];
+    $path = Config::CARRIERS_XML_PATH_MAP[CarrierPostNL::NAME];
 
-    expect(methodAmountFor('postnl', [
+    expect(methodAmountFor(CarrierPostNL::NAME, [
         $path . 'evening/fee'            => '2.5',
         $path . 'delivery/signature_fee' => '1',
     ]))->toBe(8.5);
@@ -77,14 +78,14 @@ it('prices the delivery type chosen in the checkout', function () {
         ->once()
         ->andReturn(0.0);
 
-    expect(methodAmountFor('postnl', [], AbstractConsignment::DELIVERY_TYPE_MORNING_NAME, [], 0.0, $deliveryCosts))->toBe(0.0);
+    expect(methodAmountFor(CarrierPostNL::NAME, [], AbstractConsignment::DELIVERY_TYPE_MORNING_NAME, [], 0.0, $deliveryCosts))->toBe(0.0);
 });
 
 it('floors the delivery type at 0 before the option fees, as the checkout shows it', function () {
-    $path = Config::CARRIERS_XML_PATH_MAP['postnl'];
+    $path = Config::CARRIERS_XML_PATH_MAP[CarrierPostNL::NAME];
 
     // evening base 3 with an evening fee of -5 is 0 in the checkout, plus the signature fee of 1
-    expect(methodAmountFor('postnl', [
+    expect(methodAmountFor(CarrierPostNL::NAME, [
         $path . 'evening/fee'            => '-5',
         $path . 'delivery/signature_fee' => '1',
     ], AbstractConsignment::DELIVERY_TYPE_EVENING_NAME, ['signature' => true], 3.0))->toBe(1.0);
@@ -123,7 +124,7 @@ it('prices pickup before the customer chooses when pickup is the default', funct
 });
 
 it('adds the pickup fee of the default carrier before the customer chooses', function () {
-    $path = Config::CARRIERS_XML_PATH_MAP['postnl'];
+    $path = Config::CARRIERS_XML_PATH_MAP[CarrierPostNL::NAME];
 
     expect(priceBeforeChoice(true, [$path . 'pickup/fee' => '-4.5'])['amount'])->toBe(0.5);
 });
@@ -134,4 +135,18 @@ it('prices standard delivery before the customer chooses by default', function (
 
 it('prices standard delivery before the customer chooses when the default carrier has no pickup', function () {
     expect(priceBeforeChoice(true, [], false)['deliveryType'])->toBe(AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME);
+});
+
+it('titles the rate as pickup of the default carrier before the customer chooses', function () {
+    $config = carrierPricingConfig([], true);
+    $config->shouldReceive('getGeneralConfig')->with('shipping_methods/show_details_in_summary')->andReturn('1');
+
+    $quote = Mockery::mock(Quote::class);
+    $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturnNull();
+    $quote->shouldReceive('getShippingAddress')->andReturnNull();
+    $quote->shouldReceive('getStoreId')->andReturn(1);
+
+    $method = carrierForPricing($config, Mockery::mock(DeliveryCosts::class));
+
+    expect(invokePrivateMethod($method, 'getMethodTitle', [$quote]))->toBe('PostNL Pickup locations, Package');
 });

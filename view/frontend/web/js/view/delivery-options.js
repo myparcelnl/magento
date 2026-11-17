@@ -149,7 +149,7 @@ define(
           return;
         }
 
-        const observer = new MutationObserver(function() {
+        const observer = new MutationObserver(() => {
           const pickupInput = container.querySelector('input[type="radio"][value="pickup"]');
 
           if (!pickupInput) {
@@ -163,19 +163,13 @@ define(
           }
         });
 
-        // our own click() is not trusted, so only a choice of the customer stops the observer
-        function onCustomerChoice(event) {
-          if (event.isTrusted) {
-            stop();
-          }
-        }
-
         function stop() {
           observer.disconnect();
-          container.removeEventListener('change', onCustomerChoice, true);
+          container.removeEventListener('change', stop, true);
         }
 
-        container.addEventListener('change', onCustomerChoice, true);
+        // a choice of the customer ends the preselect
+        container.addEventListener('change', stop, true);
         observer.observe(container, {childList: true, subtree: true});
       },
 

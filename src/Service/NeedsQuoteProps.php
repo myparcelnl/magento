@@ -15,7 +15,6 @@ use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagem
 use Magento\Quote\Model\EstimateAddress;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
-use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
@@ -95,7 +94,7 @@ trait NeedsQuoteProps
 
     /**
      * Delivery options to use before the customer chooses.
-     * The SDK adapter crashes on pickup without a pickup location, the module adapter does not.
+     * The SDK adapter needs the pickupLocation key for pickup: without it, it crashes.
      */
     private function getDefaultDeliveryOptions(Quote $quote): AbstractDeliveryOptionsAdapter
     {
@@ -106,11 +105,12 @@ trait NeedsQuoteProps
             return new DeliveryOptionsV3Adapter();
         }
 
-        // the carrier selects the pickup fee; pickup is only offered for packages
-        return new DeliveryOptionsFromOrderAdapter([
-            'carrier'      => $carrier,
-            'deliveryType' => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME,
-            'packageType'  => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
+        // the carrier selects the pickup fee; the package type only feeds the rate title
+        return new DeliveryOptionsV3Adapter([
+            'carrier'        => $carrier,
+            'deliveryType'   => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME,
+            'packageType'    => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
+            'pickupLocation' => [],
         ]);
     }
 
