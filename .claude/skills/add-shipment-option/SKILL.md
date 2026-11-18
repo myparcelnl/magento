@@ -18,7 +18,7 @@ Ask these questions one at a time. Ask all of them.
 3. **Fee.** "Does the merchant charge for it at checkout?" A checkout fee also needs the widget to
    support the option.
 4. **Mailbox.** "Can it ship in a mailbox, with its fee in the mailbox group?"
-5. **Form.** "Must the New Shipment form show it?"
+5. **Toggle.** "Is it a yes/no option that the merchant sets per shipment in the New Shipment form?"
 6. **Rule.** "Does a rule decide it that capabilities do not give, such as a country rule?"
 7. **Product toggle.** "Must a product be able to switch it on? If yes: does the product decide the
    option at export, or what the consumer may choose at checkout?"
