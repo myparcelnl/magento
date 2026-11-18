@@ -25,7 +25,7 @@ final class ShipmentOptions
     private const OTHER_OPTIONS = [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY];
 
     /** @var array<string,mixed> every keys() entry; null where nothing was stored */
-    private $values = [];
+    private array $values = [];
 
     private function __construct(array $values)
     {
@@ -98,7 +98,9 @@ final class ShipmentOptions
     /** Get the insured amount in whole euros, not cents. Null is inherit. */
     public function getInsurance(): ?int
     {
-        return $this->values[ShipmentOption::INSURANCE];
+        $value = $this->values[ShipmentOption::INSURANCE];
+
+        return null === $value ? null : (int) $value;
     }
 
     public function getLabelDescription(): ?string

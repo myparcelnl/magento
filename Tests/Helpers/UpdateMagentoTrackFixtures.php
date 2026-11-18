@@ -147,7 +147,7 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
     $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
                ->andReturnUsing(consignmentIdsStub([$consignmentId]));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
-    $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(static function () use ($saved) {
+    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use ($saved) {
         $made = ['number' => null, 'data' => []];
         $key  = array_push($saved->created, $made) - 1;
 
@@ -218,7 +218,7 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
     $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
                ->andReturnUsing(consignmentIdsStub($consignmentIds));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
-    $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(static function () use ($saved) {
+    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use ($saved) {
         $key = array_push($saved->created, ['number' => null, 'data' => []]) - 1;
 
         return recordingTrack([
@@ -347,7 +347,7 @@ function collectionWithTracks(string $incrementId, array $tracks, int $shipmentC
     $collection = partialOrderCollection($shipmentList);
     $collection->shouldReceive('getOrders')->andReturn([$order]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn($tracksById);
-    $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(
+    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(
         static function () use ($makeTrack) {
             return $makeTrack(['number' => TrackAndTrace::VALUE_EMPTY], true);
         }

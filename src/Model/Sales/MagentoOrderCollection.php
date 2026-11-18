@@ -413,7 +413,15 @@ class MagentoOrderCollection extends MagentoCollection
                 continue;
             }
 
-            $this->allocateTracks((string) $incrementId, $magentoShipments, $fulfilment, $tracks);
+            // One order whose tracks cannot be saved must not stop the orders behind it, run after run.
+            try {
+                $this->allocateTracks((string) $incrementId, $magentoShipments, $fulfilment, $tracks);
+            } catch (Throwable $e) {
+                Logger::warning(
+                    sprintf('MyParcel: could not save the tracks of order %s', $incrementId),
+                    LogContext::of($e)
+                );
+            }
         }
 
         return $this;
@@ -504,7 +512,7 @@ class MagentoOrderCollection extends MagentoCollection
                 continue;
             }
 
-            $magentoTrack = $free ? array_shift($free) : $this->setNewMagentoTrack($host);
+            $magentoTrack = $free ? array_shift($free) : $this->newMagentoTrack($host);
 
             $magentoTrack->setTrackNumber($fulfilment['barcode']);
 
@@ -522,6 +530,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $this->trackRepository->save($magentoTrack);
+            $this->forgetTracks();
             $written++;
         }
 

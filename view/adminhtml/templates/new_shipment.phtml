@@ -41,7 +41,7 @@ $form     = $block->getNewShipmentForm();
                     value="<?= $escaper->escapeHtmlAttr($carrier['name']) ?>">
                 <label
                     class="admin__field-label"
-                    for="mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= __($carrier['human']) ?></label>
+                    for="mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= $escaper->escapeHtml(__($carrier['human'])) ?></label>
             </div>
         </div>
     </div>
@@ -63,7 +63,7 @@ $form     = $block->getNewShipmentForm();
                         value="<?= $ptName ?>">
                     <label
                         class="admin__field-label"
-                        for="mypa_package_type-<?= $ptName ?>_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= __($packageType['human']) ?></label>
+                        for="mypa_package_type-<?= $ptName ?>_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= $escaper->escapeHtml(__($packageType['human'])) ?></label>
                     <?php if (null !== $packageType['weights']): ?>
                         <span data-for_mypa_package_type="<?= $ptName ?>" data-weight="<?= (int) $block->getDigitalStampWeight() ?>">
                             <select

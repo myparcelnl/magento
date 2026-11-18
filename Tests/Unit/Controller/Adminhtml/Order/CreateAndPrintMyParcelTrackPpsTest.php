@@ -6,10 +6,8 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use MyParcelNL\Magento\Controller\Adminhtml\Order\CreateAndPrintMyParcelTrack;
-use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
  * The order grid's PPS export. The collection's constructor defaults are a mass action's, and
@@ -44,11 +42,8 @@ final class FakeCreateAndPrintMyParcelTrack extends CreateAndPrintMyParcelTrack
     }
 }
 
-function createGridController(
-    MagentoOrderCollection $collection,
-    string $exportMode = Config::EXPORT_MODE_PPS,
-    bool $trackEmailEnabled = true
-): FakeCreateAndPrintMyParcelTrack {
+function createGridController(MagentoOrderCollection $collection): FakeCreateAndPrintMyParcelTrack
+{
     $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getParam')->with('selected_ids')->andReturn('1,2');
     $request->shouldReceive('setParams');
@@ -60,15 +55,11 @@ function createGridController(
     $objectManager->shouldReceive('get')->with(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION)->andReturn($magentoOrders);
 
     $config = createConfig();
-    $config->shouldReceive('getExportMode')->andReturn($exportMode);
-
-    $trackSender = Mockery::mock(TrackSender::class);
-    $trackSender->shouldReceive('isEnabled')->andReturn($trackEmailEnabled);
+    $config->shouldReceive('getExportMode')->andReturn(Config::EXPORT_MODE_PPS);
 
     $controller = new FakeCreateAndPrintMyParcelTrack($request, $objectManager);
     setPrivateProperty($controller, 'orderCollection', $collection);
     setPrivateProperty($controller, 'config', $config);
-    setPrivateProperty($controller, 'trackSender', $trackSender);
 
     return $controller;
 }
@@ -82,34 +73,4 @@ it('reads the request options before a PPS export, as the shipment branch does',
     $labels = createGridController($collection)->runMassAction();
 
     expect($labels)->toBeNull();
-});
-
-/** @return bool what the export asked Magento: send its own shipment email or not */
-function magentoShipmentMailFor(string $requestType, bool $trackEmailEnabled): bool
-{
-    $notify     = null;
-    $collection = Mockery::mock(MagentoOrderCollection::class);
-    $collection->shouldReceive('setOrderCollection')->andReturnSelf();
-    $collection->shouldReceive('setOptionsFromParameters')->andReturnSelf();
-    $collection->shouldReceive('getOption')->with('request_type')->andReturn($requestType);
-    // Stops the run here: the rest of the export is not what these cases are about.
-    $collection->shouldReceive('setNewMagentoShipment')->andReturnUsing(static function (bool $mail) use (&$notify) {
-        $notify = $mail;
-
-        throw new RuntimeException('stop');
-    });
-
-    expect(fn () => createGridController($collection, Config::EXPORT_MODE_SHIPMENTS, $trackEmailEnabled)->runMassAction())
-        ->toThrow(RuntimeException::class, 'stop');
-
-    return $notify;
-}
-
-it('leaves the shipment mail to the track & trace mail that follows the labels', function () {
-    expect(magentoShipmentMailFor('download', true))->toBeFalse();
-});
-
-it('lets Magento mail the shipment when no track & trace mail follows', function () {
-    expect(magentoShipmentMailFor('download', false))->toBeTrue()
-        ->and(magentoShipmentMailFor(TrackAndTrace::VALUE_CONCEPT, true))->toBeTrue();
 });

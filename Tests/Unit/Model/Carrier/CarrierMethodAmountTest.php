@@ -74,3 +74,23 @@ it('floors the delivery type at 0 before the option fees, as the checkout shows 
         $path . 'delivery/signature_fee' => '1',
     ], DeliveryType::EVENING_NAME, ['signature' => true], 3.0))->toBe(1.0);
 });
+
+it('lists every option that is on in the method title, also one stored as 1', function () {
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getGeneralConfig')->with('shipping_methods/show_details_in_summary')->andReturn('1');
+
+    $method = newInstanceWithoutConstructor(Carrier::class);
+    setPrivateProperty($method, 'config', $config);
+    setPrivateProperty($method, 'deliveryOptions', DeliveryOptions::fromCheckoutData([
+        'carrier'         => 'postnl',
+        'packageType'     => PackageType::PACKAGE_NAME,
+        'deliveryType'    => DeliveryType::STANDARD_NAME,
+        'shipmentOptions' => ['signature' => 1, 'only_recipient' => 0, 'insurance' => 500],
+    ]));
+
+    $title = invokePrivateMethod($method, 'getMethodTitle', [Mockery::mock(Quote::class)]);
+
+    expect($title)->toContain('Signature on receipt')
+        ->not->toContain('Only recipient')
+        ->not->toContain('Insurance');
+});

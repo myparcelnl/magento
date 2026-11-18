@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -27,7 +28,7 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Exception\ValidationException;
 use Throwable;
 
-class CarrierConfigurationImport extends Action
+class CarrierConfigurationImport extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'MyParcelNL_Magento::myparcelnl_magento_settings';
 

@@ -51,14 +51,16 @@ class Importer
     }
 
     /**
-     * Whether this account's settings are already cached, so a caller can heal a missing row without
-     * paying for an API call on every save.
+     * Check whether this account's settings are stored, so a caller can heal a missing row without an
+     * API call on every save. A row without contract definitions counts as missing: rows stored before
+     * 6.0.0 have none.
      */
     public function hasSettingsFor(string $apiKey): bool
     {
-        return (bool) $this->scopeConfig->getValue(
-            Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey)
-        );
+        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey));
+        $decoded = is_string($stored) ? json_decode($stored, true) : null;
+
+        return is_array($decoded) && array_key_exists('contract_definitions', $decoded);
     }
 
     /**

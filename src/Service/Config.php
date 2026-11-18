@@ -231,17 +231,10 @@ class Config extends AbstractHelper
         return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code);
     }
 
-    /**
-     * How many records one export request carries, bounded by what the admin field accepts.
-     *
-     * Shared by both export paths: the shipment export and the PPS order export. Anything the
-     * merchant cannot have typed into a `digits-range-1-100` field falls back to the default rather
-     * than being clamped, because an out-of-range value there means the setting was written by
-     * something other than the form.
-     */
-    public function getExportChunkSize(?int $storeId = null): int
+    /** Get how many records one export request carries; a value the admin field refuses gives the default. */
+    public function getExportChunkSize(): int
     {
-        $configured = $this->getGeneralConfig(self::XML_PATH_EXPORT_CHUNK_SIZE, $storeId);
+        $configured = $this->getGeneralConfig(self::XML_PATH_EXPORT_CHUNK_SIZE);
 
         if (! is_numeric($configured)) {
             return self::DEFAULT_EXPORT_CHUNK_SIZE;
