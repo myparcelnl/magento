@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
+use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
@@ -31,11 +32,13 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
 {
     private MagentoOrderCollection $orderCollection;
     private Config                 $config;
+    private TrackSender            $trackSender;
 
-    public function __construct(Context $context)
+    public function __construct(Context $context, TrackSender $trackSender)
     {
         parent::__construct($context);
 
+        $this->trackSender     = $trackSender;
         $this->config          = $this->_objectManager->get(Config::class);
         $this->orderCollection = new MagentoOrderCollection(
             $this->_objectManager,
@@ -62,7 +65,10 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
             return null;
         }
 
-        $this->orderCollection->setNewMagentoShipment();
+        // the track & trace mail follows the label request: a Magento shipment mail now has no barcode,
+        // and its email_sent would block that mail
+        $isConcept = TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type');
+        $this->orderCollection->setNewMagentoShipment($isConcept || ! $this->trackSender->isEnabled());
 
         $this->orderCollection->reload();
 
@@ -81,7 +87,7 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
         // Only a concept request stops here. Asking whether anything was *built* would skip a
         // selection of orders that already carry labels, which is a reprint rather than nothing to
         // do. The labels below come from stored shipment ids, not from this run.
-        if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')) {
+        if ($isConcept) {
             return null;
         }
 
