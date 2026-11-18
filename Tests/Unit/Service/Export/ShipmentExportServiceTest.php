@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Service\Export\ShipmentExportService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipments;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipmentsData;
@@ -262,8 +262,8 @@ it('keeps a failure visible when a sibling collo of the same order succeeded', f
         ->and(implode('; ', $report->failureReasons()['100000001']))->toContain('did not return a shipment');
 });
 
-it('exposes twenty as the default chunk size', function () {
-    expect(ShipmentExportService::DEFAULT_CHUNK_SIZE)->toBe(20);
+it('has twenty as the default chunk size', function () {
+    expect(Config::DEFAULT_EXPORT_CHUNK_SIZE)->toBe(20);
 });
 
 it('names the accounts whose lookup failed, apart from the ones that answered without a shipment', function () {

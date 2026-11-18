@@ -12,7 +12,7 @@ it('returns true when priority delivery was explicitly chosen', function () {
         ShipmentOption::PRIORITY_DELIVERY => true,
     ]);
 
-    expect($shipmentOptions->hasPriorityDelivery())->toBeTrue();
+    expect($shipmentOptions->resolve()->option(ShipmentOption::PRIORITY_DELIVERY))->toBeTrue();
 });
 
 it('returns false when priority delivery was explicitly declined', function () {
@@ -22,7 +22,7 @@ it('returns false when priority delivery was explicitly declined', function () {
         ShipmentOption::PRIORITY_DELIVERY => false,
     ], true);
 
-    expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
+    expect($shipmentOptions->resolve()->option(ShipmentOption::PRIORITY_DELIVERY))->toBeFalse();
 });
 
 /**
@@ -34,17 +34,17 @@ it('returns false when priority delivery was explicitly declined', function () {
 it('sends an explicit choice for any country and carrier, leaving the refusal to the api', function () {
     expect(createShipmentOptions('BE', CarrierPostNL::NAME, [
         ShipmentOption::PRIORITY_DELIVERY => true,
-    ])->hasPriorityDelivery())->toBeTrue()
+    ])->resolve()->option(ShipmentOption::PRIORITY_DELIVERY))->toBeTrue()
         ->and(createShipmentOptions('NL', 'dhlforyou', [
             ShipmentOption::PRIORITY_DELIVERY => true,
-        ])->hasPriorityDelivery())->toBeTrue();
+        ])->resolve()->option(ShipmentOption::PRIORITY_DELIVERY))->toBeTrue();
 });
 
 it('returns false without explicit choice and without saved choice or default', function () {
     // Off unless explicitly enabled: no choice anywhere means no priority delivery.
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, []);
 
-    expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
+    expect($shipmentOptions->resolve()->option(ShipmentOption::PRIORITY_DELIVERY))->toBeFalse();
 });
 
 it('falls back to the saved checkout choice or default when the live options carry none', function () {
@@ -52,5 +52,5 @@ it('falls back to the saved checkout choice or default when the live options car
     // configured default option.
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [], true);
 
-    expect($shipmentOptions->hasPriorityDelivery())->toBeTrue();
+    expect($shipmentOptions->resolve()->option(ShipmentOption::PRIORITY_DELIVERY))->toBeTrue();
 });

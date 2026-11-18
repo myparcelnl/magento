@@ -44,7 +44,6 @@ use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
  */
 class UpdateStatus
 {
-    public const ORDER_ID_NOT_TO_PROCESS = '000000000';
     public const ORDER_STATUS_EXPORTED = 'Exported';
     public const PATH_MODEL_ORDER_TRACK = Collection::class;
 
@@ -95,21 +94,7 @@ class UpdateStatus
     }
 
     /**
-     * Handles orders exported using Orderbeheer (PPS) setting.
-     * Gets the eligible orders from Magento, gets the account's orders from the api. When the api
-     * order is one of them and it has shipped, adds the shipment in Magento.
-     *
-     * A fulfilment order can hold several shipments, and they are all created in one go: either as
-     * separate shipments side by side, which is one order_shipments entry each, or as one multicollo,
-     * which is one entry carrying secondary_shipments. This method handles the first shape by reading
-     * every entry; the second is expanded from the shipment API by updateMagentoTrack(), because the
-     * fulfilment response is not where a collo's own barcode is read.
-     *
-     * Each shipment gets its own track. There is no per-shipment item split to make a second Magento
-     * shipment out of: the colli hold the same goods.
-     *
-     * NOTE: the 'reference_identifier' as returned by the api in the order object is the increment_id of the order,
-     * the order_id in the track table however is the entity_id, these are not necessarily the same (number).
+     * Add a Magento shipment for each order exported as a whole order (PPS) that the API says has shipped.
      *
      * Each order_shipments entry gets its own track; updateMagentoTrack() expands a multicollo entry
      * from the shipment API. The API's reference is the increment_id, the track table holds entity_id.
@@ -196,7 +181,7 @@ class UpdateStatus
         $orderEntityIds    = [];
 
         foreach ($orderRows as $arrayWithIds) {
-            if (! in_array($arrayWithIds['increment_id'], $orderIncrementIds)) {
+            if (! isset($fulfilment[$arrayWithIds['increment_id']])) {
                 continue;
             }
             $orderEntityIds[] = $arrayWithIds['entity_id'];

@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
  */
 function ageCheckFor(array $options, bool $carrierDefault): bool
 {
-    return createShipmentOptions('NL', CarrierPostNL::NAME, $options, $carrierDefault)->hasAgeCheck();
+    return createShipmentOptions('NL', CarrierPostNL::NAME, $options, $carrierDefault)->resolve()->option(ShipmentOption::AGE_CHECK);
 }
 
 it('lets an explicit true option win', function () {
@@ -41,13 +41,13 @@ it('reads the non-explicit tiers from DefaultOptions, so the form and the export
     $defaults->shouldReceive('hasOptionSet')->with(ShipmentOption::AGE_CHECK, CarrierPostNL::NAME)->andReturn(true);
     $defaults->shouldReceive('hasDefaultOption')->andReturn(false);
 
-    $result = createShipmentOptions('NL', CarrierPostNL::NAME, [], false, null, null, $defaults)->hasAgeCheck();
+    $result = createShipmentOptions('NL', CarrierPostNL::NAME, [], false, null, null, $defaults)->resolve()->option(ShipmentOption::AGE_CHECK);
 
     expect($result)->toBeTrue();
 });
 
 it('keeps an explicit age check outside NL; capabilities and the API decide what a carrier carries', function () {
-    $result = createShipmentOptions('BE', Carrier::UPS_STANDARD, [ShipmentOption::AGE_CHECK => true], false)->hasAgeCheck();
+    $result = createShipmentOptions('BE', Carrier::UPS_STANDARD, [ShipmentOption::AGE_CHECK => true], false)->resolve()->option(ShipmentOption::AGE_CHECK);
 
     expect($result)->toBeTrue();
 });

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Sales\Model\Order\Shipment;
+use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 
 /**
@@ -45,9 +46,10 @@ function groupShipmentIds(array $entries, array $keysByStore): array
         $tracksByShipmentId[(int) $shipment->getId()] = $tracks;
     }
 
-    $provider = new ShipmentApiProvider(createConfig([], [], $keysByStore), createUserAgent());
+    $collection = newInstanceWithoutConstructor(MagentoShipmentCollection::class);
+    setPrivateProperty($collection, 'apiProvider', new ShipmentApiProvider(createConfig([], [], $keysByStore), createUserAgent()));
 
-    return $provider->consignmentIdsByApiKey($shipments, $tracksByShipmentId);
+    return invokePrivateMethod($collection, 'consignmentIdsByApiKey', [$shipments, $tracksByShipmentId]);
 }
 
 it('groups shipment ids by the api key each order resolves', function () {

@@ -64,11 +64,7 @@ class Settings
         return $this->getSettings()['sections'] ?? [];
     }
 
-    /**
-     * Get all field paths from the configuration.
-     *
-     * @return array
-     */
+    /** @return string[] every field path the settings file declares */
     public function getAllFieldPaths(): array
     {
         $paths = [];
@@ -76,7 +72,9 @@ class Settings
         foreach ($this->getSections() as $section) {
             foreach ($section['groups'] ?? [] as $group) {
                 foreach ($group['fields'] ?? [] as $field) {
-                    $paths[] = $field['path'];
+                    if (isset($field['path'])) {
+                        $paths[] = (string) $field['path'];
+                    }
                 }
             }
         }
@@ -135,7 +133,7 @@ class Settings
         $key = $scope . '|' . $scopeId;
 
         if (! isset($this->rowsAtScope[$key])) {
-            $paths  = $this->settingPaths();
+            $paths  = $this->getAllFieldPaths();
             $stored = $this->storedValuesAtScope($paths, $scope, $scopeId);
             $known  = [];
 
@@ -157,24 +155,6 @@ class Settings
             ->addFieldToFilter('scope_id', $scopeId);
 
         return $collection->getSize() > 0;
-    }
-
-    /** @return string[] every field path the settings file declares */
-    private function settingPaths(): array
-    {
-        $paths = [];
-
-        foreach ($this->getSections() as $section) {
-            foreach ($section['groups'] ?? [] as $group) {
-                foreach ($group['fields'] ?? [] as $field) {
-                    if (isset($field['path'])) {
-                        $paths[] = (string) $field['path'];
-                    }
-                }
-            }
-        }
-
-        return $paths;
     }
 
     /**

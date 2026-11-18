@@ -167,3 +167,7 @@ it('reports whether an amount is inside the range', function () {
     expect($range->contains(500))->toBeTrue()
         ->and($range->contains(501))->toBeFalse();
 });
+
+it('converts a whole-euro amount to the cents the core api takes', function () {
+    expect(InsuranceRange::toCents(250))->toBe(25000);
+});
