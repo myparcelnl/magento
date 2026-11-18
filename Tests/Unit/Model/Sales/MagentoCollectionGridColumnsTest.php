@@ -7,10 +7,7 @@ use MyParcelNL\Magento\Service\OrderGridColumns;
 
 /**
  * updateOrderGrid() hands the page's order ids to OrderGridColumns once, distinct, without loading
- * an order. It used to load and save the order of every shipment, so an order with two shipments
- * was written twice.
- *
- * createShipment() lives in Tests/Helpers/OrderMocks.php.
+ * an order.
  */
 it('writes the grid columns once per distinct order of the page', function () {
     $shipments = Mockery::mock(

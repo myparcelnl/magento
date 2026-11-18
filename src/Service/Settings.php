@@ -123,10 +123,7 @@ class Settings
      * Partition-aware: true if and only if a row exists at the exact (scope, scopeId) for this path.
      * Unlike hasOwnValue() this does NOT short-circuit for default scope.
      *
-     * Answered from one read of every path the settings file declares, warmed on the first ask per
-     * scope: the form asks once per field and there are hundreds of them, so a COUNT each cost the
-     * page a query per field at website and store scope. A path the file does not declare (an API
-     * token, say) still costs its own.
+     * Cached per scope for every declared path; other paths query.
      */
     public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
     {

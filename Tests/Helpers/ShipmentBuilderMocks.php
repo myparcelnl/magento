@@ -159,8 +159,7 @@ function mockAttributeValueLookup(string $value, array $alsoBind = []): void
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
 
-    // The age check reads through the request's shared reader, so the singleton has to answer for
-    // it: building one per call is what this replaced.
+    // The age check reads through the request's shared reader, so the singleton has to answer for it.
     $objectManager->shouldReceive('get')
                   ->with(ProductAttributes::class)
                   ->andReturn(new ProductAttributes($objectManager));

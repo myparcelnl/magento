@@ -10,8 +10,6 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
-// Fixtures live in Tests/Helpers/{CapabilitiesFixtures,HttpMocks}.php.
-
 it('sends the request the API expects: v2 keys, the SDK version=2.0 accept, the given key', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()]))]);
 

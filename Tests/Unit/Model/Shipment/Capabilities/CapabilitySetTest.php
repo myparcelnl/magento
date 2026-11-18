@@ -8,8 +8,6 @@ use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
-// Fixtures live in Tests/Helpers/CapabilitiesFixtures.php.
-
 it('translates v2 names to the module vocabulary', function () {
     $set = CapabilitySet::fromApiResults([capabilityResult()]);
 

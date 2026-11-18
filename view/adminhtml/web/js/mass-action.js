@@ -419,9 +419,7 @@ define(
                 },
 
                 /**
-                 * POSTed, never GETed: the export creates billable shipments and can mail the
-                 * customer, and a bulk selection is long enough to push an admin URL past what a
-                 * web server accepts. An admin POST is also form-key checked, where a GET is not.
+                 * Run the export over POST.
                  *
                  * @param {String}                 url    - the export.
                  * @param {Window|null}            tab    - a tab opened during the click, for the

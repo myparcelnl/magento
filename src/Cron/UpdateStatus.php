@@ -80,10 +80,9 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        // PPS only acquires barcodes, and drops an order the moment one arrives. The poll below is
-        // what carries a shipment on from there, and it selects on the track's own status, so it
-        // suits either export mode. The two overlap by an order or so per tick, which costs ids in
-        // a call that is made anyway, not a call.
+        // PPS only acquires barcodes, and drops an order the moment one arrives. The poll below
+        // carries a shipment on from there; it selects on the track's own status, so it suits
+        // either export mode.
         if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
             $this->updateStatusPPS();
         }
@@ -138,9 +137,7 @@ class UpdateStatus
                 $tally['matched']++;
                 $shipments = $this->shippedShipments($apiOrder);
 
-                // Recorded only once it really shipped. Marked before the check, an order still a
-                // concept in the backoffice reached the collection below and was given a Magento
-                // shipment anyway.
+                // Count it only after it shipped: an order that is still a concept gets no Magento shipment.
                 if (! $shipments) {
                     continue;
                 }
@@ -192,13 +189,9 @@ class UpdateStatus
         Logger::notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds)));
         $this->addOrdersToCollection($orderEntityIds);
 
-        // setNewMyParcelTracks() is deliberately absent: it builds a v11 Shipment per track for a
-        // create this cron never issues. What a PPS order needs is the id and barcode its
-        // fulfilment order already has, after which updateMagentoTrack() refreshes it like any
-        // other shipment, status and track & trace link included.
-        //
-        // An order that already has a track reaches setMagentoTrack() now, so the mass-action
-        // default that adds one anyway has to go, or every run would add another.
+        // Do not call setNewMyParcelTracks(): it builds a v11 Shipment per track for a create this
+        // cron never issues. An order that already has a track reaches setMagentoTrack(), so turn
+        // off create_track_if_one_already_exist, or every run adds another track.
         $this->orderCollection->setOption('create_track_if_one_already_exist', false)
                               ->setNewMagentoShipment(false)
                               ->setMagentoTrack()
@@ -482,9 +475,7 @@ class UpdateStatus
      */
     private function pollShipmentStatuses(): self
     {
-        // setNewMyParcelTracks() is deliberately absent, as it is in the PPS branch above: it
-        // builds a v11 Shipment per id-less track (capabilities, customs, validation) for a
-        // create this cron never issues, and nothing here reads what it collects.
+        // Do not call setNewMyParcelTracks(): this cron creates no shipments.
         $this->setOrdersToUpdate();
         $this->orderCollection->updateMagentoTrack();
 

@@ -14,9 +14,7 @@ use MyParcelNL\Magento\Service\Export\ExportResponse;
 /**
  * Creates a return label for each selected order and mails it to the consumer.
  *
- * POST only, like the exports it sits beside: it makes billable shipments and mails the consumer,
- * and an admin POST is form-key checked where a GET is not. It answers the grid's JSON instead of
- * redirecting, so its messages travel with the answer.
+ * It answers the grid's JSON instead of redirecting, so its messages travel with the answer.
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl

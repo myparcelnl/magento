@@ -80,8 +80,7 @@ function capturedSelection(): array
 }
 
 it('selects on the export marker, not on a grid display column', function () {
-    // myparcel_uuid is what says the order reached MyParcel. track_status was the old marker and
-    // it is a translated display value.
+    // myparcel_uuid says the order reached MyParcel. track_status is a translated display value.
     expect(capturedSelection()['filters'])->toHaveKey('myparcel_uuid')
         ->and(capturedSelection()['filters']['myparcel_uuid'])->toBe(['notnull' => true]);
 });
@@ -99,8 +98,7 @@ it('adds a NOT EXISTS condition for a track that already has a real barcode', fu
 });
 
 it('still selects an order whose grid column holds only a placeholder', function () {
-    // The rows the old code stamped '-' onto must come back, or every install needs a data fix
-    // before the cron works again.
+    // Existing rows can hold '-' in track_number. They must still be selected, without a data fix.
     $wheres = implode(' ', capturedSelection()['wheres']);
 
     expect($wheres)->toContain('main_table.track_number IS NULL')
@@ -108,9 +106,8 @@ it('still selects an order whose grid column holds only a placeholder', function
 });
 
 it('lets a barcode on the order row settle it only for an order with no track', function () {
-    // The four orders that were shipped in Magento had a real barcode on the order row and a
-    // placeholder on the track. Reading the order row alone called them done, and they never came
-    // back.
+    // An order shipped in Magento can have a real barcode on the order row and a placeholder on the
+    // track. The order row alone must not settle it.
     $wheres = implode(' ', capturedSelection()['wheres']);
 
     expect($wheres)->toContain('EXISTS')

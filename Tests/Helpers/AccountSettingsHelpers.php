@@ -19,8 +19,8 @@ function settingsPathFor(string $apiKey): string
 }
 
 /**
- * The pre-fingerprint path, where the plaintext api key sat in the path itself. Only the rewrite
- * patch may still encounter one.
+ * The pre-fingerprint path, with the plaintext api key in the path itself. Only
+ * FingerprintAccountSettingsPaths reads one.
  */
 function legacySettingsPathFor(string $apiKey): string
 {

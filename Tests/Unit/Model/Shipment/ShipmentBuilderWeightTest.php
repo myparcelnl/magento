@@ -7,15 +7,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Weight;
 
-/**
- * weightInGrams() returns the weight where calculateTotalWeight() set it on the
- * consignment, so these read the return value rather than the built object. The
- * expected numbers are unchanged; only where the answer is read from moved.
- *
- * The preset is now $options['digital_stamp_weight'], which is the only way a
- * weight was ever preset: the old signature took it as a bare argument that
- * one caller filled from exactly that option.
- */
+/** weightInGrams() returns the weight, so these tests read the return value, not the built object. */
 function createBuilderForWeight(array $configValues = []): ShipmentBuilder
 {
     return createShipmentBuilder([
@@ -36,8 +28,7 @@ it('uses the preset weight and never touches the shipment', function () {
 });
 
 it('falls back to the item weights when no digital stamp weight is preset anywhere', function () {
-    // Nothing posted and no default configured casts to 0, and the API refuses a zero weight. The
-    // consignment path summed the items in that case, so this does too.
+    // Nothing posted and no default configured casts to 0, and the API refuses a zero weight.
     $defaultOptions = Mockery::mock(MyParcelNL\Magento\Model\Source\DefaultOptions::class);
     $defaultOptions->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0);
 

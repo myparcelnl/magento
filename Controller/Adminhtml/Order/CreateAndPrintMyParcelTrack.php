@@ -80,9 +80,7 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
                               ->updateMagentoTrack()
         ;
 
-        // Only a concept request stops here. Asking whether anything was *built* would skip a
-        // selection of orders that already carry labels, which is a reprint rather than nothing to
-        // do. The labels below come from stored shipment ids, not from this run.
+        // A concept request makes no labels.
         if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')) {
             return null;
         }

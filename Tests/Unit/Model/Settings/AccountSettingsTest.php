@@ -7,9 +7,6 @@ declare(strict_types=1);
  *
  * The order grid reads the platform id through here while it renders, and the SDK's Account throws
  * on a missing key, so every unusable shape must come back as a null and an alert.
- *
- * accountSettingsFor() and settingsPathFor() live in Tests/Helpers/AccountSettingsHelpers.php,
- * accountSettingsRow() in Tests/Helpers/CapabilitiesFixtures.php.
  */
 
 /** The platform id read out of one stored row, or null where no account could be built. */
@@ -58,8 +55,6 @@ it('answers no account when the account has no id', function () {
     expect(platformIdFromRow(accountSettingsRow([], ['account' => ['platform_id' => 1]])))->toBeNull();
 });
 
-// The shape that used to be a TypeError, and the one the capabilities fixture wrote before it
-// carried a platform id.
 it('answers no account when the account has no platform id', function () {
     expect(platformIdFromRow(accountSettingsRow([], ['account' => ['id' => 7]])))->toBeNull();
 });
@@ -119,10 +114,7 @@ it('alerts with the key fingerprint when a row cannot be used', function () {
     expectAlertNames('live-key-1234567890', '15c46c5c1e25', 'live');
 });
 
-/**
- * A mask of the first and last four characters prints a key of eight characters or fewer whole.
- * A truncated key is exactly what this alert reports.
- */
+/** The alert reports unusable keys, and a truncated key is short. It must not print whole. */
 it('does not print a short api key either', function () {
     expectAlertNames('abcd1234', 'e9cee71ab932', 'abcd1234');
 });

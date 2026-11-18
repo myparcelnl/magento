@@ -50,8 +50,7 @@ class TypeValue
         }
 
         if (! is_string($raw)) {
-            // Out of contract. Accepting it left name() reading the value as a name while
-            // toApiValue() re-tested it as an id, so one instance could answer both ways.
+            // Out of contract: name() and toApiValue() would read it as different types.
             throw new InvalidArgumentException(
                 sprintf('A stored %s must be a string, an int or null, %s given', $mapClass::TYPE_LABEL, gettype($raw))
             );

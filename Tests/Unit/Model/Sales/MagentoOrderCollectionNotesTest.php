@@ -10,8 +10,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 /**
  * The status-history comments a PPS export sends as order notes.
  *
- * Two queries for the whole batch. It used to be a loadByIncrementId() plus a history collection
- * per order, so a chunk of twenty cost forty.
+ * Two queries for the whole batch, not two per order.
  */
 function fakeRows(array $rows): object
 {

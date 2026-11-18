@@ -243,14 +243,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 );
             }
 
-            // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
-            // over the whole table, because no order narrows it first.
-            // carrier_code leads because it is the equality; myparcel_status is the IN().
-            //
-            // No index on myparcel_consignment_id: that query already filters it, but only alongside
-            // these two, and nothing else filters it at all. A second index would just be maintained.
-            // The EXISTS subqueries in ordersAwaitingBarcode() correlate on order_id, which core's own
-            // SALES_SHIPMENT_TRACK_ORDER_ID already covers.
+            // carrier_code first: equality; myparcel_status is the IN().
             if ($setup->getConnection()->isTableExists($tableTrack)) {
                 $this->addIndexOnce($setup, $tableTrack, ['carrier_code', 'myparcel_status']);
             }
@@ -286,21 +279,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $connection->addIndex($table, $name, $columns);
     }
 
-    /**
-     * Index sales_order.myparcel_uuid on its first 36 characters, a whole UUID.
-     *
-     * Earns its place only where PPS is the exception: ordersAwaitingBarcode() then starts from the
-     * few orders carrying a uuid instead of every order of the last fortnight, which is all
-     * created_at can narrow it to. Where PPS is the normal export mode the condition matches almost
-     * every row and the optimiser ignores this index.
-     *
-     * `notnull` is a range MySQL can read from an index, so a prefix is enough; the column is never
-     * queried by equality.
-     *
-     * Raw DDL because addIndex() cannot express a prefix length, and a prefix is what a TEXT column
-     * needs. Retyping to varchar(36) would let addIndex() do it, but that rebuilds sales_order;
-     * ADD INDEX is in-place and non-locking in InnoDB.
-     */
+    /** Raw DDL: addIndex() cannot set the prefix length that a TEXT column needs. */
     private function addUuidPrefixIndex(SchemaSetupInterface $setup, string $table): void
     {
         $connection = $setup->getConnection();

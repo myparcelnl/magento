@@ -9,8 +9,6 @@ use Magento\Sales\Model\ResourceModel\Order\Shipment\Collection as ShipmentColle
  * The track memo is keyed by shipment id, so a collection handed a second set of orders answers the
  * new ones with the old ones' rows unless the setter clears it. The status cron does exactly that:
  * the PPS pass runs first, then the status poll replaces the collection on the same object.
- *
- * partialOrderCollection() lives in Tests/Helpers/UpdateMagentoTrackFixtures.php.
  */
 
 it('forgets the tracks it read when the order collection is replaced', function () {
