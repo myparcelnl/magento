@@ -44,8 +44,7 @@ class CustomsItems
     }
 
     /**
-     * HS codes: up to 18 characters, digits and dots (6109.10). The int column they moved from
-     * dropped leading zeroes and dots.
+     * HS codes: up to 18 characters, digits and dots (6109.10).
      *
      * @param  int[] $productIds
      * @return array<int,string> product id => HS code

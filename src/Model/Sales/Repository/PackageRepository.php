@@ -275,8 +275,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * Both tiers are always read. A future option may have only one of them: a product attribute
-     * that does not exist and a config path that does not exist both answer no.
+     * Both tiers are always read; a product attribute or config path that does not exist answers no.
      *
      * Compared against '1' rather than cast: an *_active path need not be a Yes/No. LargeFormatOptions
      * offers 'price' and '0', and 'price' casts to true without ever meaning 1.

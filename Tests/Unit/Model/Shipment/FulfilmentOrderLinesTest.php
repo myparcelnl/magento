@@ -5,11 +5,7 @@ declare(strict_types=1);
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderLine;
 
-/**
- * The order-lines collection was created once for a whole PPS batch, so the second order carried
- * the first one's lines as well and the third carried both. The customer was invoiced for products
- * they never ordered.
- */
+/** Builds a batch of orders with one builder; each order must carry only its own lines. */
 function buildBatch(array $itemsPerOrder): array
 {
     $builder = createFulfilmentOrderBuilder();

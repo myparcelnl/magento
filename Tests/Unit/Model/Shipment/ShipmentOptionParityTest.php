@@ -14,9 +14,8 @@ use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 /**
  * Every checkbox the New Shipment form can render, from the POST to the shipment the API receives.
  *
- * The form is built from the toggles in ShipmentOption::DEFINITIONS; the export once named each
- * option by hand, so a new one showed as a checkbox and was dropped without a trace. NL, standard
- * delivery and a package: no option has a rule that turns it off there.
+ * The form is built from the toggles in ShipmentOption::DEFINITIONS. The tests use NL, standard
+ * delivery and a package, where no rule turns an option off.
  */
 function sdkOptionsFor(ResolvedOptions $resolved, array $storedDeliveryOptions = []): SdkShipmentOptions
 {

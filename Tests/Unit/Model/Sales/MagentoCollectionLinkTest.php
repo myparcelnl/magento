@@ -7,8 +7,6 @@ use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
-// collectionRefreshing() and apiShipment() live in Tests/Helpers/UpdateMagentoTrackFixtures.php.
-
 /**
  * A MagentoOrderCollection over one Magento shipment, counting how often the track collection was
  * created. $queries is filled by reference so a test can read the count after the fact.
@@ -118,14 +116,9 @@ it('leaves a track the response said nothing about untouched', function () {
 });
 
 it('reads the tracks from their own query, never from the shipment cache', function () {
-    // The guarantee, not the mechanism. A Shipment caches its own tracks in a private field with no
-    // way to reset it, so updateMagentoTrack() would read the tracks as they were before
-    // setFulfilmentTrackData() wrote to them, and a track with a barcode leaves the cron's scope,
-    // so a link missed on that pass is missed for good.
-    //
-    // The query answer is memoised: every writer mutates the Track objects it got, so an id written
-    // in the same pass is visible without a second select. Adding a row clears the memo (see the
-    // two tests below).
+    // A Shipment caches its own tracks with no way to reset them, so reading from it misses what
+    // setFulfilmentTrackData() wrote. A track with a barcode leaves the cron's scope, so a missed
+    // link is missed for good. The query answer is memoised; adding a row clears the memo.
     $shipmentsCreated = 0;
     $trackQueries     = 0;
 
@@ -177,8 +170,7 @@ it('reads the tracks from their own query, never from the shipment cache', funct
 
 it('hands every caller the same track objects, so a write by one is seen by the next', function () {
     // setFulfilmentTrackData() writes the shipment id onto these objects and updateMagentoTrack()
-    // reads it back. Handing out fresh instances instead would lose it unless every writer saved
-    // first, which is the bug the fresh-read rule was guarding against.
+    // reads it back. Fresh instances lose it unless every writer saves first.
     $track      = recordingTrack([], ['getParentId' => 7]);
     $collection = memoisedTrackCollection([$track], $queries);
 
@@ -234,8 +226,7 @@ it('reads the tracks of every shipment in one query rather than one per shipment
 
     invokePrivateMethod($collection, 'tracksByShipmentId');
 
-    // The carrier filter is the point of the second entry: an order can carry a manual DHL track,
-    // and reading it here put its barcode on sales_order.track_number.
+    // An order can carry a manual DHL track; its barcode must not reach sales_order.track_number.
     expect($filters)->toBe([
         ['parent_id', ['in' => [7, 8, 9]]],
         ['carrier_code', Carrier::CODE],
@@ -243,8 +234,7 @@ it('reads the tracks of every shipment in one query rather than one per shipment
 });
 
 it('does not save a track the refresh left unchanged', function () {
-    // AbstractDb::save() opens and commits a transaction before it notices an unmodified model,
-    // so an untouched track still cost a round trip each way once per cron row.
+    // AbstractDb::save() opens and commits a transaction before it notices an unmodified model.
     [$collection, $saved] = collectionRefreshing(
         4242,
         [4242 => apiShipment(4242, '3SMYPA123', null)],

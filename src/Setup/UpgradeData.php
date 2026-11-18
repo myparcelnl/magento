@@ -954,9 +954,8 @@ class UpgradeData implements UpgradeDataInterface
                 return $insuranceCustomAmount;
             };
 
-            // The tier lists this migration rounds to are frozen in LegacyInsuranceTiers, and the
-            // rounding rule moved there with them: an upgrade must run offline and must
-            // keep producing the rows it produced when those tiers were live.
+            // The tiers and the rounding rule are frozen in LegacyInsuranceTiers: an upgrade runs
+            // offline and must keep producing the same rows.
             foreach ($carriers as $carrier) {
                 $carrierName = $carrier['carrierName'];
                 $insuranceFromPriceArray = [];

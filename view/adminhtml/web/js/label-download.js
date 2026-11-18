@@ -59,10 +59,8 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
     /**
      * The request for the PDF.
      *
-     * Always POSTed: fetching a label writes the barcodes it mints back to the shipment and can
-     * mail the customer, and a bulk export's id list is long enough to push an admin URL past what
-     * a web server accepts. A per-row "Download label" carries its query on the ready-made href and
-     * adds no params of its own.
+     * A per-row "Download label" carries its query on the ready-made href and adds no params of its
+     * own.
      */
     function request(labels) {
         var body = new URLSearchParams(labels.params || {});

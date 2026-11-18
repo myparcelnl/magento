@@ -6,9 +6,8 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 
 /**
- * Pins LOCAL_COUNTRY_MAP now that the beta.15 consignments it was sourced from are gone.
- * localCountryCodeFor() silently answers NL for a carrier it does not know, so a carrier missing
- * from the map would ship with Dutch street-splitting rules without anyone noticing.
+ * Pins LOCAL_COUNTRY_MAP. localCountryCodeFor() silently answers NL for a carrier it does not
+ * know, so a carrier missing from the map ships with Dutch street-splitting rules unnoticed.
  */
 it('has a local country for every carrier the module names', function () {
     foreach (array_keys(Carrier::V2_NAMES_MAP) as $carrier) {
@@ -16,8 +15,7 @@ it('has a local country for every carrier the module names', function () {
     }
 });
 
-it('keeps the local countries the beta.15 consignments answered', function () {
-    // DPD ships from BE; every other carrier from NL. Sourced from getLocalCountryCode() at beta.15.
+it('answers BE for DPD and NL for every other carrier', function () {
     expect(Carrier::localCountryCodeFor(Carrier::DPD))->toBe(CountryCode::CC_BE);
 
     foreach (array_keys(Carrier::V2_NAMES_MAP) as $carrier) {
@@ -29,7 +27,7 @@ it('keeps the local countries the beta.15 consignments answered', function () {
     }
 });
 
-it('answers NL for a carrier it does not know, as the old code hardcoded', function () {
+it('answers NL for a carrier it does not know', function () {
     expect(Carrier::localCountryCodeFor('some-future-carrier'))->toBe(CountryCode::CC_NL)
         ->and(Carrier::localCountryCodeFor(null))->toBe(CountryCode::CC_NL);
 });

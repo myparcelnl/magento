@@ -5,8 +5,6 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\Export\Rejection;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException;
 
-// builtShipmentFor() lives in Tests/Helpers/ExportFixtures.php.
-
 function rejectionFor(array $body, int $status = 422, array $chunk = []): Rejection
 {
     return Rejection::fromApiException(

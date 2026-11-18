@@ -89,8 +89,7 @@ it('takes the person from the shipping address, so a gift order carries the reci
 });
 
 it('splits a Belgian address by the carrier\'s own country, not always by PostNL', function () {
-    // A Belgian destination only has a split rule when the carrier ships from Belgium. This path
-    // hard-coded PostNL for every carrier, so a DPD address stayed one unsplit string.
+    // A Belgian destination only has a split rule when the carrier ships from Belgium.
     $belgianAddress = ['getCountryId' => 'BE', 'street' => 'Antwerpsesteenweg 20'];
 
     $viaDpd    = recipientForAddress($belgianAddress, [], Carrier::DPD);

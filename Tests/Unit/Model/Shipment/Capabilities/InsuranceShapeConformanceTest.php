@@ -14,8 +14,6 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  * Refresh it with the live case:
  *
  *     MYPARCEL_ACCEPTANCE_API_KEY=… vendor/bin/pest --test-directory=Tests --filter=InsuranceShape
- *
- * Helpers live in Tests/Helpers/CapabilitiesFixtures.php.
  */
 
 it('the captured acceptance response carries the flat insurance bounds', function () {

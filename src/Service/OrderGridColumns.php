@@ -14,10 +14,9 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
  * Writes sales_order.track_status and track_number for a page of orders: one tracks query, one read
  * of the current values, and a column-level UPDATE only where they differ.
  *
- * Not $order->save(): that rewrote every column of a possibly stale order and re-synced the grid once
- * per shipment. The grid row is refreshed the way Magento's GridSyncInsertObserver does it: directly
- * when dev/grid/async_indexing is off, and through the updated_at bump refreshBySchedule() keys on
- * when it is on.
+ * The grid row is refreshed the way Magento's GridSyncInsertObserver does it: directly when
+ * dev/grid/async_indexing is off, and through the updated_at bump refreshBySchedule() keys on when it
+ * is on.
  */
 class OrderGridColumns
 {

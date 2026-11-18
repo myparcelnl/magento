@@ -81,18 +81,13 @@ it('leaves out an order whose store has no api key rather than borrowing another
 });
 
 it('answers POST only, because fetching a label writes and mails', function () {
-    // Fetching the labels mints the barcodes, writes them back and, with notify, mails the customer.
-    // On POST the admin validates form_key; on GET it falls back to the secret key, which is a
-    // config toggle and rides in the href. label-download.js POSTs every request, so nothing needs
-    // the GET half. Adding it again would give a link-follower a real side effect.
     expect(class_implements(MyParcelNL\Magento\Controller\Adminhtml\Order\PrintMyParcelLabels::class))
         ->toContain(Magento\Framework\App\Action\HttpPostActionInterface::class)
         ->not->toContain(Magento\Framework\App\Action\HttpGetActionInterface::class);
 });
 
 it('exports over POST as well, so a bulk selection never rides in the query string', function () {
-    // HttpMethodValidator only constrains an action that implements one of the markers, so the
-    // marker is what makes the GET 404 rather than silently creating billable shipments.
+    // HttpMethodValidator only constrains an action that implements one of the markers.
     expect(class_implements(MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction::class))
         ->toContain(Magento\Framework\App\Action\HttpPostActionInterface::class)
         ->not->toContain(Magento\Framework\App\Action\HttpGetActionInterface::class);

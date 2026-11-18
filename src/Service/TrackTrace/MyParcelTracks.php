@@ -13,8 +13,7 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
  *
  * An order can carry tracks from any Magento carrier. Reading another carrier's track here means
  * stamping its barcode onto sales_order.track_number and offering a MyParcel portal link for a
- * barcode that portal never issued. The rule was spelled out at each query and missing from two,
- * so it lives here instead.
+ * barcode that portal never issued.
  */
 class MyParcelTracks
 {

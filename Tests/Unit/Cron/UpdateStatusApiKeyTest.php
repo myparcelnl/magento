@@ -13,8 +13,7 @@ use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 
 /**
- * The PPS branch used to read one API key with no store id, so a multi-account install only ever
- * polled one account. These pin the grouping, the isolation between accounts, and that no store is
+ * Pins the grouping of PPS orders per API key, the isolation between accounts, and that no store is
  * matched against another store's response.
  */
 
@@ -26,9 +25,6 @@ function updateStatusConfig(): MyParcelNL\Magento\Service\Config
         2 => ['api/key' => 'KEY_B'],
     ]);
 }
-
-// apiOrderWithShipments(), shippedApiOrder() and conceptApiOrder() live in
-// Tests/Helpers/FulfilmentApiFixtures.php.
 
 /**
  * @param array<int,array{increment_id:string,entity_id:int,store_id:int}> $orderRows
@@ -223,8 +219,7 @@ it('still carries the barcode when the response names no shipment id', function 
 });
 
 it('leaves an order the backoffice has not shipped yet completely alone', function () {
-    // It used to be recorded as done before this check, so it still reached the collection below
-    // and was given a Magento shipment and a placeholder track it could never come back from.
+    // A concept order gets no Magento shipment and no placeholder track.
     [, $orderCollection, $calls] = runPpsCron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([conceptApiOrder('100000001')])]

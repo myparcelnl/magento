@@ -9,9 +9,6 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
  * A pickup location belongs to one carrier's network, so overriding the
  * carrier after checkout invalidates it and the shipment falls back to
  * standard home delivery.
- *
- * Read through ShipmentAccessors rather than consignment getters: the rule
- * survives the SDK migration, the shape it is read from does not.
  */
 function pickupCheckoutOptions(): array
 {
@@ -51,9 +48,7 @@ it('preserves an inherited pickup location when the carrier is not overridden', 
 });
 
 it('leaves naming the order to the reporting layer', function () {
-    // The builder used to prefix 'Order %s: ' itself while both catch sites prefixed the increment id
-    // again, so a local validation failure rendered as
-    // "000000116: Order 000000116: recipient: invalid value for 'postal_code'…". One prefix, one owner.
+    // Both catch sites prefix the increment id, so the builder adds no order prefix of its own.
     [$builder, $track] = createConvertibleShipmentBuilder([
         'carrier'      => CarrierPostNL::NAME,
         'deliveryType' => 'pickup',

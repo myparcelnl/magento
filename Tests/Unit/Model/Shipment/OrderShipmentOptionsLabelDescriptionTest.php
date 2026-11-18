@@ -12,9 +12,6 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
  * The API refuses a label description over 45 characters, and the generated setter throws rather
  * than truncating. Every case here goes through that real setter, so a length the API would refuse
  * fails the test instead of passing quietly.
- *
- * Nothing asserted any of this before, which is how a cap three characters too low survived
- *.
  */
 function labelDescriptionFor(string $description): string
 {
@@ -37,9 +34,8 @@ it('leaves a description that already fits exactly alone', function () {
     expect(labelDescriptionFor($exact))->toBe($exact);
 });
 
-it('uses all 45 characters, where the consignment stopped three short', function () {
-    // AbstractConsignment did Str::limit($x, 45 - 3), but Str::limit counts its own marker inside
-    // the width, so the subtraction happened twice and three characters were never used.
+it('uses all 45 characters when it truncates', function () {
+    // Str::limit counts its own marker inside the width. Subtracting the marker as well loses three.
     $result = labelDescriptionFor(str_repeat('a', 200));
 
     expect(mb_strlen($result))->toBe(OrderShipmentOptions::LABEL_DESCRIPTION_MAX_LENGTH);

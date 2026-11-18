@@ -12,8 +12,7 @@ use MyParcelNL\Magento\Service\Config;
  * then the carrier setting. The New Shipment page pre-checks its box from this answer, and the
  * export reads the same answer through ShipmentOptionsResolver, so the two cannot disagree.
  *
- * mockAttributeValueLookup() lives in Tests/Helpers/ShipmentBuilderMocks.php; every product in the
- * order answers the same attribute value.
+ * Every product in the order answers the same attribute value.
  */
 function ageCheckDefaultFor(string $productValue, bool $carrierDefault): bool
 {

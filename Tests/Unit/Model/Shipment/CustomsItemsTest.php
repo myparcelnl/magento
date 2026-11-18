@@ -20,7 +20,7 @@ function customsItems(): CustomsItems
 
 it('answers the same on every PHP version when a line lands just short of a boundary', function () {
     // 25 cents times 4.1 is 102.49999999999999, below the boundary, so half up answers 102.
-    // round() answered 103 up to PHP 8.3, which pre-rounded to the boundary first.
+    // round() answers 103 before PHP 8.4, which pre-rounds to the boundary first.
     expect(customsItems()->lineValueInCents(0.25, 4.1))->toBe(102)
         ->and(customsItems()->lineValueInCents(0.25, 2.3))->toBe(57);
 });
@@ -36,8 +36,8 @@ it('leaves a line that converts exactly alone', function () {
 });
 
 /**
- * HS codes come from the product collection now, not a hand-built query on the value tables: on
- * Commerce those are keyed by row_id, and the raw read answered nothing there.
+ * A CustomsItems on a mocked product collection. Do not read the value tables directly: on Commerce
+ * they are keyed by row_id.
  *
  * @param array<int,string|null> $classifications product id => stored HS code
  */

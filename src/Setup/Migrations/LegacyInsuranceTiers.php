@@ -23,10 +23,7 @@ class LegacyInsuranceTiers
     private const FIFTY_500 = [50, 500];
     private const TEN_K     = [10000];
 
-    /**
-     * Zones absent from a carrier's entry had an empty list, which is not the same as "no rule": an
-     * empty list made beta.15 reject every non-zero amount.
-     */
+    /** A zone absent from a carrier's entry gets an empty list, and snap() leaves the amount untouched. */
     private const TIERS = [
         Carrier::POSTNL             => [
             self::ZONE_LOCAL => self::FROM_100,

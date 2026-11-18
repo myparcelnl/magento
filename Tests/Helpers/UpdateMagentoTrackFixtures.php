@@ -97,9 +97,7 @@ function consignmentIdsStub(array $ownIds): Closure
 }
 
 /**
- * updateMagentoTrack() is what puts the consumer portal link on the track, and nothing covered it.
- * That is why PPS orders went without one unnoticed. There is no PPS-specific link path:
- * once a track carries myparcel_consignment_id it refreshes through here like any other.
+ * A collection with one MyParcel track and a recorder of what the refresh wrote.
  *
  * @param array<int,ShipmentDefsShipment> $latest keyed by MyParcel shipment id
  *
@@ -255,7 +253,7 @@ function apiShipment(int $id, ?string $barcode, ?string $link, ?int $status = 3)
 
 /**
  * One collo of a multicollo, as the shipment API returns it: a full shipment in its own right, with
- * its own id, barcode, status and link. This is what the module never read.
+ * its own id, barcode, status and link.
  */
 function apiCollo(int $id, string $barcode, ?string $link = null, ?int $status = 3): SecondaryShipmentResource
 {

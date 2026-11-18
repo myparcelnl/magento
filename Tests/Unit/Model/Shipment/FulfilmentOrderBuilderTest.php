@@ -11,11 +11,6 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 
-/**
- * Drives the real build(), which is where beta.31's two fulfilment changes land: the carrier moved
- * out of the delivery options into its own field, and the options are now the SDK's shipment
- * options rather than a delivery-options adapter.
- */
 function pickupCheckoutData(): array
 {
     return [
@@ -37,9 +32,8 @@ function pickupCheckoutData(): array
     ];
 }
 
-it('sets the carrier id, so getCarrier() no longer throws', function () {
-    // beta.31 made setCarrierId() mandatory: carrier is shipment-level data in the Order v1 payload
-    // and getCarrier() throws when it was never set. Nothing else in the module would notice.
+it('sets the carrier id, so getCarrier() does not throw', function () {
+    // getCarrier() throws when the carrier was never set, and nothing else in the module checks it.
     $order = createFulfilmentOrderBuilder()->build(
         createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard']),
         []
@@ -80,8 +74,6 @@ it('maps the pickup location field for field', function () {
 });
 
 it('leaves a pickup on the package type the checkout stored', function () {
-    // This path used to overwrite the package type with `package` for every pickup, contradicting
-    // a checkout that had offered a mailbox pickup. Both export paths now answer the same.
     $order = createFulfilmentOrderBuilder()
         ->build(createFulfilmentMagentoOrder(pickupCheckoutData()), ['carrier' => CarrierDHLForYou::NAME]);
 

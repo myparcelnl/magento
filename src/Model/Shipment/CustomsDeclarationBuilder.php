@@ -31,8 +31,7 @@ class CustomsDeclarationBuilder
     }
 
     /**
-     * One item per shipped item: the legacy path looped both getData('items') and getItems() and
-     * added every item twice. Product data is fetched in two batch queries, not per item.
+     * One customs item per shipped item. Product data comes from two batch queries, not one per item.
      *
      * @throws \RuntimeException when the SDK refuses the declaration, for example no item or more than 100
      */

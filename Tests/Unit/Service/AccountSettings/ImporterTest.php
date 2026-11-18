@@ -90,8 +90,7 @@ it('asks for contract definitions exactly once, with no carrier filter', functio
     $logger->shouldReceive('warning')->once();
 
     $client = Mockery::mock(Client::class);
-    // One argument, one call: the filter cost a request per carrier and the response names each
-    // item's carrier anyway.
+    // One call without a carrier filter: the response names each item's carrier.
     $client->shouldReceive('sendContractDefinitions')->once()->with('live-key')->andReturn([]);
 
     invokePrivateMethod(importerFor([], $client, $logger), 'fetchContractDefinitions', ['live-key']);

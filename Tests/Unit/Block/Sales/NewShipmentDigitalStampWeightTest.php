@@ -9,8 +9,7 @@ use MyParcelNL\Magento\Service\Config;
 
 /*
  * The weight buckets the New Shipment form offers, and the admin setting that must offer the
- * same ones. They held separate lists until 2026-08, so the last case here is the one that keeps
- * DigitalStampWeightOptions and the block in step.
+ * same ones.
  */
 
 /** @param int $orderWeightGrams what getDigitalStampWeight() resolves to */
@@ -43,9 +42,7 @@ function selectedWeights(NewShipment $block): array
 }
 
 it('selects exactly one range, and the lightest one for a weightless order', function () {
-    // 90g and 300g both send 200: the merged 50-350 range sends a weight inside itself rather than
-    // its own boundary. The old form-local list sent 100 and 350 here, values ReplaceDpzRange had
-    // already retired from the matching admin setting.
+    // 90g and 300g both send 200: the 50-350 range sends a weight inside itself, not its boundary.
     foreach ([0 => 20, 15 => 20, 20 => 20, 25 => 50, 90 => 200, 300 => 200, 350 => 200, 1500 => 2000] as $grams => $expected) {
         expect(selectedWeights(createNewShipmentBlockWeighing($grams)))
             ->toBe([$expected], "an order of {$grams}g should send {$expected}g");
@@ -67,7 +64,6 @@ it('offers the no-standard-weight option first and never selected', function () 
 });
 
 it('offers the admin setting and the form the identical set of weights', function () {
-    // They held separate lists until 2026-08, and the form's still carried the retired values.
     $setting = new DigitalStampWeightOptions(Mockery::mock(Config::class));
 
     expect(array_column($setting->toOptionArray(), 'value'))

@@ -140,10 +140,7 @@ function builtShipmentFor(
 }
 
 /**
- * The request object, wherever it sits in the argument list.
- *
- * postShipments() takes $user_agent first at beta.15 and sixth at beta.31. A fixture that binds to
- * one position silently stops observing anything when the SDK pin moves.
+ * Finds the request by type, not by position.
  *
  * @return \MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11
  */

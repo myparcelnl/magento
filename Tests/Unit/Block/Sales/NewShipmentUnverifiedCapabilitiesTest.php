@@ -10,9 +10,6 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 /*
  * hasUnverifiedCapabilities() drives the admin notice that the options on screen are the form's
  * own rather than the account's. A partial fallback is the case that matters.
- *
- * capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php,
- * createNewShipmentBlockWith() in Tests/Helpers/NewShipmentBlockMocks.php.
  */
 
 /**

@@ -126,13 +126,11 @@ class OrderShipmentOptions
 
     /**
      * Package type precedence: the explicit option, then what the checkout stored, then the
-     * configured default. Nothing here overrides a stored type: an option the type cannot carry
-     * is the checkout's problem to avoid and the API's to refuse.
+     * configured default. Nothing here overrides a stored type: the API refuses an option the type
+     * cannot carry.
      *
-     * The two sources fail differently, and deliberately. An explicit option is the admin form's own
-     * vocabulary, so an unmapped one falls back the way it always has. A *stored* type is the
-     * customer's choice, so an unresolvable one fails the shipment instead of shipping as something
-     * else.
+     * An unmapped explicit option falls back to the default. A stored type is the customer's choice,
+     * so one that resolves to no id fails the shipment instead of shipping as another type.
      *
      * @throws RuntimeException on a stored type that resolves to no id
      */

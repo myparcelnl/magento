@@ -6,7 +6,7 @@ use MyParcelNL\Magento\Service\Export\LabelPdfMerger;
 
 /**
  * A mixed batch is one download, and the labels of one account must stay together and in the order
- * the accounts were asked. Fixtures live in Tests/Helpers/PdfFixtures.php.
+ * the accounts were asked.
  */
 
 it('keeps every page of every account', function () {

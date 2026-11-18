@@ -32,8 +32,8 @@ class PackageType
     public const PACKAGE_SMALL = RefShipmentPackageType::SMALL_PACKAGE;
     public const ENVELOPE      = RefShipmentPackageType::ENVELOPE;
 
-    // 'letter' and 'package_small' are irregular for historical reasons; every other name is the
-    // v2 enum lower-cased. Do not add a third irregular one.
+    // 'letter' and 'package_small' are irregular; every other name is the v2 enum lower-cased.
+    // Do not add a third irregular one.
     public const PACKAGE_NAME       = 'package';
     public const MAILBOX_NAME       = 'mailbox';
     public const LETTER_NAME        = 'letter';

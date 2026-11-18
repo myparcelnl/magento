@@ -102,9 +102,7 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @param string $label the key's fingerprint, never the key: a mask built from the key itself
-     *                      showed all of a short one and eight characters of any other, and these
-     *                      lines fire on ordinary grid renders.
+     * @param string $label the key's fingerprint, never the key: these lines fire on ordinary grid renders.
      */
     private function alert(string $what, string $label): void
     {
