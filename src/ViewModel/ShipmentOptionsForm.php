@@ -274,10 +274,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         if ($this->getCapabilities()->isPermissive()) {
             // What this form offered before capabilities existed. Degrading to the old behaviour
             // beats both hiding everything and offering pallets that never appeared here.
-            return array_map(
-                [PackageType::class, 'nameFromIdOrNull'],
-                array_keys(NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP)
-            );
+            return array_keys(PackageType::TITLES);
         }
 
         return $this->getCapabilities()->packageTypesFor($carrier);
@@ -559,8 +556,6 @@ class ShipmentOptionsForm implements ArgumentInterface
     /** The untranslated label of a package type name; the name itself when it has none. */
     private static function packageTypeHuman(string $name): string
     {
-        $id = PackageType::toIdOrNull($name);
-
-        return null === $id ? $name : (NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP[$id] ?? $name);
+        return PackageType::TITLES[$name] ?? $name;
     }
 }

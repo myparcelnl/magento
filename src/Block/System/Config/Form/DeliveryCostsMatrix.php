@@ -57,13 +57,12 @@ class DeliveryCostsMatrix extends Field
 
     public function getPackageTypes(): array
     {
-        return [
-            PackageType::PACKAGE       => __('Package'),
-            PackageType::MAILBOX       => __('Mailbox'),
-            PackageType::LETTER        => __('Letter'),
-            PackageType::DIGITAL_STAMP => __('Digital stamp'),
-            PackageType::PACKAGE_SMALL => __('Small package'),
-        ];
+        $packageTypes = [];
+        foreach (PackageType::TITLES as $name => $title) {
+            $packageTypes[PackageType::toId($name)] = __($title);
+        }
+
+        return $packageTypes;
     }
 
     /** Get the delivery type titles, keyed by the name the delivery_type condition compares. */

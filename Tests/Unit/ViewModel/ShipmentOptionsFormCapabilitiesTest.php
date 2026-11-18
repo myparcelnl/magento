@@ -82,7 +82,7 @@ it('offers the package types the account reports for that carrier', function () 
 it('degrades to the package types this form has always offered', function () {
     $block = createShipmentOptionsFormWith(CapabilitySet::permissive());
 
-    // The five in PACKAGE_TYPE_HUMAN_MAP: what the form showed before capabilities existed. Not
+    // The five in PackageType::TITLES: what the form showed before capabilities existed. Not
     // every type the module knows, so pallet and envelope stay off a form they never appeared on.
     expect($block->getPackageTypes('postnl'))->toBe([
         PackageType::PACKAGE_NAME,

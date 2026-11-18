@@ -2,7 +2,6 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 /**
@@ -14,14 +13,6 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
  */
 class NewShipmentForm
 {
-    public const PACKAGE_TYPE_HUMAN_MAP = [
-        PackageType::PACKAGE       => 'Package',
-        PackageType::MAILBOX       => 'Mailbox',
-        PackageType::LETTER        => 'Letter',
-        PackageType::DIGITAL_STAMP => 'Digital stamp',
-        PackageType::PACKAGE_SMALL => 'Small package',
-    ];
-
     /** The option's translated label. */
     public function labelFor(string $option): string
     {
