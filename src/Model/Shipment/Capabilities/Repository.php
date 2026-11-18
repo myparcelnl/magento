@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use Throwable;
 
 /**
- * Gets capabilities through the cache, per API key and request. The only class consumers touch.
+ * Gets capabilities through the cache, per API key and request.
  *
  * - Fail open: any failure returns CapabilitySet::permissive(), so a lookup never stops a label.
  * - Serve stale: success entries never expire, so a failed refresh finds the previous answer.

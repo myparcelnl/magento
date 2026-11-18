@@ -10,7 +10,7 @@ use Magento\Framework\EntityManager\MetadataPool;
  * A MetadataPool answering one link field for catalog_product.
  *
  * Open Source keys the catalog value tables on `entity_id`, Commerce on `row_id`. Every test that
- * covers a staged schema needs the same three-mock stack, so it lives here once.
+ * covers a staged schema needs the same two mocks, so they live here once.
  */
 function productMetadataPool(string $linkField = 'entity_id'): MetadataPool
 {

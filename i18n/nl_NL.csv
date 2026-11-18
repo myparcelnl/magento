@@ -506,3 +506,5 @@ This order is a pickup but its pickup location cannot be read (%1),"Deze bestell
 this order is a pickup but carries no pickup location,"deze bestelling wordt opgehaald, maar heeft geen afhaallocatie"
 %1 label file(s) could not be merged. Please check the log.,%1 labelbestand(en) konden niet worden samengevoegd. Controleer het log.
 "created as MyParcel shipment %1, but the id could not be stored: %2","aangemaakt als MyParcel zending %1, maar het id kon niet worden opgeslagen: %2"
+"MyParcel carrier capabilities","MyParcel vervoerdermogelijkheden"
+"Per-account carrier capability answers from the MyParcel API","Antwoorden van de MyParcel API over de mogelijkheden van de vervoerders, per account"

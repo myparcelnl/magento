@@ -85,15 +85,19 @@
             </argument>
         </arguments>
     </type>
-    <!-- Fallback track & trace url, used only for shipments stored before the module read the link
-         from the API. Keys are the API's platform ids: 1 myparcel, 2 flespakket, 3 belgie,
-         4 delivery_dutch, 5 postnl_customer, 6 italy. A platform not listed keeps the default. -->
+    <!-- Fallback track & trace url. Keys are the account's proposition id; one not listed keeps the default. -->
     <type name="MyParcelNL\Magento\Service\TrackTraceUrl">
         <arguments>
             <argument name="defaultBaseUrl" xsi:type="string">https://myparcel.me/track-trace/</argument>
-            <argument name="baseUrlsByPlatform" xsi:type="array">
+            <argument name="baseUrlsByProposition" xsi:type="array">
                 <item name="3" xsi:type="string">https://sendmyparcel.me/track-trace/</item>
             </argument>
+        </arguments>
+    </type>
+    <!-- Its own lookup: answeredPermissively() must tell what this block asked, not other callers. -->
+    <type name="MyParcelNL\Magento\Block\Sales\NewShipment">
+        <arguments>
+            <argument name="capabilityLookup" xsi:type="object" shared="false">MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup</argument>
         </arguments>
     </type>
     <!-- The HTTP client of the label and return requests, with the SDK's request timeout. -->

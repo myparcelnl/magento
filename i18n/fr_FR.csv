@@ -497,3 +497,5 @@ This order is a pickup but its pickup location cannot be read (%1),"Cette comman
 this order is a pickup but carries no pickup location,"cette commande est un retrait, mais n'a pas de point de retrait"
 %1 label file(s) could not be merged. Please check the log.,%1 fichier(s) d'étiquettes n'ont pas pu être fusionnés. Veuillez consulter le journal.
 "created as MyParcel shipment %1, but the id could not be stored: %2","créé comme envoi MyParcel %1, mais l'identifiant n'a pas pu être enregistré : %2"
+"MyParcel carrier capabilities","Capacités des transporteurs MyParcel"
+"Per-account carrier capability answers from the MyParcel API","Réponses de l'API MyParcel sur les capacités des transporteurs, par compte"

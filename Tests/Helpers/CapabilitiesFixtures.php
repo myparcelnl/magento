@@ -57,10 +57,7 @@ function capabilityResult(array $overrides = []): array
     ], $overrides);
 }
 
-/**
- * One `items` entry from the contract-definitions endpoint. Same wire keys as a `results` entry
- * minus `contract` and `physicalProperties`, which is why one parser reads both.
- */
+/** One `items` entry from the contract-definitions endpoint. One parser reads it and a `results` entry. */
 function contractDefinitionItem(array $overrides = []): array
 {
     return array_replace([

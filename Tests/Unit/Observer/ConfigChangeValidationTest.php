@@ -203,7 +203,7 @@ it('reloads nothing when the save moved nothing', function () {
 it('reloads the merged config once when a field changed', function () {
     $result = saveDynamicSettings([VALIDATED_PATH => ['value' => '3000']], [], [VALIDATED_PATH => '2500']);
 
-    $result['appConfig']->shouldHaveReceived('reinit');
+    $result['appConfig']->shouldHaveReceived('reinit')->once();
     $result['caches']->shouldHaveReceived('invalidate')->with(['block_html', 'full_page']);
 });
 

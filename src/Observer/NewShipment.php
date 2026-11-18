@@ -66,9 +66,8 @@ class NewShipment implements ObserverInterface
      * Built on first use, not in the constructor.
      *
      * This observer runs on every sales_order_shipment_save_before in the shop, and all but the
-     * MyParcel ones return at the guard in execute(). MagentoOrderCollection resolves eleven
-     * services of its own, so constructing it up front billed every other shipment save for a graph
-     * it never touched.
+     * MyParcel ones return at the guard in execute(). MagentoOrderCollection resolves a dozen
+     * services of its own, so constructing it up front costs every other shipment save.
      */
     private function orderCollection(): MagentoOrderCollection
     {

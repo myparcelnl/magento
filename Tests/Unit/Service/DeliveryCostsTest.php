@@ -10,7 +10,7 @@ it('rounds a price whose binary representation falls just short', function () {
     expect(DeliveryCosts::getPriceInCents(0.29))->toBe(29);
 });
 
-it('leaves a price that converts exactly alone', function () {
+it('converts an ordinary price to the same cents', function () {
     expect(DeliveryCosts::getPriceInCents(12.34))->toBe(1234)
         ->and(DeliveryCosts::getPriceInCents(0.07))->toBe(7)
         ->and(DeliveryCosts::getPriceInCents(0.0))->toBe(0);

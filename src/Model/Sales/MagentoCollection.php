@@ -91,8 +91,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * tracksByShipmentId()'s answer for this pass, or null before the first read.
      *
-     * Only setNewMagentoTrack() adds a row, so only it clears this. The export service changes the
-     * Track objects held here in place, so an id it stores is already visible through the memo.
+     * The export service changes the Track objects held here in place, so an id it stores is already
+     * visible through the memo.
      */
     private ?array $trackMemo = null;
 
@@ -307,11 +307,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Get MyParcel Track from Magento Track
+     * Build the v11 shipment for one Magento track.
      *
      * @param Track $magentoTrack
      *
-     * @return BuiltShipment
      * @throws LocalizedException
      */
     protected function buildShipment($magentoTrack, int $colloNumber = 1): BuiltShipment
@@ -569,9 +568,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Add MyParcel Track from Magento Track
+     * Build a v11 shipment for each track without a MyParcel id, into $builtShipments.
      *
-     * @return self
      * @throws Exception
      */
     public function setNewMyParcelTracks(): self
@@ -689,12 +687,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function updateMagentoTrack(): self
     {
-        // One read for both uses: no track is written between them, so the second load answered
-        // with the same rows.
         $tracks = $this->tracksByShipmentId();
-
-        // The export service already wrote the shipment id on each track, so this only refreshes
-        // status and barcode.
         $latest = $this->exportService->fetchLatest($this->getMyparcelConsignmentIdsByApiKey($tracks));
 
         $claimedIds = [];

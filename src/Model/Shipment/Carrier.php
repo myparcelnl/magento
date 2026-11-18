@@ -16,11 +16,8 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use Throwable;
 
 /**
- * Carrier names and labels.
- *
- * Same split as PackageType and DeliveryType: the lowercase names are ours and are config path
- * segments, so they cannot follow the SDK. V2_NAMES_MAP translates them to the Core API vocabulary
- * a capabilities response speaks.
+ * Carrier names and labels. V2_NAMES_MAP translates the names to the Core API vocabulary that a
+ * capabilities response speaks.
  */
 class Carrier
 {

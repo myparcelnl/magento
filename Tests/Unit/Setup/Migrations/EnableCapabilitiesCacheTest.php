@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
  * asserts what was written rather than only that a mock expectation held.
  *
  * @param  array<string,int>|null $configuredTypes what env.php's cache_types holds
- * @return array{0: array, 1: callable} the recorded calls by reference, and the run
+ * @return array<int,array{0: array, 1: bool}> the setEnabled() calls, as [types, enabled]
  */
 function runEnableCapabilitiesCache(?array $configuredTypes, ?Throwable $writeFails = null): array
 {

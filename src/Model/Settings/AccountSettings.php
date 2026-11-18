@@ -15,13 +15,8 @@ use MyParcelNL\Sdk\Model\BaseModel;
 /**
  * The account and its general settings, from a stored account settings row.
  *
- * The carrier half moved to contract definitions, read through
- * Service\AccountSettings\ContractDefinitions. What is left is the account's own general settings,
- * which no contract carries. hasPostnlMailboxInternational() is the one live reader.
- *
- * A row this class did not write may be missing anything, and the SDK's Account throws on a missing
- * key. getAccount() therefore answers null for every row it cannot use: it is read while the order
- * grid renders, where a throw is a 500.
+ * getAccount() answers null for a row it cannot use: the order grid reads it while it renders, and the
+ * SDK's Account throws on a missing key.
  */
 class AccountSettings extends BaseModel
 {

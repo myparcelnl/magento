@@ -497,3 +497,5 @@ This order is a pickup but its pickup location cannot be read (%1),"Questo ordin
 this order is a pickup but carries no pickup location,"questo ordine è un ritiro, ma non ha un punto di ritiro"
 %1 label file(s) could not be merged. Please check the log.,Non è stato possibile unire %1 file di etichette. Controlla il log.
 "created as MyParcel shipment %1, but the id could not be stored: %2","creato come spedizione MyParcel %1, ma non è stato possibile salvare l'ID: %2"
+"MyParcel carrier capabilities","Funzionalità dei corrieri MyParcel"
+"Per-account carrier capability answers from the MyParcel API","Risposte dell'API MyParcel sulle funzionalità dei corrieri, per account"

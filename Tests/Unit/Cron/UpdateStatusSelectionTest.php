@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
  * Capture the conditions the selector puts on the cron's query. The selector decides which orders
  * the cron can see. Assert which facts it keys on, not its SQL text.
  *
- * @return array{filters: array, wheres: string[]}
+ * @return array{filters: array, wheres: string[], bindings: array, subBindings: array}
  */
 function capturedSelection(): array
 {
@@ -86,13 +86,13 @@ it('selects on the export marker, not on a grid display column', function () {
         ->and(capturedSelection()['filters']['myparcel_uuid'])->toBe(['notnull' => true]);
 });
 
-it('bounds the window to what addOrdersToCollection can still load', function () {
+it('bounds the window from below by created_at, as addOrdersToCollection does', function () {
     // Selecting orders the second query then drops by created_at would poll them forever.
     expect(capturedSelection()['filters'])->toHaveKey('created_at')
         ->and(array_keys(capturedSelection()['filters']['created_at']))->toBe(['gteq']);
 });
 
-it('excludes an order that already has a real barcode on a track', function () {
+it('adds a NOT EXISTS condition for a track that already has a real barcode', function () {
     $wheres = implode(' ', capturedSelection()['wheres']);
 
     expect($wheres)->toContain('NOT EXISTS');

@@ -394,11 +394,8 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * The shipment path gets both from updateMagentoTrack(), which refreshes by
      * myparcel_consignment_id. A PPS order has no id until this runs, so without it the track keeps
-     * its placeholder and never joins the status or track & trace refresh at all.
-     *
-     * The id is read defensively: it is not in the SDK's model (order_shipments passes through as
-     * a raw array), so an absent one is logged, because it is the one case where the status and the
-     * link can never arrive.
+     * its placeholder and never joins the status or track & trace refresh at all. A shipment without
+     * an id is logged: its status and link can never arrive.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilmentByIncrementId
      */

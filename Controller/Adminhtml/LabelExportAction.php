@@ -20,9 +20,9 @@ use MyParcelNL\Sdk\Exception\ValidationException;
 use Throwable;
 
 /**
- * Shared shell of the two grid export controllers (orders and shipments).
+ * Shared shell of the grid export and return-mail controllers.
  *
- * Both answer the JSON that ExportResponse builds and neither redirects: the grid calls them over
+ * They answer the JSON that ExportResponse builds and neither redirects: the grid calls them over
  * AJAX so the page stays put, and a second request fetches the labels. A response can be a PDF or
  * JSON, not both.
  */
@@ -89,7 +89,7 @@ abstract class LabelExportAction extends Action implements HttpPostActionInterfa
     }
 
     /**
-     * Get the labels this run earned, or null when nothing carries a shipment id.
+     * Get the labels of the selected shipments that carry a MyParcel id, or null when none does.
      *
      * The null keeps a failed export from sending the page after a PDF that does not exist.
      */
