@@ -50,12 +50,7 @@ function partialOrderCollection(array $shipmentList): MagentoOrderCollection
     return $collection;
 }
 
-/**
- * A ShipmentExportService double answering every fetch from one map, recording what was asked for.
- *
- * One map for every call. For the second fetch (the one fillColloLinks() makes) to succeed, put the
- * collo's own top-level shipment in the map beside the parent.
- */
+/** A ShipmentExportService double answering every fetch from one map, recording what was asked for. */
 function recordingExportService(array $latest, object $saved): ShipmentExportService
 {
     $exportService = Mockery::mock(ShipmentExportService::class);
@@ -72,8 +67,7 @@ function recordingExportService(array $latest, object $saved): ShipmentExportSer
 
 /**
  * getMyparcelConsignmentIdsByApiKey() as the real one answers: off the tracks the caller hands in,
- * or off the collection's own rows when it hands in none. Both shapes are used, and a stub that
- * answered the same either way could not show which ids fillColloLinks() asks about.
+ * or off the collection's own rows when it hands in none.
  *
  * @param int[] $ownIds
  */
