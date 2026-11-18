@@ -25,7 +25,7 @@ use MyParcelNL\Sdk\Support\Str;
 class CustomsItems
 {
     /** The API's maximum. setDescription() throws above it, so a longer name is shortened. */
-    public const MAX_DESCRIPTION_LENGTH = 50;
+    private const MAX_DESCRIPTION_LENGTH = 50;
 
     /** The HS code length sent: TARIC, the Order API maximum. See "HS code length" in docs/sdk-v11.md. */
     private const MAX_CLASSIFICATION_LENGTH = 10;
@@ -94,7 +94,7 @@ class CustomsItems
     {
         $product = null === $sku || '' === $sku ? sprintf('"%s"', $name) : sprintf('"%s" (%s)', $name, $sku);
 
-        return new \RuntimeException(sprintf('Customs item %s: %s', $product, $e->getMessage()), 0, $e);
+        return new \RuntimeException((string) __('customs item %1: %2', $product, $e->getMessage()), 0, $e);
     }
 
     public function description(string $name): string

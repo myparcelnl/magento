@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -26,13 +24,7 @@ use MyParcelNL\Magento\Service\Weight;
  */
 function createShipmentBuilder(array $properties = []): ShipmentBuilder
 {
-    $builder = newInstanceWithoutConstructor(ShipmentBuilder::class);
-
-    foreach ($properties as $property => $value) {
-        setPrivateProperty($builder, $property, $value);
-    }
-
-    return $builder;
+    return instanceWithProperties(ShipmentBuilder::class, $properties);
 }
 
 /**
@@ -41,13 +33,7 @@ function createShipmentBuilder(array $properties = []): ShipmentBuilder
  */
 function createOrderShipmentOptions(array $properties = []): OrderShipmentOptions
 {
-    $options = newInstanceWithoutConstructor(OrderShipmentOptions::class);
-
-    foreach ($properties as $property => $value) {
-        setPrivateProperty($options, $property, $value);
-    }
-
-    return $options;
+    return instanceWithProperties(OrderShipmentOptions::class, $properties);
 }
 
 /**
@@ -167,7 +153,7 @@ function mockAttributeValueLookup(string $value, array $alsoBind = []): void
     // This helper owns the singleton, so mockLoggerFacade() cannot also be called. An order with no
     // resolvable insurance range logs a notice, and that has to land somewhere.
     $objectManager->shouldReceive('get')->with(LoggerInterface::class)
-        ->andReturn(Mockery::mock(LoggerInterface::class)->shouldIgnoreMissing());
+        ->andReturn(makePermissiveLogger());
 
     foreach ($alsoBind as $class => $instance) {
         $objectManager->shouldReceive('get')->with($class)->andReturn($instance);

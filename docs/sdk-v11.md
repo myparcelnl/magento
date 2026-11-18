@@ -21,7 +21,7 @@ maps these names to ids and to v2 names; INT-1563 replaces the module maps with 
 `Model\Shipment\Carrier` takes each name from the SDK class that owns it
 (`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
 stays the module's own is *which* carriers it supports (the eight it has admin settings for,
-against the SDK's thirteen), `V2_NAMES_MAP` until INT-1563, and `LOCAL_COUNTRY_MAP`. An account's real set comes from
+against the SDK's thirteen), `V2_NAMES_MAP` until INT-1563, and that DPD is the one carrier with BE as local country. An account's real set comes from
 capabilities, never from either list.
 
 Two capabilities went with the deleted stack and are module code now:

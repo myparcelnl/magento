@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Service\Config;
@@ -15,19 +16,9 @@ use MyParcelNL\Magento\Service\Config;
 /** @param int $orderWeightGrams what getDigitalStampWeight() resolves to */
 function createNewShipmentBlockWeighing(int $orderWeightGrams): NewShipment
 {
-    $block = newInstanceWithoutConstructor(NewShipment::class);
-
-    $weight = Mockery::mock(\MyParcelNL\Magento\Service\Weight::class);
-    $weight->shouldReceive('convertToGrams')->andReturn($orderWeightGrams);
-
-    // A zero order weight falls through to the configured default, so pin that at zero too and the
-    // weightless case stays genuinely weightless.
-    $defaults = Mockery::mock(\MyParcelNL\Magento\Model\Source\DefaultOptions::class);
-    $defaults->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0);
-
-    setPrivateProperty($block, 'order', createOrder(['getWeight' => (float) $orderWeightGrams]));
-    setPrivateProperty($block, 'weightService', $weight);
-    setPrivateProperty($block, 'defaultOptions', $defaults);
+    // The configured default weight stays at zero, so the weightless case stays weightless.
+    $block = createNewShipmentBlockWith(CapabilitySet::permissive(), ['getWeight' => (float) $orderWeightGrams]);
+    getPrivateProperty($block, 'weightService')->shouldReceive('convertToGrams')->andReturn($orderWeightGrams);
 
     return $block;
 }

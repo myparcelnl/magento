@@ -23,7 +23,7 @@ class ShipmentQuery
      * Ids per request. They share one path segment, and nginx refuses a URL over 8 KB by default.
      * A multiple of four, so A4 label sheets stay aligned.
      */
-    private const CHUNK_SIZE = 100;
+    public const CHUNK_SIZE = 100;
 
     private ShipmentApi $api;
 

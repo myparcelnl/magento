@@ -94,26 +94,18 @@ function recordingTrack(array $handlers, array $getters = []): Track
  */
 function exportTrack(?int $existingShipmentId = null, ?int $trackEntityId = 1, ?int &$saves = null): Track
 {
-    $data  = [];
     $saves = 0;
-
-    if (null !== $existingShipmentId) {
-        $data['myparcel_consignment_id'] = $existingShipmentId;
-    }
 
     return recordingTrack(
         [
-            'setData' => function (string $key, $value) use (&$data): void {
-                $data[$key] = $value;
-            },
-            'save'    => function () use (&$saves): void {
+            'save' => function () use (&$saves): void {
                 $saves++;
             },
         ],
         [
             'getId'   => $trackEntityId,
-            'getData' => function (?string $key = null) use (&$data) {
-                return null === $key ? $data : ($data[$key] ?? null);
+            'getData' => static function (?string $key = null) use ($existingShipmentId) {
+                return 'myparcel_consignment_id' === $key ? $existingShipmentId : null;
             },
         ]
     );
@@ -140,6 +132,19 @@ function builtShipmentFor(
 }
 
 /**
+ * The reference identifiers of the shipments in one postShipments() call.
+ *
+ * @return string[]
+ */
+function postedReferences(array $args): array
+{
+    return array_map(
+        static fn(Shipment $s): string => (string) $s->getReferenceIdentifier(),
+        postShipmentsRequestIn($args)->getData()->getShipments()
+    );
+}
+
+/**
  * Finds the request by type, not by position.
  *
  * @return \MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11
@@ -156,13 +161,13 @@ function postShipmentsRequestIn(array $args)
 }
 
 /** Answers every create by echoing each request's own references back, in reverse order. */
-function makeShipmentApiSpy(array &$calls, bool $failing = false, bool $reverse = true): ShipmentApi
+function makeShipmentApiSpy(array &$calls, bool $failing = false): ShipmentApi
 {
     $api = Mockery::mock(ShipmentApi::class);
     $api->shouldReceive('postShipments')->andReturnUsing(
-        function (...$args) use (&$calls, $failing, $reverse) {
+        function (...$args) use (&$calls, $failing) {
             $shipments = postShipmentsRequestIn($args)->getData()->getShipments();
-            $calls[]   = array_map(static fn(Shipment $s): string => (string) $s->getReferenceIdentifier(), $shipments);
+            $calls[]   = postedReferences($args);
 
             if ($failing) {
                 throw new RuntimeException('the API refused this chunk');
@@ -170,12 +175,11 @@ function makeShipmentApiSpy(array &$calls, bool $failing = false, bool $reverse 
 
             $created = [];
             $nextId  = 1000 + count($calls) * 100;
-            $ordered = $reverse ? array_reverse($shipments) : $shipments;
 
             // Reference identifiers are always set: parseCreateResponse() falls back to pairing by
             // index when one is missing, which would quietly make the correlation test assert the
             // SDK's positional fallback instead of our own lookup.
-            foreach ($ordered as $shipment) {
+            foreach (array_reverse($shipments) as $shipment) {
                 $created[] = (new ShipmentDefsShipment())
                     ->setId(++$nextId)
                     ->setReferenceIdentifier((string) $shipment->getReferenceIdentifier());
@@ -223,10 +227,7 @@ function makeRejectingShipmentApi(array $body, array &$calls): ShipmentApi
 {
     $api = Mockery::mock(ShipmentApi::class);
     $api->shouldReceive('postShipments')->andReturnUsing(function (...$args) use ($body, &$calls) {
-        $calls[] = array_map(
-            static fn($s): string => (string) $s->getReferenceIdentifier(),
-            postShipmentsRequestIn($args)->getData()->getShipments()
-        );
+        $calls[] = postedReferences($args);
 
         throw new ApiException(
             '[422] Client error: `POST https://api.myparcel.nl/shipments` resulted in a `422 (truncated...)',
@@ -256,10 +257,7 @@ function makeRejectOnceShipmentApi(array $body, array &$calls): ShipmentApi
             $attempts++;
 
             if (1 === $attempts) {
-                $calls[] = array_map(
-                    static fn($s): string => (string) $s->getReferenceIdentifier(),
-                    postShipmentsRequestIn($args)->getData()->getShipments()
-                );
+                $calls[] = postedReferences($args);
 
                 throw new ApiException('[422] Client error (truncated...)', 422, [], json_encode($body));
             }
@@ -276,10 +274,7 @@ function makeTimingOutShipmentApi(array &$calls): ShipmentApi
 {
     $api = Mockery::mock(ShipmentApi::class);
     $api->shouldReceive('postShipments')->andReturnUsing(function (...$args) use (&$calls) {
-        $calls[] = array_map(
-            static fn($s): string => (string) $s->getReferenceIdentifier(),
-            postShipmentsRequestIn($args)->getData()->getShipments()
-        );
+        $calls[] = postedReferences($args);
 
         throw new ApiException('cURL error 28: Operation timed out', 0, [], null);
     });

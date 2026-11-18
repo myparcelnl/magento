@@ -65,24 +65,18 @@ class LegacyInsuranceTiers
      */
     public static function snap(array $tiers, int $amount): int
     {
-        if (0 === $amount) {
-            return 0;
+        if (0 === $amount || ! $tiers) {
+            return $amount;
         }
 
         sort($tiers);
 
-        $count = count($tiers);
-
-        for ($i = 0; $i < $count; $i++) {
-            if ($amount <= $tiers[$i]) {
-                return $tiers[$i];
-            }
-
-            if ($i === $count - 1) {
-                return $tiers[$i];
+        foreach ($tiers as $tier) {
+            if ($amount <= $tier) {
+                return $tier;
             }
         }
 
-        return $amount;
+        return end($tiers);
     }
 }

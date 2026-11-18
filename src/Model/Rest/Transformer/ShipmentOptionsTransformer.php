@@ -11,12 +11,8 @@ use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
 /** Every option that is on, under its Order API key. An option the Order API does not know is left out. */
 class ShipmentOptionsTransformer
 {
-    public function transform(?ShipmentOptions $shipmentOptions): ?\stdClass
+    public function transform(ShipmentOptions $shipmentOptions): ?\stdClass
     {
-        if ($shipmentOptions === null) {
-            return null;
-        }
-
         $attributeMap = OrderApiShipmentOptions::attributeMap();
         $optionMapper = new ShipmentOptionMapper();
         $result = new \stdClass();

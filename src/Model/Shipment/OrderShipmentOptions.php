@@ -175,8 +175,6 @@ class OrderShipmentOptions
             ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
             ->setSameDayDelivery($this->flag($resolved->option(ShipmentOption::SAME_DAY_DELIVERY)));
 
-        $values = $resolved->toArray();
-
         foreach (ShipmentOption::having('toggle') as $option) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
 
@@ -184,7 +182,7 @@ class OrderShipmentOptions
                 throw new LogicException(sprintf('The SDK has no setter for shipment option "%s".', $option));
             }
 
-            $options->{$setter}($this->flag($values[$option] ?? null));
+            $options->{$setter}($this->flag($resolved->option($option)));
         }
 
         if ($deliveryOptions->isPickup()) {

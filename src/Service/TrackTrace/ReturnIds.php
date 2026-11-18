@@ -16,11 +16,11 @@ class ReturnIds
     public const FIELD = 'myparcel_return_ids';
 
     /**
-     * @param \Magento\Framework\DataObject $track untyped: the unit tests' Track doubles are not DataObjects
+     * @param \Magento\Sales\Model\Order\Shipment\Track $track
      *
      * @return int[]
      */
-    public static function of($track): array
+    public static function of(object $track): array
     {
         $decoded = json_decode((string) $track->getData(self::FIELD), true);
 

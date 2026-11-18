@@ -15,12 +15,12 @@ use MyParcelNL\Magento\Service\Config;
  */
 class InsuranceAmountSetting
 {
-    private const FIELDS = [
-        'insurance_local_amount',
-        'insurance_belgium_amount',
-        'insurance_eu_amount',
-        'insurance_row_amount',
-    ];
+    public const LOCAL   = 'insurance_local_amount';
+    public const BELGIUM = 'insurance_belgium_amount';
+    public const EU      = 'insurance_eu_amount';
+    public const ROW     = 'insurance_row_amount';
+
+    private const FIELDS = [self::LOCAL, self::BELGIUM, self::EU, self::ROW];
 
     /** Get the carrier whose insurance this path configures, or null for any other path. */
     public static function carrierFor(string $path): ?string

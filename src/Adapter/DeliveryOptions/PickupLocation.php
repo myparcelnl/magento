@@ -9,9 +9,8 @@ use InvalidArgumentException;
 /**
  * The pickup point the customer chose at checkout.
  *
- * toArray() nests inside DeliveryOptions::toArray(), which is persisted and published.
- *
- * getRetailNetworkId() answers '' rather than null when unset: the REST v1 contract depends on it.
+ * toArray() nests inside DeliveryOptions::toArray(), which is persisted and published. Every
+ * field is '' rather than null when unset: the REST v1 contract depends on it.
  *
  * @TODO Use promoted readonly properties when the minimum PHP version is 8.1.
  */
@@ -21,7 +20,7 @@ class PickupLocation
 
     private string $locationCode;
 
-    private ?string $retailNetworkId;
+    private string $retailNetworkId;
 
     private string $street;
 
@@ -36,7 +35,7 @@ class PickupLocation
     private function __construct(
         string $locationName,
         string $locationCode,
-        ?string $retailNetworkId,
+        string $retailNetworkId,
         string $street,
         string $number,
         string $postalCode,
@@ -53,13 +52,12 @@ class PickupLocation
         $this->cc              = $cc;
     }
 
-    /** Every field falls back to '', which the REST v1 contract depends on. */
     public static function fromCheckoutData(array $data): self
     {
         return new self(
             (string) ($data['location_name'] ?? ''),
             (string) ($data['location_code'] ?? ''),
-            isset($data['retail_network_id']) ? (string) $data['retail_network_id'] : null,
+            (string) ($data['retail_network_id'] ?? ''),
             (string) ($data['street'] ?? ''),
             (string) ($data['number'] ?? ''),
             (string) ($data['postal_code'] ?? ''),
@@ -92,7 +90,7 @@ class PickupLocation
         return new self(
             (string) $name,
             (string) $data['location_code'],
-            isset($data['retail_network_id']) ? (string) $data['retail_network_id'] : null,
+            (string) ($data['retail_network_id'] ?? ''),
             (string) $data['street'],
             (string) $data['number'],
             (string) $data['postal_code'],
@@ -113,7 +111,7 @@ class PickupLocation
 
     public function getRetailNetworkId(): string
     {
-        return $this->retailNetworkId ?? '';
+        return $this->retailNetworkId;
     }
 
     public function getStreet(): string

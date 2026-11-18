@@ -7,6 +7,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 
@@ -71,11 +72,11 @@ class TrackActions extends Column
 
         // Same reason: none of these vary per row, and a few hundred rows made a Phrase of each.
         $downloads = [
-            'action-download_package_label'       => [__('Download package label'), 1],
-            'action-download_small_package_label' => [__('Download small package label'), 6],
-            'action-download_digital_stamp_label' => [__('Download digital stamp label'), 4],
-            'action-download_mailbox_label'       => [__('Download mailbox label'), 2],
-            'action-download_letter_label'        => [__('Download letter label'), 3],
+            'action-download_package_label'       => [__('Download package label'), PackageType::PACKAGE],
+            'action-download_small_package_label' => [__('Download small package label'), PackageType::PACKAGE_SMALL],
+            'action-download_digital_stamp_label' => [__('Download digital stamp label'), PackageType::DIGITAL_STAMP],
+            'action-download_mailbox_label'       => [__('Download mailbox label'), PackageType::MAILBOX],
+            'action-download_letter_label'        => [__('Download letter label'), PackageType::LETTER],
         ];
         $exportLabel      = __('Export to MyParcel');
         $newConceptLabel  = __('Create new concept');

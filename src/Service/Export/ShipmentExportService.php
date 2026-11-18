@@ -27,9 +27,6 @@ use Throwable;
  */
 class ShipmentExportService
 {
-    /** Label ids per request. Same URL limit and multiple of four as ShipmentQuery::CHUNK_SIZE. */
-    private const LABEL_CHUNK_SIZE = 100;
-
     private ShipmentApiProvider $apiProvider;
     private Config              $config;
     private LabelPdfMerger      $labelPdfMerger;
@@ -147,9 +144,9 @@ class ShipmentExportService
             'fetch labels',
             function (string $apiKey, array $shipmentIds) use (&$pdfs, $positions): void {
                 // Chunked for the same reason the query is: every id goes into one path segment.
-                // LABEL_CHUNK_SIZE is a multiple of four, so with all four A4 positions in use a chunk
+                // CHUNK_SIZE is a multiple of four, so with all four A4 positions in use a chunk
                 // never splits a sheet.
-                foreach (array_chunk($shipmentIds, self::LABEL_CHUNK_SIZE) as $chunk) {
+                foreach (array_chunk($shipmentIds, ShipmentQuery::CHUNK_SIZE) as $chunk) {
                     // LabelHttpClient makes a non-PDF answer visible: the SDK discards the body it refused.
                     $service = $this->tagged($apiKey, function (string $key, $client) {
                         return new ShipmentLabelsService($key, $client, $this->labelHttpClient);

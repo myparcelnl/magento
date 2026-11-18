@@ -120,6 +120,16 @@ function makeCapabilitiesClient(array $responses = []): array
     ];
 }
 
+/** A raw insurance option value with EUR bounds in cents, as the API reports it. */
+function insuranceBounds(int $minCents, int $maxCents, bool $required = false): array
+{
+    return [
+        'isRequired' => $required,
+        'min'        => ['amount' => $minCents, 'currency' => 'EUR'],
+        'max'        => ['amount' => $maxCents, 'currency' => 'EUR'],
+    ];
+}
+
 /** The insurance option model the SDK reads from this raw option value. */
 function insuranceOption(array $raw): RefCapabilitiesResponseOptionsInsuranceOptionV2
 {

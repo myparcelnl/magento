@@ -47,19 +47,10 @@ class Carrier
             self::TRUNKRS            => 'TRUNKRS',
         ];
 
-    public const LOCAL_COUNTRY_MAP
-        = [
-            self::POSTNL             => CountryCode::CC_NL,
-            self::DHL_FOR_YOU        => CountryCode::CC_NL,
-            self::DHL_EUROPLUS       => CountryCode::CC_NL,
-            self::DHL_PARCEL_CONNECT => CountryCode::CC_NL,
-            self::UPS_STANDARD       => CountryCode::CC_NL,
-            self::DPD                => CountryCode::CC_BE,
-            self::GLS                => CountryCode::CC_NL,
-            self::TRUNKRS            => CountryCode::CC_NL,
-        ];
+    /** The carriers whose local country is not NL. */
+    private const LOCAL_COUNTRY_MAP = [self::DPD => CountryCode::CC_BE];
 
-    /** Falls back to NL, which is what every carrier but DPD answers. */
+    /** Get the carrier's local country: BE for DPD, NL for every other carrier. */
     public static function localCountryCodeFor(?string $name): string
     {
         return self::LOCAL_COUNTRY_MAP[$name] ?? CountryCode::CC_NL;

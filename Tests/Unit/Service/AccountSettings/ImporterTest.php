@@ -85,7 +85,6 @@ it('treats an empty stored value as absent', function () {
 
 it('asks for contract definitions exactly once, with no carrier filter', function () {
     $logger = Mockery::mock(LoggerInterface::class);
-    $logger->shouldReceive('notice')->zeroOrMoreTimes();
     // An answer carrying nothing leaves the admin screens unbounded, which only the log says.
     $logger->shouldReceive('warning')->once();
 
@@ -109,9 +108,9 @@ it('keeps a mixed-carrier answer as one list, in the order it arrived', function
 });
 
 it('degrades to nothing when the call is refused, rather than failing the import', function () {
+    // One line per failure, with the exception.
     $logger = Mockery::mock(LoggerInterface::class);
-    $logger->shouldReceive('notice')->atLeast()->once();
-    $logger->shouldReceive('warning')->once();
+    $logger->shouldReceive('warning')->with(Mockery::type('string'), Mockery::on(fn ($context) => [] !== $context))->once();
 
     $definitions = invokePrivateMethod(
         importerFor([], importerClientRefusing(), $logger),

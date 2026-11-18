@@ -87,12 +87,11 @@ class ContractDefinitions
         }
 
         $decoded = json_decode($stored, true);
-
-        $items = $decoded['contract_definitions'] ?? null;
+        $items   = is_array($decoded) ? ($decoded['contract_definitions'] ?? null) : null;
 
         // An empty list is "we could not find out", not "this account has no carriers". An account
         // with no contract at all cannot ship, so permissive is both safer and no less true.
-        if (! is_array($decoded) || ! is_array($items) || [] === $items) {
+        if (! is_array($items) || [] === $items) {
             return CapabilitySet::permissive();
         }
 

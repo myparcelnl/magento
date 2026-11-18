@@ -49,11 +49,7 @@ function contractRow(int $maxCents = 500000, int $minCents = 0, bool $required =
 {
     return [settingsPathFor('live-key') => accountSettingsRow([
         contractDefinitionItem([
-            'options' => capabilityOptions(['insurance' => [
-                'isRequired' => $required,
-                'min'        => ['amount' => $minCents],
-                'max'        => ['amount' => $maxCents],
-            ]]),
+            'options' => capabilityOptions(['insurance' => insuranceBounds($minCents, $maxCents, $required)]),
         ]),
     ])];
 }

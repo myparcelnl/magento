@@ -44,9 +44,6 @@ class PackageRepository extends Package
      */
     public bool $deliveryOptionsDisabled = false;
 
-    /** @var array<string,bool> memo for optionForcedOn(), per request */
-    private array $forcedOptions = [];
-
     private ?ProductAttributes $attributes = null;
 
     /**
@@ -280,44 +277,9 @@ class PackageRepository extends Package
      * Compared against '1' rather than cast: an *_active path need not be a Yes/No. LargeFormatOptions
      * offers 'price' and '0', and 'price' casts to true without ever meaning 1.
      *
-     * The products are part of the memo key: a reused instance would otherwise answer a second order
-     * from the first order's products, forcing age_check on an unrelated one.
-     *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      */
     private function optionForcedOn(array $products, string $carrierPath, string $option): bool
-    {
-        $memoKey = $carrierPath . '|' . $option . '|' . self::productsKey($products);
-
-        if (isset($this->forcedOptions[$memoKey])) {
-            return $this->forcedOptions[$memoKey];
-        }
-
-        return $this->forcedOptions[$memoKey] = $this->resolveOptionForcedOn($products, $carrierPath, $option);
-    }
-
-    /**
-     * Identifies a set of quote items for the memo.
-     *
-     * Object identity rather than product id: the memo only has to tell one call's items from
-     * another's within a single request, and asking the items for an id would make this depend on
-     * more of Quote\Item than the memo needs. Sorted, so the same basket in another order is the
-     * same key.
-     *
-     * @param \Magento\Quote\Model\Quote\Item[] $products
-     */
-    private static function productsKey(array $products): string
-    {
-        $ids = array_map(
-            static fn($product): int => is_object($product) ? spl_object_id($product) : 0,
-            $products
-        );
-        sort($ids);
-
-        return implode(',', $ids);
-    }
-
-    private function resolveOptionForcedOn(array $products, string $carrierPath, string $option): bool
     {
         $this->warmAttributes($products);
 

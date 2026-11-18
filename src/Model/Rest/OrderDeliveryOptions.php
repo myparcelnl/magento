@@ -72,8 +72,8 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
                     'pickupLocation'  => null,
                 ]);
             } else {
-                $adapter  = DeliveryOptionsFactory::create($data);
-                $resource = $this->createResource($handler->transform($adapter));
+                $deliveryOptions = DeliveryOptionsFactory::create($data);
+                $resource        = $this->createResource($handler->transform($deliveryOptions));
             }
 
             return json_encode($resource->format());

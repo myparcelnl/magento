@@ -140,12 +140,9 @@ $form     = $block->getNewShipmentForm();
                             value="<?= (int) $packageType['insurance']['default'] ?>"
                             class="required product-custom-option admin__control-text"
                             title=""/>
-                        <?php if (null !== $packageType['insurance']['max']): ?>
+                        <?php if (null !== $packageType['insurance']['note']): ?>
                             <p class="note admin__field-note">
-                                <span><?= $escaper->escapeHtml($packageType['insurance']['required']
-                                    ? __('Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.', (int) $packageType['insurance']['min'], (int) $packageType['insurance']['max'])
-                                    : __('Your contract allows € %1 to € %2. Enter 0 to switch insurance off.', (int) $packageType['insurance']['min'], (int) $packageType['insurance']['max'])
-                                ) ?></span>
+                                <span><?= $escaper->escapeHtml($packageType['insurance']['note']) ?></span>
                             </p>
                         <?php endif; ?>
                     </div>
