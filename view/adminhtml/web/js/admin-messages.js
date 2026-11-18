@@ -1,9 +1,8 @@
 /**
  * Puts messages on the admin page from JavaScript.
  *
- * The export no longer navigates, so Magento never gets a render in which to show the messages it
- * produced. They come back as JSON and are placed here instead, in Magento's own markup so they sit
- * with anything already on the page.
+ * The export does not navigate, so Magento never renders the messages it produced. They come back
+ * as JSON and are placed here, in Magento's own markup, next to anything already on the page.
  */
 define(['jquery'], function ($) {
     'use strict';

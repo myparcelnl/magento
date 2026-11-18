@@ -6,9 +6,10 @@ namespace MyParcelNL\Magento\Service\Export;
 
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\IdList;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Collection\ShipmentCollection;
 use MyParcelNL\Sdk\Services\Labels\ShipmentLabelsService;
@@ -16,7 +17,6 @@ use MyParcelNL\Sdk\Services\Returns\ReturnShipmentService;
 use MyParcelNL\Sdk\Services\Shipment\ShipmentCreateService;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Throwable;
-use MyParcelNL\Magento\Service\IdList;
 
 /**
  * Groups built shipments by resolved API key *value* (never store id: stores share keys), sends
@@ -143,8 +143,8 @@ class ShipmentExportService
             'fetch labels',
             function (string $apiKey, array $shipmentIds) use (&$pdfs, $positions): void {
                 // Chunked for the same reason the query is: every id goes into one path segment.
-                // LABEL_CHUNK_SIZE is a multiple of four, so an A4 sheet's four positions still
-                // fall on the same sheet as they would unchunked.
+                // LABEL_CHUNK_SIZE is a multiple of four, so with all four A4 positions in use a chunk
+                // never splits a sheet.
                 foreach (array_chunk($shipmentIds, self::LABEL_CHUNK_SIZE) as $chunk) {
                     // The third argument is the PSR client the service sends with; LabelHttpClient
                     // exists so a non-PDF answer is visible, since the SDK discards the body it refused.
@@ -299,7 +299,6 @@ class ShipmentExportService
         return null;
     }
 
-
     /**
      * @param BuiltShipment[] $chunk
      *
@@ -355,9 +354,6 @@ class ShipmentExportService
         return $rejection;
     }
 
-
-
-
     /**
      * Record created shipments by reference identifier, never by position: the API answers in any order.
      *
@@ -396,9 +392,9 @@ class ShipmentExportService
                     sprintf('MyParcel export: shipment %d created but its id could not be stored', $shipmentId),
                     LogContext::of($e)
                 );
-                $report->fail($built->getIncrementId(), sprintf(
-                    'created as MyParcel shipment %d, but the id could not be stored: %s',
-                    $shipmentId,
+                $report->fail($built->getIncrementId(), (string) __(
+                    'created as MyParcel shipment %1, but the id could not be stored: %2',
+                    (int) $shipmentId,
                     $e->getMessage()
                 ));
             }

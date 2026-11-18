@@ -18,13 +18,13 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-use MyParcelNL\Magento\Service\ProductAttributes;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
@@ -43,6 +43,11 @@ class PackageRepository extends Package
      * @var bool
      */
     public bool $deliveryOptionsDisabled = false;
+
+    /** @var array<string,bool> memo for optionForcedOn(), per request */
+    private array $forcedOptions = [];
+
+    private ?ProductAttributes $attributes = null;
 
     /**
      * @param array  $products
@@ -268,12 +273,6 @@ class PackageRepository extends Package
             }
         ));
     }
-
-    /** @var array<string,bool> memo for optionForcedOn(), per request */
-    private array $forcedOptions = [];
-
-    private ?ProductAttributes $attributes = null;
-
 
     /**
      * Both tiers are always read. A future option may have only one of them: a product attribute

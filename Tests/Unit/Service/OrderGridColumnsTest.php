@@ -147,7 +147,7 @@ it('writes nothing and reads nothing for no orders', function () {
 it('does not treat a placeholder as a track number', function () {
     [$columns] = gridColumnsWriter([], []);
 
-    $html = $columns->htmlForTracks([
+    $html = $columns->columnsForTracks([
         ['track_number' => TrackAndTrace::VALUE_EMPTY, 'myparcel_status' => null],
         ['track_number' => TrackAndTrace::VALUE_PRINTED, 'myparcel_status' => null],
     ]);
@@ -161,7 +161,7 @@ it('ignores a track belonging to another carrier', function () {
     // offered a MyParcel portal link that portal never issued.
     [$columns] = gridColumnsWriter([], []);
 
-    $html = $columns->htmlForTracks([
+    $html = $columns->columnsForTracks([
         ['track_number' => 'DHL-999', 'myparcel_status' => 7, 'carrier_code' => 'dhl'],
         ['track_number' => '3SMYPA123', 'myparcel_status' => null, 'carrier_code' => Carrier::CODE],
     ]);
@@ -175,7 +175,7 @@ it('keeps a track that names no carrier, which is its own not-yet-saved row', fu
     // blank the barcode the same pass just minted.
     [$columns] = gridColumnsWriter([], []);
 
-    $html = $columns->htmlForTracks([['track_number' => '3SMYPA123', 'myparcel_status' => null]]);
+    $html = $columns->columnsForTracks([['track_number' => '3SMYPA123', 'myparcel_status' => null]]);
 
     expect($html['track_number'])->toBe(json_encode(['3SMYPA123']));
 });
@@ -183,7 +183,7 @@ it('keeps a track that names no carrier, which is its own not-yet-saved row', fu
 it('still reports a real barcode alongside a placeholder', function () {
     [$columns] = gridColumnsWriter([], []);
 
-    $html = $columns->htmlForTracks([
+    $html = $columns->columnsForTracks([
         ['track_number' => '3SMYPA123', 'myparcel_status' => null],
         ['track_number' => TrackAndTrace::VALUE_EMPTY, 'myparcel_status' => null],
     ]);

@@ -28,29 +28,29 @@ use Magento\Sales\Model\ResourceModel\Order\Shipment\Collection as ShipmentColle
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PaperType;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\LogContext;
-use MyParcelNL\Magento\Service\OrderGridColumns;
-use MyParcelNL\Magento\Service\UserAgent;
-use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
-use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
-use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
-use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
-use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Magento\Service\OrderGridColumns;
+use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
+use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
+use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesCarrierReturns;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\Shipment as SdkShipment;
 use MyParcelNL\Sdk\Services\MultiCollo\MultiColloShipmentService;
 use Throwable;
-use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
-use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
 
 /**
  * One export run: the shipments built from a Magento order or shipment selection, and the tracks
@@ -70,8 +70,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     private const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
     private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
-
-    /** @var BuiltShipment[] built and ready to send; replaces MyParcelCollection */
+    /** @var BuiltShipment[] built and ready to send */
     public array                     $builtShipments = [];
     protected ShipmentExportService  $exportService;
     public ?RequestInterface         $request = null;
@@ -309,10 +308,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $magentoShipment = $magentoTrack->getShipment();
         $orderId         = (int) $magentoShipment->getOrderId();
 
-        // One builder per order, not per track. Its DefaultOptions json_decodes the order's
-        // delivery-options column and memoises the carrier settings, and a five-collo order was
-        // paying for both five times. getOrder() loads through the repository, so it is only
-        // reached on a miss.
+        // one builder per order, not per track: its DefaultOptions decodes the order's delivery
+        // options and memoises the carrier settings once. getOrder() loads through the repository,
+        // so it is only reached on a miss.
         if (! isset($this->shipmentBuilders[$orderId])) {
             $this->shipmentBuilders[$orderId] = new ShipmentBuilder(
                 $this->objectManager,
@@ -379,7 +377,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         return array_values(array_unique($shipmentIds));
     }
-
 
     /**
      * Mail a return label per exported shipment to the customer, against that shipment's own account.
@@ -942,9 +939,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * Whether this shipment may be sent as one multicollo shipment rather than as separate ones.
      *
-     * The rule is unchanged; only where the facts come from is. A v11 Shipment carries no API key,
-     * so it is passed alongside, and carrier and package type are ids that have to be named before
-     * capabilities can be asked about them.
+     * A v11 Shipment carries no API key, so it is passed alongside, and carrier and package type are
+     * ids that have to be named before capabilities can be asked about them.
      */
     public function canUseMultiCollo(SdkShipment $shipment, string $apiKey): bool
     {

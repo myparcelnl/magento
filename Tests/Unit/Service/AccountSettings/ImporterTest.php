@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
  *
  * @param array<string, string> $rowsByPath
  */
-function importerFor(array $rowsByPath, ?Client $client = null): Importer
+function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface $logger = null): Importer
 {
     $scopeConfig = mockScopeConfig($rowsByPath);
 
@@ -26,7 +26,7 @@ function importerFor(array $rowsByPath, ?Client $client = null): Importer
         Mockery::spy(WriterInterface::class),
         $scopeConfig,
         new Fingerprint(),
-        Mockery::spy(LoggerInterface::class),
+        $logger ?? Mockery::spy(LoggerInterface::class),
         $client ?? Mockery::spy(Client::class),
         createUserAgent()
     );
@@ -78,7 +78,7 @@ it('treats an empty stored value as absent', function () {
 });
 
 it('asks for contract definitions exactly once, with no carrier filter', function () {
-    $logger = mockLoggerFacade();
+    $logger = Mockery::mock(LoggerInterface::class);
     $logger->shouldReceive('notice')->zeroOrMoreTimes();
     // An answer carrying nothing leaves the admin screens unbounded, which only the log says.
     $logger->shouldReceive('warning')->once();
@@ -88,12 +88,10 @@ it('asks for contract definitions exactly once, with no carrier filter', functio
     // item's carrier anyway.
     $client->shouldReceive('sendContractDefinitions')->once()->with('live-key')->andReturn([]);
 
-    invokePrivateMethod(importerFor([], $client), 'fetchContractDefinitions', ['live-key']);
+    invokePrivateMethod(importerFor([], $client, $logger), 'fetchContractDefinitions', ['live-key']);
 });
 
 it('keeps a mixed-carrier answer as one list, in the order it arrived', function () {
-    mockLoggerFacade()->shouldReceive('notice')->zeroOrMoreTimes();
-
     $client = importerClientAnswering([
         contractDefinitionItem(['carrier' => 'POSTNL']),
         contractDefinitionItem(['carrier' => 'DHL_FOR_YOU']),
@@ -106,12 +104,12 @@ it('keeps a mixed-carrier answer as one list, in the order it arrived', function
 });
 
 it('degrades to nothing when the call is refused, rather than failing the import', function () {
-    $logger = mockLoggerFacade();
+    $logger = Mockery::mock(LoggerInterface::class);
     $logger->shouldReceive('notice')->atLeast()->once();
     $logger->shouldReceive('warning')->once();
 
     $definitions = invokePrivateMethod(
-        importerFor([], importerClientRefusing()),
+        importerFor([], importerClientRefusing(), $logger),
         'fetchContractDefinitions',
         ['live-key']
     );
@@ -120,8 +118,6 @@ it('degrades to nothing when the call is refused, rather than failing the import
 });
 
 it('keeps insurance bounds verbatim on the way into storage', function () {
-    mockLoggerFacade()->shouldReceive('notice')->zeroOrMoreTimes();
-
     $client = importerClientAnswering([contractDefinitionItem()]);
 
     $definitions = invokePrivateMethod(importerFor([], $client), 'fetchContractDefinitions', ['live-key']);

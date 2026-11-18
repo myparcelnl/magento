@@ -201,14 +201,10 @@ class DynamicSettings extends Template
     }
 
     /**
-     * The note a frontend model computes at render time, for the template's note slot.
+     * Get the note a frontend model computes at render time, for the template's note slot.
      *
      * Only answers after renderFrontendModel() has run for the same field: it reads the block that
      * call kept, so a block that failed to build yields no note instead of a second exception.
-     *
-     * @param string $frontendModel
-     * @param array  $field
-     * @return string
      */
     public function getFrontendModelNote(string $frontendModel, array $field = []): string
     {

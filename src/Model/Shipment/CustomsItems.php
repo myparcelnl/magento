@@ -112,7 +112,7 @@ class CustomsItems
     /**
      * Weight and value are line-level while amount carries the count, so both multiply by quantity.
      *
-     * @param float $quantity kept as a float: a fulfilment order ships qtyShipped, which can be one
+     * @param float $quantity a float: a fulfilment order ships qtyShipped, which can be fractional
      */
     public function lineWeightInGrams(float $unitWeight, float $quantity): int
     {

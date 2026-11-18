@@ -6,7 +6,6 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
-use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -131,11 +130,11 @@ class Importer
                 }
             }
         } catch (Throwable $e) {
-            Logger::notice('No contract definitions could be fetched', LogContext::of($e));
+            $this->logger->notice('No contract definitions could be fetched', LogContext::of($e));
         }
 
         if ([] === $definitions) {
-            Logger::warning(
+            $this->logger->warning(
                 'No contract definitions could be fetched for any carrier; capability-bounded admin '
                 . 'screens will fall open until the next import.'
             );

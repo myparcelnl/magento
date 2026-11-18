@@ -53,15 +53,15 @@ it('answers null rather than throwing when the row cannot be read', function () 
 
     expect(makeAccountPlatform('live-key')->forStore(1))->toBeNull();
 
-    $logger->shouldHaveReceived('alert')->once();
+    $logger->shouldHaveReceived('warning')->once();
 });
 
-it('reads a store once, so a broken row costs one alert per page and not one per row', function () {
+it('reads a store once, so a broken row costs one warning per page and not one per row', function () {
     $logger   = stubAccountSettingsReader([], unreadableSettings());
     $platform = makeAccountPlatform('live-key');
 
     expect($platform->forStore(1))->toBeNull()
         ->and($platform->forStore(1))->toBeNull();
 
-    $logger->shouldHaveReceived('alert')->once();
+    $logger->shouldHaveReceived('warning')->once();
 });

@@ -9,8 +9,8 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Throwable;
@@ -65,14 +65,6 @@ class ShipmentOptionsResolver
     /** @var array|null the label's product row, read at most once per resolver */
     private ?array $labelProductRows = null;
 
-    /**
-     * @param DefaultOptions         $defaultOptions
-     * @param Order                  $order
-     * @param DeliveryOptions        $deliveryOptions
-     * @param ObjectManagerInterface $objectManager
-     * @param string                 $carrier
-     * @param array                  $options
-     */
     public function __construct(
         DefaultOptions         $defaultOptions,
         Order                  $order,
@@ -346,15 +338,8 @@ class ShipmentOptionsResolver
         return $this->labelProductRows = $conn->fetchAll($select->order('main_table.entity_id ASC')->limit(1));
     }
 
-    /**
-     * Get default value if option === null
-     *
-     * @param      $optionKey
-     *
-     * @return bool
-     * @internal param $option
-     */
-    private function optionIsEnabled($optionKey): bool
+    /** The option as chosen, or else what DefaultOptions::hasOptionSet() says. */
+    private function optionIsEnabled(string $optionKey): bool
     {
         return (bool) ($this->options[$optionKey] ??
                        $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));

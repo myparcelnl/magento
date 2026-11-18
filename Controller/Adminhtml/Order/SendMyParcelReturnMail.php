@@ -57,7 +57,7 @@ class SendMyParcelReturnMail extends LabelExportAction
 
         // only on a run that reached an account: sendReturnLabelMails() has already said what went wrong
         if ($this->orderCollection->sendReturnLabelMails()) {
-            $this->messageManager->addSuccessMessage(__('Return label mail is send to customer.'));
+            $this->messageManager->addSuccessMessage(__('The return label mail is sent to the customer.'));
         }
 
         return null;

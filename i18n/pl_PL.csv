@@ -462,6 +462,8 @@ Return if no answer,Zwróć w razie braku odpowiedzi
 "Importing the MyParcel Backoffice settings failed:","Importowanie ustawień MyParcel Backoffice nie powiodło się:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Importowanie ustawień MyParcel Backoffice nie powiodło się. Szczegóły znajdziesz w logu."
 "MyParcel Backoffice settings imported.","Zaimportowano ustawienia MyParcel Backoffice."
+Records per export request,Rekordy na żądanie eksportu
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,"Ile przesyłek lub zamówień jest wysyłanych do MyParcel w jednym żądaniu. Pozostaw puste dla 20. Zmniejsz tę wartość, jeśli duże eksporty przekraczają limit czasu. Maksimum to 100."
 Return label sent,Etykieta zwrotna wysłana
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel nie zna przesyłki %1 dla API key tego sklepu.
 The carrier of shipment %1 does not support return labels.,Przewoźnik przesyłki %1 nie obsługuje etykiet zwrotnych.
@@ -477,3 +479,21 @@ The MyParcel API refused this order without giving a reason.,API MyParcel odrzuc
 The MyParcel API did not return a shipment for this order.,API MyParcel nie zwróciło przesyłki dla tego zamówienia.
 The MyParcel export could not be completed.,Nie udało się ukończyć eksportu MyParcel.
 The MyParcel labels could not be downloaded.,Nie udało się pobrać etykiet MyParcel.
+The MyParcel export failed. Please check the log.,Eksport MyParcel nie powiódł się. Sprawdź log.
+No shipments were given to print labels for.,Nie wskazano przesyłek do wydrukowania etykiet.
+The MyParcel labels could not be fetched. Please check the log.,Nie udało się pobrać etykiet MyParcel. Sprawdź log.
+The MyParcel labels could not be fetched. %1,Nie udało się pobrać etykiet MyParcel. %1
+No MyParcel labels to download.,Brak etykiet MyParcel do pobrania.
+Some labels are missing. %1,Brakuje niektórych etykiet. %1
+The return label mail is sent to the customer.,E-mail z etykietą zwrotną został wysłany do klienta.
+An unexpected error occurred. Please check the log.,Wystąpił nieoczekiwany błąd. Sprawdź log.
+"Unknown configuration scope ""%1"".","Nieznany zakres konfiguracji ""%1""."
+Configuration scope id must be a number.,Identyfikator zakresu konfiguracji musi być liczbą.
+"Configuration scope ""%1"" has no id %2.","Zakres konfiguracji ""%1"" nie ma identyfikatora %2."
+Customs declaration: %1,Deklaracja celna: %1
+"carrier ""%1"" is not one this module knows","przewoźnik ""%1"" nie jest znany temu modułowi"
+This order is a pickup but its pickup location cannot be read (%1),"To zamówienie jest odbiorem, ale nie można odczytać punktu odbioru (%1)"
+"This track has no Magento shipment, so there is nothing to export","Ten numer śledzenia nie ma przesyłki Magento, więc nie ma nic do eksportu"
+this order is a pickup but carries no pickup location,"to zamówienie jest odbiorem, ale nie ma punktu odbioru"
+%1 label file(s) could not be merged. Please check the log.,Nie udało się scalić plików etykiet (%1). Sprawdź log.
+"created as MyParcel shipment %1, but the id could not be stored: %2","utworzono jako przesyłkę MyParcel %1, ale nie udało się zapisać identyfikatora: %2"

@@ -137,7 +137,7 @@ final class PickupLocation
         return $this->city;
     }
 
-    public function getCountry(): ?string
+    public function getCountry(): string
     {
         return $this->cc;
     }

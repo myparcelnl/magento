@@ -14,7 +14,6 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 
-
 /**
  * Adds the MyParcel delivery options as an extension attribute to orders from OrderRepository.
  *

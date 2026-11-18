@@ -64,8 +64,8 @@ abstract class LabelExportAction extends Action implements HttpPostActionInterfa
     /**
      * Runs the export for the grid's selection.
      *
-     * @return array{url: string, failureLabel: string}|null the labels the page
-     *         should fetch next, or null when this export produced none
+     * @return array{url: string, params: array<string,string|int>, failureLabel: string}|null the labels
+     *         the page should fetch next, or null when this export produced none
      */
     abstract protected function massAction(): ?array;
 
