@@ -99,10 +99,12 @@ it('marks a PPS export exported rather than reading it off the tracks', function
     expect($written['track_status'])->toBe(MyParcelNL\Magento\Cron\UpdateStatus::ORDER_STATUS_EXPORTED);
 });
 
-it('exports a PPS order without building a label shipment first', function () {
-    // The observer has no object manager here: building a ShipmentBuilder would fail this test.
+/** Runs the PPS branch of the observer; the order's uuid goes from $uuidBefore to $uuidAfter. */
+function ppsExportGridWrites(?string $uuidBefore, ?string $uuidAfter): array
+{
     $order = createOrder(['getEntityId' => 7]);
     $order->shouldReceive('setData')->andReturnSelf();
+    $order->shouldReceive('getData')->with('myparcel_uuid')->andReturn($uuidBefore, $uuidAfter);
 
     $shipment = createShipment(['getOrder' => $order, 'getTracksCollection' => []]);
 
@@ -115,9 +117,14 @@ it('exports a PPS order without building a label shipment first', function () {
     $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
     $config->shouldReceive('getExportMode')->andReturn(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS);
 
+    $written     = [];
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
     $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
-    $gridColumns->shouldReceive('writeColumns')->andReturn(true);
+    $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
+        $written[] = $values;
+
+        return true;
+    });
 
     $observer = newInstanceWithoutConstructor(NewShipment::class);
     setPrivateProperty($observer, 'orderCollection', $collection);
@@ -125,4 +132,18 @@ it('exports a PPS order without building a label shipment first', function () {
     setPrivateProperty($observer, 'gridColumns', $gridColumns);
 
     invokePrivateMethod($observer, 'setMagentoAndMyParcelTrack', [$shipment]);
+
+    return $written;
+}
+
+it('exports a PPS order without building a label shipment and marks it exported', function () {
+    $written = ppsExportGridWrites(null, 'uuid-1');
+
+    expect($written)->toHaveCount(1)
+        ->and($written[0]['track_status'])->toBe(MyParcelNL\Magento\Cron\UpdateStatus::ORDER_STATUS_EXPORTED);
+});
+
+it('leaves the grid alone when the PPS export did not confirm the order', function () {
+    expect(ppsExportGridWrites(null, null))->toBe([])
+        ->and(ppsExportGridWrites('uuid-1', 'uuid-1'))->toBe([]);
 });

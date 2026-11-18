@@ -132,3 +132,17 @@ it('claims a shipment once for an order that has two Magento shipments', functio
         ->and($saved->createdNumbers)->toBe([])
         ->and($saved->ids)->toBe([4242]);
 });
+
+it('logs and skips an order whose track cannot be saved, so the run goes on', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->with('MyParcel: could not save the tracks of order 100000001', Mockery::type('array'))->once();
+
+    [$collection] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
+
+    $repository = Mockery::mock(Magento\Sales\Api\ShipmentTrackRepositoryInterface::class);
+    $repository->shouldReceive('save')->andThrow(new RuntimeException('deadlock'));
+    setPrivateProperty($collection, 'trackRepository', $repository);
+
+    expect($collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]))
+        ->toBe($collection);
+});

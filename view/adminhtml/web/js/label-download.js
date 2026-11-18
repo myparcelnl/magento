@@ -99,7 +99,8 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
 
         return request(labels)
             .then(function (response) {
-                if (response.ok) {
+                // An expired session redirects to the login page, which also answers 200.
+                if (response.ok && /application\/pdf/.test(response.headers.get('Content-Type') || '')) {
                     warnIfIncomplete(response, warningHeader);
 
                     return response.blob().then(function (blob) {

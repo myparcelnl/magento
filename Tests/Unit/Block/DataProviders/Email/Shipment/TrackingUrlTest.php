@@ -26,6 +26,10 @@ function emailTrack(?string $carrierCode): Track
     return $track;
 }
 
+afterEach(function () {
+    (new ReflectionProperty(ObjectManager::class, '_instance'))->setValue(null, null);
+});
+
 function resolverReturning(string $url): LinkResolver
 {
     $resolver = Mockery::mock(LinkResolver::class);

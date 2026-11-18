@@ -202,9 +202,10 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         ob_start();
         echo $carrierHuman, ' ', __($deliveryTypeTitle), ', ', __($packageTypeTitle);
 
-        foreach ($shipmentOptions->toArray() as $key => $value) {
-            if (true === $value) {
-                echo ', ', __(ShipmentOption::labelFor($key));
+        foreach (ShipmentOptions::optionKeys() as $option) {
+            // insurance is an amount, not an option that is on or off
+            if (ShipmentOption::INSURANCE !== $option && $shipmentOptions->option($option)) {
+                echo ', ', __(ShipmentOption::labelFor($option));
             }
         }
 

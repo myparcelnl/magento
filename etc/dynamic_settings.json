@@ -191,8 +191,8 @@
               "type": "text",
               "label": "Records per export request",
               "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true,
+              "showInWebsite": false,
+              "showInStore": false,
               "tooltip": "How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.",
               "validate": "validate-digits validate-digits-range digits-range-1-100"
             }

@@ -126,7 +126,10 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
                 $collection->sendTrackEmailFromShipments();
             }
         } catch (Throwable $e) {
-            Logger::warning('MyParcel labels: printed, but the barcodes could not be written back', LogContext::of($e));
+            Logger::warning(
+                'MyParcel labels: printed, but the barcodes could not be written back or the track & trace mail failed',
+                LogContext::of($e)
+            );
         }
     }
 

@@ -55,10 +55,16 @@ function importerClientRefusing(): Client
     return $client;
 }
 
-it('reports settings present when a row exists for the key', function () {
-    $importer = importerFor([settingsPathFor('live-key') => '{"shop":1}']);
+it('reports settings present when a row with contract definitions exists for the key', function () {
+    $importer = importerFor([settingsPathFor('live-key') => '{"shop":1,"contract_definitions":[]}']);
 
     expect($importer->hasSettingsFor('live-key'))->toBeTrue();
+});
+
+it('treats a row without contract definitions as absent, so the next save imports it again', function () {
+    $importer = importerFor([settingsPathFor('live-key') => '{"shop":1}']);
+
+    expect($importer->hasSettingsFor('live-key'))->toBeFalse();
 });
 
 it('reports settings absent when no row exists at all', function () {
@@ -66,7 +72,7 @@ it('reports settings absent when no row exists at all', function () {
 });
 
 it('does not mistake another key\'s row for its own', function () {
-    $importer = importerFor([settingsPathFor('other-key') => '{"shop":9}']);
+    $importer = importerFor([settingsPathFor('other-key') => '{"shop":9,"contract_definitions":[]}']);
 
     expect($importer->hasSettingsFor('live-key'))->toBeFalse();
 });
