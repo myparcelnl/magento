@@ -9,7 +9,8 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\Tax;
 
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
@@ -51,11 +52,12 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     $quote->shouldReceive('getAllItems')->andReturn([])->byDefault();
     $quote->shouldReceive('getStoreId')->andReturn(1)->byDefault();
 
-    $checkout = newInstanceWithoutConstructor(Checkout::class);
-    setPrivateProperty($checkout, 'package', $package);
-    setPrivateProperty($checkout, 'config', $config);
-    setPrivateProperty($checkout, 'quote', $quote);
-    setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith($capabilities, $country, 1));
+    $checkout = checkoutWith([
+        'package'          => $package,
+        'config'           => $config,
+        'quote'            => $quote,
+        'capabilityLookup' => capabilityLookupWith($capabilities, $country, 1),
+    ]);
 
     return ['checkout' => $checkout, 'package' => $package, 'calls' => $calls];
 }
@@ -200,18 +202,16 @@ function deliveryDataAllowsOptionsFor(string $carrierName, array $capabilities, 
     $package->shouldReceive('getExcludeParcelLockers')->andReturn(false)->byDefault();
     setPrivateProperty($package, 'deliveryOptionsDisabled', false);
 
-    $tax = Mockery::mock(MyParcelNL\Magento\Service\Tax::class);
+    $tax = Mockery::mock(Tax::class);
     $tax->shouldReceive('shippingPrice')->andReturn(0.0)->byDefault();
     setPrivateProperty($checkout, 'tax', $tax);
 
-    $deliveryCosts = Mockery::mock(MyParcelNL\Magento\Service\DeliveryCosts::class);
+    $deliveryCosts = Mockery::mock(DeliveryCosts::class);
     $deliveryCosts->shouldReceive('getOrderAmount')->andReturn(0.0)->byDefault();
     $deliveryCosts->shouldReceive('getBasePriceForClient')->andReturn(0.0)->byDefault();
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
 
-    $data = invokePrivateMethod($checkout, 'getDeliveryData', [PackageType::MAILBOX_NAME, 'NL']);
-
-    return $data['carrierSettings'][$carrierName]['allowDeliveryOptions'];
+    return carrierSettingsOf($checkout, PackageType::MAILBOX_NAME, $carrierName)['allowDeliveryOptions'];
 }
 
 it('does not offer a carrier that cannot carry a forced option on the resolved package type', function () {

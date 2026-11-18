@@ -473,3 +473,7 @@ No MyParcel shipments were found to make a return label for.,Non è stata trovat
 "Orders that were not exported because MyParcel refused this batch: %1. Reason: %2","Ordini non esportati perché MyParcel ha rifiutato questo lotto: %1. Motivo: %2"
 "Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2","Ordini per cui MyParcel non era raggiungibile: %1. Non si sa se le spedizioni sono state create. Controllali nel backoffice MyParcel prima di esportarli di nuovo. Motivo: %2"
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel ha creato questi ordini, ma non è stato possibile contrassegnarli come esportati: %1. Non esportarli di nuovo. Controlla il log."
+The MyParcel API refused this order without giving a reason.,L'API MyParcel ha rifiutato questo ordine senza indicare un motivo.
+The MyParcel API did not return a shipment for this order.,L'API MyParcel non ha restituito una spedizione per questo ordine.
+The MyParcel export could not be completed.,L'esportazione MyParcel non è stata completata.
+The MyParcel labels could not be downloaded.,Non è stato possibile scaricare le etichette MyParcel.
