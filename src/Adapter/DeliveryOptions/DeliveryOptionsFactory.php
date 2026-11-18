@@ -12,7 +12,7 @@ use BadMethodCallException;
  * Each named constructor normalises its own nested keys. Keep throwing BadMethodCallException:
  * two call sites catch that class to fall back to DeliveryOptions::fromOrderFallback().
  */
-final class DeliveryOptionsFactory
+class DeliveryOptionsFactory
 {
     /** @throws \BadMethodCallException when the data matches no known shape */
     public static function create(array $data): DeliveryOptions

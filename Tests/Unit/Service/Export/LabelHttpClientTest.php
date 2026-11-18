@@ -16,10 +16,7 @@ function loggingClientOver(Response $response): LabelHttpClient
     $httpClient = Mockery::mock(ClientInterface::class);
     $httpClient->shouldReceive('sendRequest')->andReturn($response);
 
-    $client = new LabelHttpClient();
-    setPrivateProperty($client, 'httpClient', $httpClient);
-
-    return $client;
+    return new LabelHttpClient($httpClient);
 }
 
 function labelRequest(): GuzzleHttp\Psr7\Request
@@ -97,9 +94,7 @@ function uriSentFor(string $url): string
         return new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 label');
     });
 
-    $client = new LabelHttpClient();
-    setPrivateProperty($client, 'httpClient', $httpClient);
-    $client->sendRequest(new GuzzleHttp\Psr7\Request('GET', $url));
+    (new LabelHttpClient($httpClient))->sendRequest(new GuzzleHttp\Psr7\Request('GET', $url));
 
     return $sent;
 }

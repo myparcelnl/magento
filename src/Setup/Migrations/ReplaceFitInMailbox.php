@@ -37,16 +37,20 @@ class ReplaceFitInMailbox
      */
     private $setup;
 
+    private MetadataPool $metadataPool;
+
     /**
      * @param  \MyParcelNL\Magento\Setup\QueryBuilder    $queryBuilder
      * @param  \Magento\Framework\Setup\SchemaSetupInterface $setup
      */
     public function __construct(
         QueryBuilder    $queryBuilder,
-        SchemaSetupInterface $setup
+        SchemaSetupInterface $setup,
+        MetadataPool $metadataPool
     ) {
         $this->queryBuilder = $queryBuilder;
         $this->setup = $setup;
+        $this->metadataPool = $metadataPool;
     }
 
     /**
@@ -60,17 +64,10 @@ class ReplaceFitInMailbox
             ->getConnection();
     }
 
-    /**
-     * The column the catalog value tables are keyed by: `entity_id` on Open Source, `row_id` on
-     * Commerce. Asked for rather than assumed, because a hardcoded `entity_id` is an unknown
-     * column there and this migration dies before a single row is read.
-     */
+    /** Get the column the catalog value tables are keyed by: `entity_id` on Open Source, `row_id` on Commerce. */
     private function linkField(): string
     {
-        return ObjectManager::getInstance()
-            ->get(MetadataPool::class)
-            ->getMetadata(ProductInterface::class)
-            ->getLinkField();
+        return $this->metadataPool->getMetadata(ProductInterface::class)->getLinkField();
     }
 
     /**

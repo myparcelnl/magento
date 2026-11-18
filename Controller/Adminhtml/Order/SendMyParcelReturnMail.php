@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Export\ExportResponse;
 
 /**
  * Creates a return label for each selected order and mails it to the consumer.
@@ -30,9 +31,9 @@ class SendMyParcelReturnMail extends LabelExportAction
 {
     private MagentoOrderCollection $orderCollection;
 
-    public function __construct(Context $context)
+    public function __construct(Context $context, ExportResponse $response)
     {
-        parent::__construct($context);
+        parent::__construct($context, $response);
 
         $this->orderCollection = new MagentoOrderCollection(
             $this->_objectManager,

@@ -96,4 +96,22 @@
             </argument>
         </arguments>
     </type>
+    <!-- The HTTP client of the label and return requests, with the SDK's request timeout. -->
+    <virtualType name="MyParcelNL\Magento\Service\Export\HttpClient" type="GuzzleHttp\Client">
+        <arguments>
+            <argument name="config" xsi:type="array">
+                <item name="timeout" xsi:type="const">MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="MyParcelNL\Magento\Service\Export\LabelHttpClient">
+        <arguments>
+            <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Service\Export\HttpClient</argument>
+        </arguments>
+    </type>
+    <type name="MyParcelNL\Magento\Service\Export\ShipmentExportService">
+        <arguments>
+            <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Service\Export\HttpClient</argument>
+        </arguments>
+    </type>
 </config>

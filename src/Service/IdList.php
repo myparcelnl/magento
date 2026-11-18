@@ -11,7 +11,7 @@ namespace MyParcelNL\Magento\Service;
  * shipment nobody owns. Values go through intval(), so `7abc` becomes 7; the ids are values
  * Magento rendered, so a malformed one does not arrive.
  */
-final class IdList
+class IdList
 {
     /**
      * @param array<mixed> $ids

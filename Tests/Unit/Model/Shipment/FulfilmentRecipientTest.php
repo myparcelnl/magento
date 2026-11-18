@@ -9,7 +9,7 @@ use MyParcelNL\Sdk\Model\Recipient;
 /**
  * The street splitting itself is the SDK's, so these test our wiring around
  * it: joining the lines, mapping the fields, taking the person from the
- * billing address, splitting by the carrier's own local country, and letting
+ * shipping address, splitting by the carrier's own local country, and letting
  * a rejected address surface.
  *
  * No case asserts a literal the SDK's regex produced: those are its to change.
@@ -73,14 +73,16 @@ it('keeps the full street verbatim for a destination with no split rule', functi
     expect($recipient->getStreet())->toBe('742 Evergreen Terrace');
 });
 
-it('takes the person from the billing address name parts', function () {
+it('takes the person from the shipping address, so a gift order carries the recipient\'s name', function () {
     $recipient = recipientForAddress(
-        ['getCountryId' => 'US', 'street' => '742 Evergreen Terrace'],
-        ['getBillingAddress' => createAddress([
+        [
+            'getCountryId'  => 'US',
+            'street'        => '742 Evergreen Terrace',
             'getFirstname'  => 'Jan',
             'getMiddlename' => 'de',
             'getLastname'   => 'Vries',
-        ])]
+        ],
+        ['getBillingAddress' => createAddress(['getFirstname' => 'Piet', 'getLastname' => 'Koper'])]
     );
 
     expect($recipient->getPerson())->toBe('Jan de Vries');

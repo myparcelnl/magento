@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Service\Config;
  * zone and carries no bound of its own (contract definitions have no country), so the carrier
  * is the whole answer.
  */
-final class InsuranceAmountSetting
+class InsuranceAmountSetting
 {
     private const FIELDS = [
         'insurance_local_amount',

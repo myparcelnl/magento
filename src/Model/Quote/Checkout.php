@@ -223,7 +223,7 @@ class Checkout
             $canHaveAgeCheck         = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
-            // capabilities do not report Monday delivery, so only the configuration decides
+            // only PostNL has the Monday settings, and capabilities do not report Monday delivery
             $mondayFee           = $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice;
             $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
             $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;

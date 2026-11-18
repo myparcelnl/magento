@@ -17,7 +17,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryTypeV2;
  *
  * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
-final class DeliveryType
+class DeliveryType
 {
     use MapsNamesToIds;
     use MapsV2Names;

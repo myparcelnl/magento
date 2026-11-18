@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Magento\Service\Export\ExportResponse;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
@@ -29,9 +30,9 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
 {
     private MagentoShipmentCollection $shipmentCollection;
 
-    public function __construct(Context $context)
+    public function __construct(Context $context, ExportResponse $response)
     {
-        parent::__construct($context);
+        parent::__construct($context, $response);
 
         $this->shipmentCollection = new MagentoShipmentCollection(
             $context->getObjectManager(),

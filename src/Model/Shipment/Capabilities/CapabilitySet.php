@@ -25,7 +25,7 @@ use Throwable;
  * result: a model with an enum value the SDK does not know throws on json_encode(). permissive()
  * is the fail-open state, not an empty response: never use it to mean that an account has nothing.
  */
-final class CapabilitySet
+class CapabilitySet
 {
     /** @var RefCapabilitiesResponseCapabilityV2[]|RefCapabilitiesContractDefinitionsResponseContractDefinitionsV2[] */
     private array $results;

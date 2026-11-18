@@ -753,7 +753,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
         }
 
-        $this->fillColloLinks($this->addSecondaryShipmentTracks($secondary, $claimedIds, $spare));
+        $this->addSecondaryShipmentTracks($secondary, $claimedIds, $spare);
 
         return $this->updateOrderGrid();
     }
@@ -762,21 +762,17 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      * Add a track per multicollo collo beyond the first.
      *
      * The SDK's create response drops secondary_shipments, so colli 2..N get their ids only from the
-     * query response. From the next run on each is an ordinary track.
+     * query response. From the next run on each is an ordinary track, and the status cron gives it its
+     * link: the API sets link_consumer_portal only on a shipment asked for by its own id.
      *
      * @param array<int,array{shipment: Order\Shipment, parentId: int, collo: object}> $secondary
      * @param array<int,true>                                                          $claimedIds ids already on a track
      * @param array<int,Track[]>                                                       $spare rows persist() parked on
      *        the parent's id, by parent id. They are used first, so an order keeps its label_amount
      *        rows and does not get one more per collo.
-     *
-     * @return array<int,array{shipment: Order\Shipment, track: Track}> the rows that came out of this
-     *         still without a link, keyed by collo id
      */
-    private function addSecondaryShipmentTracks(array $secondary, array $claimedIds, array $spare = []): array
+    private function addSecondaryShipmentTracks(array $secondary, array $claimedIds, array $spare): void
     {
-        $needLink = [];
-
         foreach ($secondary as $entry) {
             $collo   = $entry['collo'];
             $colloId = (int) $collo->getId();
@@ -803,57 +799,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
 
             $claimedIds[$colloId] = true;
-
-            if ('' === (string) $magentoTrack->getData('myparcel_tracktrace_url')) {
-                $needLink[$colloId] = ['shipment' => $entry['shipment'], 'track' => $magentoTrack];
-            }
-        }
-
-        return $needLink;
-    }
-
-    /**
-     * Fill the consumer portal link a collo is missing.
-     *
-     * The API sets link_consumer_portal only on a shipment asked for by id, never on one nested in
-     * secondary_shipments. So this asks for the colli by their own ids.
-     *
-     * @param array<int,array{shipment: Order\Shipment, track: Track}> $colli keyed by collo id
-     */
-    private function fillColloLinks(array $colli): void
-    {
-        if (! $colli) {
-            return;
-        }
-
-        $tracksByShipmentId = [];
-
-        foreach ($colli as $entry) {
-            $tracksByShipmentId[(int) $entry['shipment']->getId()][] = $entry['track'];
-        }
-
-        $latest = $this->exportService->fetchLatest(
-            $this->getMyparcelConsignmentIdsByApiKey($tracksByShipmentId)
-        );
-
-        foreach ($colli as $colloId => $entry) {
-            $myParcelShipment = $latest[$colloId] ?? null;
-
-            if (null === $myParcelShipment) {
-                continue;
-            }
-
-            $this->writeShipmentToTrack($entry['track'], $myParcelShipment);
-
-            if (! $entry['track']->hasDataChanges()) {
-                continue;
-            }
-
-            try {
-                $this->trackRepository->save($entry['track']);
-            } catch (Throwable $e) {
-                Logger::warning('MyParcel: could not save the track of one collo', LogContext::of($e));
-            }
         }
     }
 

@@ -16,8 +16,8 @@ use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 /**
  * Builds the Order v1 customs declaration for the PPS fulfilment path.
  *
- * Declares what was ordered, at product weight and price, in the order's own currency. The v11
- * shipment path declares what was shipped, at item weight and price. Both share CustomsItems.
+ * Declares the shipped quantity of each line, or the ordered quantity before a shipment, at product
+ * weight and at the price paid in the order's currency. Both export paths share CustomsItems.
  */
 class CustomsDeclarationFromOrder
 {
@@ -58,7 +58,8 @@ class CustomsDeclarationFromOrder
 
             $lines[] = [
                 'product' => $product,
-                'amount'  => (float) $item->getQtyShipped() ?: $item->getQtyOrdered(),
+                'amount'  => (int) ($item->getQtyShipped() ?: $item->getQtyOrdered()),
+                'price'   => (float) $item->getPrice(),
             ];
         }
 
@@ -70,7 +71,7 @@ class CustomsDeclarationFromOrder
         foreach ($lines as $line) {
             $product   = $line['product'];
             $productId = (int) $product->getId();
-            $amount    = (float) $line['amount'];
+            $amount    = $line['amount'];
 
             // Computed once and reused for the declaration total, which is the sum of the line
             // weights and must agree with them.
@@ -80,11 +81,11 @@ class CustomsDeclarationFromOrder
             $customsDeclaration->addCustomsItem(
                 (new MyParcelCustomsItem())
                     ->setDescription($this->items->description((string) $product->getName()))
-                    ->setAmount($line['amount'])
+                    ->setAmount($amount)
                     ->setWeight($lineWeight)
                     ->setItemValueArray([
                                             'amount'   => $this->items->lineValueInCents(
-                                                (float) $product->getPrice(),
+                                                $line['price'],
                                                 $amount
                                             ),
                                             'currency' => $currency,

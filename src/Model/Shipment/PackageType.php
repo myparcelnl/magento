@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageTypeV2;
  *
  * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
-final class PackageType
+class PackageType
 {
     use MapsNamesToIds;
     use MapsV2Names;

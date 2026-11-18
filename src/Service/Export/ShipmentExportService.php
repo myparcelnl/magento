@@ -34,21 +34,24 @@ class ShipmentExportService
     private Config              $config;
     private LabelPdfMerger      $labelPdfMerger;
     private UserAgent           $userAgent;
-
-    /** Null in production, so the SDK builds its own client; a test sets one to answer offline. */
-    private ?PsrClientInterface $returnHttpClient = null;
+    private LabelHttpClient     $labelHttpClient;
+    private PsrClientInterface  $httpClient;
 
     public function __construct(
         ShipmentApiProvider $apiProvider,
         Config              $config,
         LabelPdfMerger      $labelPdfMerger,
-        UserAgent           $userAgent
+        UserAgent           $userAgent,
+        LabelHttpClient     $labelHttpClient,
+        PsrClientInterface  $httpClient
     )
     {
-        $this->apiProvider    = $apiProvider;
-        $this->config         = $config;
-        $this->labelPdfMerger = $labelPdfMerger;
-        $this->userAgent      = $userAgent;
+        $this->apiProvider     = $apiProvider;
+        $this->config          = $config;
+        $this->labelPdfMerger  = $labelPdfMerger;
+        $this->userAgent       = $userAgent;
+        $this->labelHttpClient = $labelHttpClient;
+        $this->httpClient      = $httpClient;
     }
 
     /**
@@ -146,10 +149,9 @@ class ShipmentExportService
                 // LABEL_CHUNK_SIZE is a multiple of four, so with all four A4 positions in use a chunk
                 // never splits a sheet.
                 foreach (array_chunk($shipmentIds, self::LABEL_CHUNK_SIZE) as $chunk) {
-                    // The third argument is the PSR client the service sends with; LabelHttpClient
-                    // exists so a non-PDF answer is visible, since the SDK discards the body it refused.
-                    $service = $this->tagged($apiKey, static function (string $key, $client) {
-                        return new ShipmentLabelsService($key, $client, new LabelHttpClient());
+                    // LabelHttpClient makes a non-PDF answer visible: the SDK discards the body it refused.
+                    $service = $this->tagged($apiKey, function (string $key, $client) {
+                        return new ShipmentLabelsService($key, $client, $this->labelHttpClient);
                     });
                     $service->setPdfOfLabels($chunk, $positions);
 
@@ -185,7 +187,7 @@ class ShipmentExportService
             'create return shipments',
             function (string $apiKey, array $rows) use (&$returns): void {
                 $answer = $this->tagged($apiKey, function (string $key, $client) {
-                    return new ReturnShipmentService($key, $client, $this->returnHttpClient);
+                    return new ReturnShipmentService($key, $client, $this->httpClient);
                 })->createRelated($rows, true);
 
                 foreach ($answer as $returnId => $parentId) {

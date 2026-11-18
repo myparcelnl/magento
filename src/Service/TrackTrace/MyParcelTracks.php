@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
  * barcode that portal never issued. The rule was spelled out at each query and missing from two,
  * so it lives here instead.
  */
-final class MyParcelTracks
+class MyParcelTracks
 {
     /**
      * @param string $alias the track table's alias in $select

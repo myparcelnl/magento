@@ -14,7 +14,7 @@ use Throwable;
  * was being attempted. The trace is a separate string because Handler\Base builds its LineFormatter
  * with includeStacktraces = false and so drops the frames of an exception in context.
  */
-final class LogContext
+class LogContext
 {
     /**
      * @param array $extra identifying data, read before the error; `error` and `trace` are reserved
