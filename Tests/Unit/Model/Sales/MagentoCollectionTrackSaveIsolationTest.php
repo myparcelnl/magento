@@ -92,7 +92,7 @@ it('carries on to the next collo when the track of one collo cannot be saved', f
     ]);
 
     $made = 0;
-    $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(static function () use (&$made, $saved) {
+    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use (&$made, $saved) {
         if (1 === ++$made) {
             throw new Exception('constraint violation on this row');
         }

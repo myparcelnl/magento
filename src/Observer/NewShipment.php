@@ -125,8 +125,15 @@ class NewShipment implements ObserverInterface
         // a PPS order needs no label shipment: building one would only call capabilities, and a build
         // error would stop the export
         if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
+            $order      = $shipment->getOrder();
+            $uuidBefore = $order->getData('myparcel_uuid');
+
             $this->exportEntireOrder($shipment);
-            $this->updateTrackGrid($shipment, true);
+
+            // A refused or unconfirmed export gives the order no new uuid and leaves its status as it was.
+            if ($order->getData('myparcel_uuid') !== $uuidBefore) {
+                $this->updateTrackGrid($shipment, true);
+            }
 
             return;
         }

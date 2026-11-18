@@ -233,11 +233,22 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     protected function setNewMagentoTrack($shipment)
     {
-        $track = ShipmentBuilder::newTrackFor($this->objectManager, $shipment);
+        $track = $this->newMagentoTrack($shipment);
         $this->trackRepository->save($track);
         $this->forgetTracks();
 
         return $track;
+    }
+
+    /**
+     * Build a MyParcel track for this shipment without saving it. The caller saves it once, with its
+     * MyParcel id: a track saved without one would be exported again as a new shipment.
+     *
+     * @param Order\Shipment $shipment
+     */
+    protected function newMagentoTrack($shipment): Track
+    {
+        return ShipmentBuilder::newTrackFor($this->objectManager, $shipment);
     }
 
     /**
@@ -732,8 +743,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     }
                 }
 
-                // Collected, not created here: setNewMagentoTrack() saves, and adding rows to a
-                // track collection that is being iterated is asking for trouble.
+                // Collected, not created here: this loop iterates the track collection.
                 $colli = $myParcelShipment->getSecondaryShipments();
 
                 // secondary_shipments is typed mixed on the nested resource, so never foreach blind.
@@ -779,12 +789,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
             try {
                 $magentoTrack = empty($spare[$parentId])
-                    ? $this->setNewMagentoTrack($entry['shipment'])
+                    ? $this->newMagentoTrack($entry['shipment'])
                     : array_shift($spare[$parentId]);
 
                 $magentoTrack->setData('myparcel_consignment_id', $colloId);
                 $this->writeShipmentToTrack($magentoTrack, $collo);
                 $this->trackRepository->save($magentoTrack);
+                $this->forgetTracks();
             } catch (Throwable $e) {
                 Logger::warning('MyParcel: could not save the track of one collo', LogContext::of($e));
 
