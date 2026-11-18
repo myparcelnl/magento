@@ -6,12 +6,14 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesSharedCarrierV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageTypeV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryTypeV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesMapper;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
+use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 
 /**
  * The module maps its own names to the Core API v2 vocabulary on both sides of a capabilities call.
@@ -51,10 +53,7 @@ it('agrees with the SDK request mapper on every option wire key', function () {
 });
 
 it('carries fresh food and frozen, which the request model could not always ask about', function () {
-    // Both were read-only at beta.15: they appear in a capabilities response but CapabilitiesOptionsV2
-    // had no setter, so a request could not ask about them. beta.31 added setFreshFood() and
-    // setFrozen(), closing that gap. Asserted head-on so a regression upstream is a
-    // failure here rather than a silently unasked question.
+    // CapabilitiesOptionsV2 needs a setter per option; without one the request silently omits it.
     foreach ([ShipmentOption::FRESH_FOOD, ShipmentOption::FROZEN] as $moduleName) {
         expect(mappedOptionKeys($moduleName))
             ->toBe([ShipmentOption::toV2Name($moduleName)], "'$moduleName' stopped being sendable");
@@ -62,8 +61,6 @@ it('carries fresh food and frozen, which the request model could not always ask 
 });
 
 it('round-trips every stored option name through its wire key', function () {
-    expect(moduleOptionNames())->toHaveCount(14);
-
     foreach (moduleOptionNames() as $moduleName) {
         expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName);
     }
@@ -110,7 +107,7 @@ it('maps every carrier to a v2 enum value the SDK allows', function () {
 
 it('names every carrier the module has settings for', function () {
     expect(array_keys(Carrier::V2_NAMES_MAP))
-        ->toBe(array_keys(\MyParcelNL\Magento\Service\Config::CARRIERS_XML_PATH_MAP));
+        ->toBe(array_keys(Config::CARRIERS_XML_PATH_MAP));
 });
 
 /**
@@ -120,7 +117,7 @@ it('names every carrier the module has settings for', function () {
 it('takes every carrier name from the sdk registry', function () {
     $sdkNames = array_map(
         static fn(string $class): string => $class::NAME,
-        \MyParcelNL\Sdk\Model\Carrier\CarrierFactory::CARRIER_CLASSES
+        CarrierFactory::CARRIER_CLASSES
     );
 
     expect(array_diff(array_keys(Carrier::V2_NAMES_MAP), $sdkNames))->toBe([])

@@ -221,12 +221,10 @@ class Checkout
             $canHavePriorityDelivery = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
             $canHaveOnlyRecipient    = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
             $canHaveAgeCheck         = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
-            // Monday delivery is not a capability the API reports, so configuration alone decides.
-            // Offering it and letting the API refuse beats hiding a feature the merchant pays for.
-            $canHaveMonday           = true;
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
-            $mondayFee           = $canHaveMonday ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice : 0;
+            // capabilities do not report Monday delivery, so only the configuration decides
+            $mondayFee           = $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice;
             $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
             $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
             $collectFee          = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
@@ -252,9 +250,7 @@ class Checkout
             $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[DeliveryType::MORNING_NAME] && $this->config->getBoolConfig($carrierPath, 'morning/active');
             $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[DeliveryType::EVENING_NAME] && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
-            // One package type serves the whole checkout, so a type another carrier can carry a
-            // forced option on still reaches this one. Not offering it beats offering a method
-            // that fails at export. $capabilities is already narrowed to $packageType, so this is free.
+            // one package type serves the whole checkout, so check that this carrier can carry the forced options on it
             $canCarryForced        = $this->canCarry(
                 $capabilities,
                 $carrierName,
@@ -282,7 +278,7 @@ class Checkout
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $country),
-                'allowMondayDelivery'   => $canHaveMonday && $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
+                'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->config->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
                 'allowExpressDelivery'  => $allowExpressDelivery,
 

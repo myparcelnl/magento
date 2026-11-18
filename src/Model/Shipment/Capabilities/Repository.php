@@ -13,19 +13,11 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use Throwable;
 
 /**
- * Gets capabilities through the cache, per API key and request. Three rules:
+ * Gets capabilities through the cache, per API key and request. The only class consumers touch.
  *
- * The only class consumers touch. Three rules it must keep:
- *
- * - Fail open. Any failure (no API key, a transport error, a 429, a 500, an undecodable body)
- *   returns CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a
- *   label being created, and a store with no key must still render its admin form; export fails
- *   loudly on its own path instead.
- * - Serve stale. Successful entries are written with no expiry and removed only by cache:clean, an
- *   API key change or a settings import, so a failed refresh finds the previous answer still there.
- * - Do not hammer a failing endpoint. A request that failed is remembered as failed for
- *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
- *   entry, never before it, so a previous good answer always beats a recent failure.
+ * - Fail open: any failure returns CapabilitySet::permissive(), so a lookup never stops a label.
+ * - Serve stale: success entries never expire, so a failed refresh finds the previous answer.
+ * - A failure is remembered for FAILURE_LIFETIME_SECONDS, and is read after the success entry.
  */
 class Repository
 {

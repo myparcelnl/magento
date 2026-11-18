@@ -112,8 +112,11 @@ function makeCapabilitiesClient(array $responses = []): array
     // Innermost, so the history holds the request as sent, after the client's own middleware.
     $handler = Middleware::history($history)($mock);
 
+    $client = new CapabilitiesClient(createUserAgent());
+    setPrivateProperty($client, 'handler', $handler);
+
     return [
-        'client'  => new CapabilitiesClient(createUserAgent(), null, $handler),
+        'client'  => $client,
         'history' => &$history,
         'handler' => $mock,
     ];
@@ -230,12 +233,10 @@ function scrubCapabilitiesResults(array $results): array
  */
 function makeAcceptanceCapabilitiesClient(): CapabilitiesClient
 {
-    return new CapabilitiesClient(
-        createUserAgent(),
-        null,
-        null,
-        ProxyConfig::HOSTS[ProxyConfig::HOST_CORE][ProxyConfig::KEY_ACCEPTANCE_URL]
-    );
+    $client = new CapabilitiesClient(createUserAgent());
+    setPrivateProperty($client, 'host', ProxyConfig::HOSTS[ProxyConfig::HOST_CORE][ProxyConfig::KEY_ACCEPTANCE_URL]);
+
+    return $client;
 }
 
 /**

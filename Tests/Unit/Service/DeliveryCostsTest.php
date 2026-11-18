@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\DeliveryCosts;
 
-/**
- * Only the euro-to-cent conversion. It has two callers, both customs declarations, and an amount a
- * cent low on those is an under-declared value to customs.
- */
+/** The euro-to-cent conversion: a cent low under-declares a customs value or an order line. */
 it('rounds a price whose binary representation falls just short', function () {
     // 0.29 * 100 is 28.999999999999996, so a cast answered 28.
     expect(DeliveryCosts::getPriceInCents(0.29))->toBe(29);
