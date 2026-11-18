@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesResponseOptionsInsuranceOptionV2;
@@ -112,8 +114,7 @@ function makeCapabilitiesClient(array $responses = []): array
     // Innermost, so the history holds the request as sent, after the client's own middleware.
     $handler = Middleware::history($history)($mock);
 
-    $client = new CapabilitiesClient(createUserAgent());
-    setPrivateProperty($client, 'handler', $handler);
+    $client = new CapabilitiesClient(createUserAgent(), new GuzzleClient(['handler' => HandlerStack::create($handler)]));
 
     return [
         'client'  => $client,
@@ -233,10 +234,14 @@ function scrubCapabilitiesResults(array $results): array
  */
 function makeAcceptanceCapabilitiesClient(): CapabilitiesClient
 {
-    $client = new CapabilitiesClient(createUserAgent());
-    setPrivateProperty($client, 'host', ProxyConfig::HOSTS[ProxyConfig::HOST_CORE][ProxyConfig::KEY_ACCEPTANCE_URL]);
+    $acceptanceHost = (string) parse_url(ProxyConfig::HOSTS[ProxyConfig::HOST_CORE][ProxyConfig::KEY_ACCEPTANCE_URL], PHP_URL_HOST);
 
-    return $client;
+    $stack = HandlerStack::create();
+    $stack->push(Middleware::mapRequest(static function ($request) use ($acceptanceHost) {
+        return $request->withUri($request->getUri()->withHost($acceptanceHost));
+    }));
+
+    return new CapabilitiesClient(createUserAgent(), new GuzzleClient(['handler' => $stack]));
 }
 
 /**

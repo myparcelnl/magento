@@ -14,14 +14,14 @@ The module was pinned at `myparcelnl/sdk` `11.0.0-beta.15` because **beta.22 del
 consignment stack** it was built on. No later SDK could be installed: no bug fixes, no regenerated
 clients, no new carriers or options. The pin is now `11.0.0-beta.36`, and the vocabulary maps under
 `src/Model/Shipment/` are the module's own: the consignment classes that held package types,
-delivery types and option names are gone, and there are none to adopt.
+delivery types and option names are gone. Beta.36 adds `Services\Mapping\ApiMapperService`, which
+maps these names to ids and to v2 names; INT-1563 replaces the module maps with it.
 
 **Carriers are the exception.** `MyParcelNL\Sdk\Model\Carrier\` survived beta.22, so
 `Model\Shipment\Carrier` takes each name from the SDK class that owns it
 (`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
 stays the module's own is *which* carriers it supports (the eight it has admin settings for,
-against the SDK's thirteen) and the two maps the SDK has no
-equivalent of, `V2_NAMES_MAP` and `LOCAL_COUNTRY_MAP`. An account's real set comes from
+against the SDK's thirteen), `V2_NAMES_MAP` until INT-1563, and `LOCAL_COUNTRY_MAP`. An account's real set comes from
 capabilities, never from either list.
 
 Two capabilities went with the deleted stack and are module code now:
@@ -52,7 +52,7 @@ concurrent render misses the same request at once, and making them wait for one 
 avoided, not the fix.
 
 **The SDK decides which options exist.** `Capabilities\Client` sends the request that the generated
-`ShipmentApi` builds on its own Guzzle client and returns the raw response entries.
+`ShipmentApi` builds, with a 2 s connect timeout, and returns the raw response entries.
 `CapabilitySet` reads each entry into the generated response model and skips an entry that does not
 read, so one malformed entry does not cost the whole answer. An option the SDK does not know is not
 offered until an SDK update; the export could not send it anyway. A new carrier, package type or

@@ -22,7 +22,7 @@ use Throwable;
  * segments, so they cannot follow the SDK. V2_NAMES_MAP translates them to the Core API vocabulary
  * a capabilities response speaks.
  */
-final class Carrier
+class Carrier
 {
     use MapsV2Names;
 

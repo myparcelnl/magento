@@ -10,6 +10,7 @@ use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Export\ExportResponse;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
@@ -32,9 +33,9 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
     private MagentoOrderCollection $orderCollection;
     private Config                 $config;
 
-    public function __construct(Context $context)
+    public function __construct(Context $context, ExportResponse $response)
     {
-        parent::__construct($context);
+        parent::__construct($context, $response);
 
         $this->config          = $this->_objectManager->get(Config::class);
         $this->orderCollection = new MagentoOrderCollection(

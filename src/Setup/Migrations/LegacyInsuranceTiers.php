@@ -12,7 +12,7 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
  * Never validate a merchant's input against them: insurance is a range now. Only `Setup\UpgradeData`
  * uses them, to round pre-4.16 amounts up to a tier offline, without the API.
  */
-final class LegacyInsuranceTiers
+class LegacyInsuranceTiers
 {
     public const ZONE_LOCAL = 'local';
     public const ZONE_BE    = 'BE';

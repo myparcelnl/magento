@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
  * These strings are config path segments and are stored on orders, so renaming one to match the
  * API's own vocabulary would break existing installs. See docs/sdk-v11.md for the API mapping.
  */
-final class ShipmentOption
+class ShipmentOption
 {
     public const AGE_CHECK          = 'age_check';
     public const HIDE_SENDER        = 'hide_sender';

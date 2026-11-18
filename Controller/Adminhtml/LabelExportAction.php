@@ -33,11 +33,11 @@ abstract class LabelExportAction extends Action implements HttpPostActionInterfa
 
     protected ExportResponse $response;
 
-    public function __construct(Context $context)
+    public function __construct(Context $context, ExportResponse $response)
     {
         parent::__construct($context);
 
-        $this->response = $this->_objectManager->get(ExportResponse::class);
+        $this->response = $response;
     }
 
     public function execute(): ResultInterface

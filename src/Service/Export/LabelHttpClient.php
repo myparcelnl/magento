@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\Export;
 
-use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Utils;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -15,8 +13,8 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Repairs the labels request on the way out and logs a bad answer on the way back.
  *
- * Outbound it restores the `;` separators that the generated client encodes to `%3B` (SDK issue 4):
- * the endpoint answers 500 to an encoded separator.
+ * Outbound it restores the `;` separators that the generated client encodes to `%3B`: the endpoint
+ * answers 500 to an encoded separator.
  * Inbound it logs only the shape of a non-PDF body: the values can quote recipient data.
  * It never copies a real PDF and never touches or logs the Authorization header.
  */
@@ -27,9 +25,9 @@ class LabelHttpClient implements ClientInterface
 
     private ClientInterface $httpClient;
 
-    public function __construct()
+    public function __construct(ClientInterface $httpClient)
     {
-        $this->httpClient = new GuzzleClient(['timeout' => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT]);
+        $this->httpClient = $httpClient;
     }
 
     public function sendRequest(RequestInterface $request): ResponseInterface

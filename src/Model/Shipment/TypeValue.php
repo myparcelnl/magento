@@ -12,7 +12,7 @@ use InvalidArgumentException;
  * A stored type may be one we do not know. Nothing here substitutes a default: each accessor says
  * what it answers for an unresolved value.
  */
-final class TypeValue
+class TypeValue
 {
     /** @var string|int|null exactly what was stored; null means nothing was */
     private $raw;

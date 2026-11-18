@@ -22,8 +22,7 @@ function createReturnsAnswering(array $answered): array
         ])),
     ]);
 
-    $service = makeExportService(['key-a' => ShipmentApiFactory::make('key-a')]);
-    setPrivateProperty($service, 'returnHttpClient', $http['client']);
+    $service = makeExportService(['key-a' => ShipmentApiFactory::make('key-a')], null, $http['client']);
 
     $result = $service->createReturns([
         'key-a' => [['parent' => 111, 'reference_identifier' => 111, 'carrier' => 1]],

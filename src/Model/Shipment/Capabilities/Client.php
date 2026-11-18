@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use InvalidArgumentException;
 use MyParcelNL\Magento\Service\UserAgent;
@@ -23,7 +22,7 @@ use Throwable;
 /**
  * Calls the capabilities and contract definitions endpoints with requests built by the SDK's ShipmentApi.
  *
- * Sends them on its own Guzzle client and returns the raw response arrays, never a model: the cache
+ * Sends them with its own timeouts and returns the raw response arrays, never a model: the cache
  * and the stored answers json_encode() them, and a model with an enum value the SDK does not know
  * throws there. One malformed entry must not fail the whole answer; CapabilitySet skips it.
  */
@@ -34,22 +33,16 @@ class Client
 
     private UserAgent          $userAgent;
     private CapabilitiesMapper $mapper;
-
-    /** @var callable|null the innermost Guzzle handler; null is Guzzle's default */
-    private $handler = null;
-
-    private ?GuzzleClient $http = null;
+    private GuzzleClient       $httpClient;
 
     /** @var array<string,ShipmentApi> keyed by API key */
     private array $apis = [];
 
-    /** Null is the SDK's default host. */
-    private ?string $host = null;
-
-    public function __construct(UserAgent $userAgent)
+    public function __construct(UserAgent $userAgent, GuzzleClient $httpClient)
     {
-        $this->userAgent = $userAgent;
-        $this->mapper    = new CapabilitiesMapper();
+        $this->userAgent  = $userAgent;
+        $this->mapper     = new CapabilitiesMapper();
+        $this->httpClient = $httpClient;
     }
 
     /**
@@ -98,7 +91,12 @@ class Client
     private function call(string $apiKey, string $envelope, string $label, callable $build): array
     {
         try {
-            $response = $this->http()->send($build($this->apiFor($apiKey)));
+            $response = $this->httpClient->send($build($this->apiFor($apiKey)), [
+                RequestOptions::TIMEOUT         => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT,
+                RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
+                RequestOptions::ALLOW_REDIRECTS => false,
+                RequestOptions::HTTP_ERRORS     => false,
+            ]);
         } catch (Throwable $e) {
             throw new RuntimeException(sprintf('%s request failed: %s', $label, $e->getMessage()), 0, $e);
         }
@@ -134,28 +132,9 @@ class Client
             $configuration->setAccessToken(base64_encode($apiKey));
             $configuration->setUserAgent($this->userAgent->header());
 
-            if (null !== $this->host) {
-                $configuration->setHost($this->host);
-            }
-
-            $this->apis[$apiKey] = new ShipmentApi($this->http(), $configuration);
+            $this->apis[$apiKey] = new ShipmentApi($this->httpClient, $configuration);
         }
 
         return $this->apis[$apiKey];
-    }
-
-    private function http(): GuzzleClient
-    {
-        if (null === $this->http) {
-            $this->http = new GuzzleClient([
-                'handler'                       => HandlerStack::create($this->handler),
-                RequestOptions::TIMEOUT         => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT,
-                RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
-                RequestOptions::ALLOW_REDIRECTS => false,
-                RequestOptions::HTTP_ERRORS     => false,
-            ]);
-        }
-
-        return $this->http;
     }
 }
