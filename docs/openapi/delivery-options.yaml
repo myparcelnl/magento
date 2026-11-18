@@ -220,7 +220,7 @@ components:
         Shipment options. Each option that is on is a key of the Order API's
         `ShipmentOptionsCommon` schema with an empty object `{}` (ADR-0013); an
         option that is off is omitted. Which options occur comes from the
-        carrier capabilities, so this schema does not list them. `insurance`
+        delivery options stored on the order, so this schema does not list them. `insurance`
         diverges from the Order API on purpose: it uses an integer-micro amount
         (Magento convention) instead of the Money object format.
       additionalProperties:

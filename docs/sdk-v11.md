@@ -67,7 +67,7 @@ that.
 
 ## Deliberate divergences from `myparcelnl/pdk`
 
-Six, all deliberate. A reader who finds them should treat them as decisions, not omissions.
+Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
    private `hydrateModel()`. The mapper builds typed generated models through typed setters, so wire
@@ -107,7 +107,8 @@ one. `CapabilitySet::unknownValues()` reports a carrier, package type or deliver
 generated enums do not know, as a sign that the SDK needs an update.
 
 `Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
-`mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private.
+`mapToCoreApi()`, because the SDK keeps its alias map private
+(`ShipmentOptionMapper::LEGACY_TO_V2_PROPERTIES`).
 
 **The REST transformers keep their own maps.** `Model\Rest\Transformer\{Carrier,PackageType,
 DeliveryType}Transformer` bind to **Order API** enums while capabilities is **Core API**. The strings
@@ -138,7 +139,7 @@ Each workaround names what to delete once the fix lands.
 | 2 | `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | `ShipmentApiProvider` raises before any factory sees an empty key. `Capabilities\Client` uses no factory |
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
-| 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. Each step of `query()` is public, so the module could build the request itself, but that copies SDK internals. Fix it in the SDK: let `query()` take user agents |
+| 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
 | 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
@@ -146,10 +147,8 @@ Defects 1 and 3 were capabilities defects. The module now uses the generated `Sh
 the generated models, so it has no workaround for them; the numbers stay so references to the others
 hold.
 
-Two generation traps worth knowing: `RefShipmentCustomsDeclarationItem::setCountry()` accepts only
-`''`, so the country goes in through the constructor and `ShipmentValidator` skips customs; and
-`ShipmentDefsShipment::getParentId()` returns a property-less stub, so colli are paired by nesting,
-never by id.
+One generation trap worth knowing: `ShipmentDefsShipment::getParentId()` returns a property-less
+stub, so colli are paired by nesting, never by id.
 
 ## HS code length
 
@@ -182,10 +181,6 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The per-country print-position rule on the order and shipment views. It answered the same for
   every order, and the grid never used it; positions are offered everywhere.
 - The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
-- The "Export mode" setting. An account with order v1 exports orders (PPS), every other account
-  exports shipments. A grid selection that mixes the two is refused.
-- PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
-  option.
 - A carrier outside the account's contract leaves the checkout, also when its switch is on.
 
 **Corrected**
@@ -195,8 +190,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - `early_morning` and `same_day` ship as chosen. They used to ship, and be charged, as standard.
 - Receipt code applies to standard delivery only. Evening and morning orders keep signature and
   only-recipient instead of losing them.
-- The label description uses all 45 characters, is visibly shortened when cut, and the return label
-  reads `Retour <description> t/m <date>` so the date always fits.
+- The label description uses all 45 characters and is visibly shortened when cut.
 - The HS code is stored as text of up to 18 characters and sent as digits only, at most 10. It was
   an INT column that clamped long codes.
 - Age check: the product attribute and carrier default tiers work, the New Shipment form pre-checks
