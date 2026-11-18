@@ -7,12 +7,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
-/**
- * Local pre-flight check of a Shipment and its nested models, because Shipment::valid() does not recurse.
- *
- * Customs is left out on purpose: its items report a false invalid country for every country
- * (see CustomsDeclarationBuilder).
- */
+/** Local pre-flight check of a Shipment and its nested models, because Shipment::valid() does not recurse. */
 class ShipmentValidator
 {
     /** @return string[] empty when the shipment is safe to send */
@@ -37,7 +32,14 @@ class ShipmentValidator
             'options'             => $shipment->getOptions(),
             'physical properties' => $shipment->getPhysicalProperties(),
             'pickup'              => $shipment->getPickup(),
+            'customs'             => $shipment->getCustomsDeclaration(),
         ];
+
+        $customsItems = $candidates['customs'] ? $candidates['customs']->getItems() : null;
+
+        foreach ($customsItems ?? [] as $index => $item) {
+            $candidates['customs item ' . ($index + 1)] = $item;
+        }
 
         return array_filter($candidates, static fn($model): bool => $model instanceof ModelInterface);
     }
