@@ -780,14 +780,21 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 continue;
             }
 
-            $parentId     = (int) ($entry['parentId'] ?? 0);
-            $magentoTrack = empty($spare[$parentId])
-                ? $this->setNewMagentoTrack($entry['shipment'])
-                : array_shift($spare[$parentId]);
+            $parentId = (int) ($entry['parentId'] ?? 0);
 
-            $magentoTrack->setData('myparcel_consignment_id', $colloId);
-            $this->writeShipmentToTrack($magentoTrack, $collo);
-            $magentoTrack->save();
+            try {
+                $magentoTrack = empty($spare[$parentId])
+                    ? $this->setNewMagentoTrack($entry['shipment'])
+                    : array_shift($spare[$parentId]);
+
+                $magentoTrack->setData('myparcel_consignment_id', $colloId);
+                $this->writeShipmentToTrack($magentoTrack, $collo);
+                $magentoTrack->save();
+            } catch (Throwable $e) {
+                Logger::warning('MyParcel: could not save the track of one collo', LogContext::of($e));
+
+                continue;
+            }
 
             $claimedIds[$colloId] = true;
 
@@ -832,8 +839,14 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
             $this->writeShipmentToTrack($entry['track'], $myParcelShipment);
 
-            if ($entry['track']->hasDataChanges()) {
+            if (! $entry['track']->hasDataChanges()) {
+                continue;
+            }
+
+            try {
                 $entry['track']->save();
+            } catch (Throwable $e) {
+                Logger::warning('MyParcel: could not save the track of one collo', LogContext::of($e));
             }
         }
     }

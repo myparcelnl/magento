@@ -166,17 +166,13 @@ class ShipmentExportService
             }
         );
 
-        try {
-            $pdf = $this->labelPdfMerger->merge($pdfs);
-        } catch (Throwable $e) {
-            // FPDI throws on a document it cannot parse. The controller already knows how to say
-            // "no labels"; letting this escape turns it into a 500 instead.
-            Logger::warning('MyParcel export: the label PDFs could not be merged', LogContext::of($e));
+        $merged = $this->labelPdfMerger->merge($pdfs);
 
-            return ['pdf' => '', 'errors' => array_merge($errors, [$e->getMessage()])];
+        if ($merged['skipped']) {
+            $errors[] = (string) __('%1 label file(s) could not be merged. Please check the log.', $merged['skipped']);
         }
 
-        return ['pdf' => $pdf, 'errors' => $errors];
+        return ['pdf' => $merged['pdf'], 'errors' => $errors];
     }
 
     /**

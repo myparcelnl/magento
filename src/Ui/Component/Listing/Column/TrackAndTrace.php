@@ -85,6 +85,8 @@ class TrackAndTrace extends Column
             $html = $this->links->html($linksByOrder[(int) ($item['entity_id'] ?? 0)] ?? []);
 
             if ('' === $html) {
+                $item[$name] = self::barcodesFromJson((string) ($item[$name] ?? '')) ?? ($item[$name] ?? null);
+
                 continue;
             }
 
@@ -93,5 +95,20 @@ class TrackAndTrace extends Column
         }
 
         return $dataSource;
+    }
+
+    /**
+     * Get the barcodes of an order that the status cron shipped without a shipment, which stores them
+     * as a JSON list in track_number. Null for any other value.
+     */
+    private static function barcodesFromJson(string $value): ?string
+    {
+        $barcodes = '[' === substr($value, 0, 1) ? json_decode($value, true) : null;
+
+        if (! is_array($barcodes)) {
+            return null;
+        }
+
+        return htmlspecialchars(implode(', ', array_map('strval', $barcodes)), ENT_QUOTES);
     }
 }

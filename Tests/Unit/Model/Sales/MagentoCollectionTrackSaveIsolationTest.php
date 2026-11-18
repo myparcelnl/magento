@@ -83,3 +83,33 @@ it('says which run lost a track rather than failing silently', function () {
 
     $collection->updateMagentoTrack();
 });
+
+it('carries on to the next collo when the track of one collo cannot be saved', function () {
+    mockLoggerFacade()->shouldReceive('warning')->once()->with('MyParcel: could not save the track of one collo', Mockery::any());
+
+    [$collection, $saved] = collectionRefreshing(4242, [
+        4242 => apiShipmentWithColli(4242, '3SMAIN', [apiCollo(4243, '3SCOLLO2'), apiCollo(4244, '3SCOLLO3')]),
+    ]);
+
+    $made = 0;
+    $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(static function () use (&$made, $saved) {
+        if (1 === ++$made) {
+            throw new Exception('constraint violation on this row');
+        }
+
+        $saved->created[] = ['number' => null, 'data' => []];
+
+        return recordingTrack([
+            'setTrackNumber' => static function (): void {
+            },
+            'setData'        => static function ($field, $value) use ($saved): void {
+                $saved->created[array_key_last($saved->created)]['data'][$field] = $value;
+            },
+        ]);
+    });
+
+    $collection->updateMagentoTrack();
+
+    expect($saved->created)->toHaveCount(1)
+        ->and($saved->created[0]['data']['myparcel_consignment_id'])->toBe(4244);
+});

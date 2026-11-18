@@ -102,7 +102,8 @@ function createConvertibleShipmentBuilder(
     array $checkoutDeliveryOptions,
     ?string $apiKey = 'test-api-key',
     int $orderStoreId = 1,
-    ?int $apiKeyStoreId = null
+    ?int $apiKeyStoreId = null,
+    array $shipmentOverrides = []
 ): array {
     $objectManager = mockExportObjectManager(createExportConfig($apiKey, $apiKeyStoreId));
 
@@ -112,7 +113,7 @@ function createConvertibleShipmentBuilder(
         'getStoreId'         => $orderStoreId,
         'deliveryOptions'    => json_encode($checkoutDeliveryOptions),
     ]);
-    $shipment = createShipment(['getShippingAddress' => $address, 'getOrder' => $order]);
+    $shipment = createShipment(['getShippingAddress' => $address, 'getOrder' => $order] + $shipmentOverrides);
     $track    = createShipmentTrack(['getShipment' => $shipment]);
 
     return [new ShipmentBuilder($objectManager, $order), $track];
