@@ -26,7 +26,7 @@ status_39,Inactif - Envoi retour livré
 status_40,Inactif - Envoi retour au point de collecte
 status_99,Inactif - Statut inconnu
 No MyParcel shipments to process., Non-pas d' envois MyParcel à traiter.
-Packet,Petit paquet
+Packet,Petit colis
 Packet title,Titre petit paquet
 Parcel locker,Casier de colis
 Show total price,Afficher le prix total
@@ -119,7 +119,6 @@ Track number,Numéro de suivi
 Track status,Statut du suivi
 Track action,Action de suivi
 MyParcel options,Options MyParcel
-Package,Colis
 Insured up to:,Assuré jusqu'à :
 Download package label,Télécharger l'étiquette du colis
 Download small package label,Télécharger l'étiquette du petit colis
@@ -143,7 +142,6 @@ MyParcel Shipment Email Template for Guest,Modèle d'e-mail pour un envoi MyParc
 Action type,Action
 Download label,Téléchargez l'étiquette
 Open in new tab, Ouvrir une nouvel onglet
-Package Type,Type de colis
 Print position,Position d'impression
 MyParcel version,Version de MyParcel
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","La version %1 de l'extension est installée sur votre boutique en ligne. Actuellement, la dernière version stable est la version %2. Si vous rencontrez des problèmes, nous vous conseillons d'installer la dernière version stable dans votre environnement Magento."
@@ -196,7 +194,6 @@ Fit in mailbox,Convient pour la boîte aux lettres
 Methods,Mode d'expédition
 The extra myparcel options are added to this shipping method,Les options Myparcel complémentaires seront ajoutées à ce mode d'expédition
 Delivery title,Livraison - titre
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Lorsque les points de retrait sont activés, l'utilisateur peut choisir entre la vue carte ou liste. Ce paramètre détermine quelle option sera sélectionnée en premier lors de l'ouverture des points de retrait."
 Deliver the package only at address of the intended recipient.,Livraison du colis à l'adresse du destinataire uniquement.
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
 Not possible if Pickup at PostNL location is not active,Ceci ne sera pas possible si la collecte à un point postnl n'est pas activée
@@ -204,14 +201,11 @@ Signature on receipt,Signature pour réception
 Signature on receipt title,Signature pour réception - titre
 Signature on receipt fee,Signature pour réception - prix
 Hide sender,Masquer l'expéditeur
-This will be added to the regular shipping price, Ceci sera ajouté aux frais d'expédition standards
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,"Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option."
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits. Les envois plus lourds que le poids spécifié ici ne seront pas considérés comme des envois pour Boîte aux lettres."
-This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
 Pickup at PostNL location,Collecte dans un point postnl
 Pickup active,Collecte active
 Standard delivery Title,Titre de livraison standard
-Signature on receipt title,Signature pour réception - titre
 Hide sender title,Titre de masquer l'expéditeur
 Printerless return, Retour sans imprimante
 Frozen, Congelé
@@ -258,6 +252,7 @@ Thursday,Jeudi
 Friday,Vendredi
 Saturday,Samedi
 Sunday,Dimanche
+Package,Colis
 Mailbox,Colis boîte aux lettres
 Digital stamp,Timbre numérique
 Small package,Colis petit format
@@ -286,7 +281,7 @@ Enabling this setting automatically creates a related return shipment for any sh
 Show details in summary,Afficher les détails dans le résumé
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Lorsque le mode d'expédition est affiché, montrez les détails actuellement connus (oui) ou le titre du mode (non)."
 
-Delivery Options, Options de livraison
+Delivery at home or at work,Livraison à domicile ou au travail
 Delivery options,
 Back to overview, Retour à l'aperçu
 Delivery, Livraison
@@ -294,21 +289,11 @@ Pickup, Retrait
 Pickup location, Point de retrait
 Open map, Ouvrir la carte
 Confirm, Confirmer
-Standard Delivery, Livraison standard
-Morning Delivery, Livraison le matin
-Evening Delivery, Livraison en soirée
+Standard delivery,Livraison standard
 Pickup locations, Points de collecte
-Same day Delivery, Livraison le jour même
-Hide Sender, Masquer l'expéditeur
 List, Liste
 Map, Carte
-Mailbox, Colis boîte aux lettres
-Digital Stamp, Timbre digital
-Packet,Petit colis
 Signature, Signature à réception
-Only Recipient, Adresse de résidence uniquement
-Priority delivery, Livraison prioritaire
-Monday delivery, Livraison le lundi
 Saturday delivery, Livraison le samedi
 Load more, Charger plus
 Options, Options
@@ -320,7 +305,6 @@ Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method
 Rule name,Nom de la règle
 Select a condition...,Sélectionnez une condition...
 Carrier name,Nom du transporteur
-Country,Pays
 Package type,Type de colis
 Maximum weight (in grams),Poids maximum en grammes
 Country part of,Partie du pays
@@ -339,7 +323,6 @@ Condition,Condition
 Value,Valeur
 Remove condition,Retirer la condition
 Select a condition,Sélectionnez une condition
-Carrier name,Nom du transporteur
 Show or hide JSON textarea,Afficher ou Masquer la zone de texte JSON
 Invalid JSON in textarea,JSON invalide dans la zone de texte
 Compact view,Vue compacte

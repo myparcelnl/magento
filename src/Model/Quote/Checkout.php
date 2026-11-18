@@ -363,25 +363,25 @@ class Checkout
     private function getDeliveryOptionsStrings(): array
     {
         return [
-            'deliveryTitle'         => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('Delivery Options'),
+            'deliveryTitle'         => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('Delivery at home or at work'),
             'headerDeliveryOptions' => $this->config->getGeneralConfig('delivery_titles/header_delivery_options') ?: __('Delivery options'),
 
-            'deliveryStandardTitle' => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('Standard Delivery'),
-            'deliveryMorningTitle'  => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('Morning Delivery'),
-            'deliveryEveningTitle'  => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('Evening Delivery'),
+            'deliveryStandardTitle' => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('Standard delivery'),
+            'deliveryMorningTitle'  => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('Morning delivery'),
+            'deliveryEveningTitle'  => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('Evening delivery'),
             'deliveryPickupTitle'   => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('Pickup locations'),
-            'deliverySameDayTitle'  => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('Same day Delivery'),
+            'deliverySameDayTitle'  => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('Same day delivery'),
 
             'priorityDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('Priority delivery'),
             'mondayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/monday_delivery_title') ?: __('Monday delivery'),
             'saturdayDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/saturday_title') ?: __('Saturday delivery'),
 
             'signatureTitle'     => $this->config->getGeneralConfig('delivery_titles/signature_title') ?: __('Signature'),
-            'onlyRecipientTitle' => $this->config->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('Only Recipient'),
-            'hideSenderTitle'    => $this->config->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('Hide Sender'),
+            'onlyRecipientTitle' => $this->config->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('Only recipient'),
+            'hideSenderTitle'    => $this->config->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('Hide sender'),
 
             'packageTypeMailbox'      => $this->config->getGeneralConfig('delivery_titles/mailbox_title') ?: __('Mailbox'),
-            'packageTypeDigitalStamp' => $this->config->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('Digital Stamp'),
+            'packageTypeDigitalStamp' => $this->config->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('Digital stamp'),
             'packageTypePackageSmall' => $this->config->getGeneralConfig('delivery_titles/package_small_title') ?: __('Packet'),
 
             'pickupTitle'               => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('Pickup locations'),
