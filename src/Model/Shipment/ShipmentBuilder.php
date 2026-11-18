@@ -56,9 +56,9 @@ class ShipmentBuilder
      *
      * Keyed on the options too: the New Shipment form can hand a different set for one shipment.
      */
-    private function shipmentOptionsFor(Order $order, array $options, int $shipmentId): OrderShipmentOptions
+    private function shipmentOptionsFor(Order $order, array $options, ?int $shipmentId): OrderShipmentOptions
     {
-        $key = $shipmentId . '|' . md5(serialize($options));
+        $key = ($shipmentId ?? 'new') . '|' . md5(serialize($options));
 
         return $this->shipmentOptions[$key] ?? $this->shipmentOptions[$key] = new OrderShipmentOptions(
             $this->objectManager,
@@ -86,14 +86,16 @@ class ShipmentBuilder
         $incrementId = (string) $order->getIncrementId();
         $apiKey      = $this->apiProvider->apiKeyForStore((int) $order->getStoreId());
 
-        $shipmentOptions = $this->shipmentOptionsFor($order, $options, (int) $magentoShipment->getEntityId());
+        // the observer builds on save_before, when the shipment has no id yet
+        $shipmentId      = $magentoShipment->getEntityId() ? (int) $magentoShipment->getEntityId() : null;
+        $shipmentOptions = $this->shipmentOptionsFor($order, $options, $shipmentId);
         $deliveryOptions = $shipmentOptions->deliveryOptions();
         $packageType     = $shipmentOptions->packageType();
         $weight          = $this->weightInGrams($magentoTrack, $options, $packageType);
 
         $shipment = (new Shipment())
             ->setCarrier($shipmentOptions->carrierId())
-            ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
+            ->setReferenceIdentifier(self::referenceIdentifierFor((string) ($shipmentId ?? $incrementId), $colloNumber))
             ->setRecipient($this->recipient($address, $shipmentOptions->carrierName()))
             ->setPhysicalProperties(['weight' => $weight])
             ->setOptions($shipmentOptions->shipmentOptions($address));
@@ -114,14 +116,15 @@ class ShipmentBuilder
     }
 
     /**
-     * Get "<shipment entity id>-<collo number>", always suffixed.
+     * Get "<shipment entity id>-<collo number>", or "<order increment id>-<collo number>" for a shipment
+     * that is not saved yet.
      *
      * A label_amount above one makes several tracks for one shipment, and create() pairs a response
      * by this value, so each track needs its own.
      */
-    public static function referenceIdentifierFor(int $shipmentEntityId, int $colloNumber): string
+    public static function referenceIdentifierFor(string $shipmentKey, int $colloNumber): string
     {
-        return $shipmentEntityId . '-' . $colloNumber;
+        return "$shipmentKey-$colloNumber";
     }
 
     /**

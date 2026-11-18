@@ -233,7 +233,7 @@ class LinkResolver
     {
         $stored = (string) ($row['myparcel_tracktrace_url'] ?? '');
 
-        if ('' !== $stored) {
+        if ('' !== $stored && self::isLinkable($stored)) {
             return $stored;
         }
 
