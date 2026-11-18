@@ -14,7 +14,6 @@ use MyParcelNL\Sdk\Collection\ShipmentCollection;
 use MyParcelNL\Sdk\Services\Labels\ShipmentLabelsService;
 use MyParcelNL\Sdk\Services\Returns\ReturnShipmentService;
 use MyParcelNL\Sdk\Services\Shipment\ShipmentCreateService;
-use MyParcelNL\Sdk\Services\Shipment\ShipmentDeleteService;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Throwable;
 use MyParcelNL\Magento\Service\IdList;
@@ -28,13 +27,6 @@ use MyParcelNL\Magento\Service\IdList;
  */
 class ShipmentExportService
 {
-    /**
-     * The shipments-per-request default, which Config owns because the PPS export chunks by the
-     * same setting. The SDK's generated request model throws above 100, and the admin field will
-     * not accept more, so the bound is enforced there rather than here.
-     */
-    public const DEFAULT_CHUNK_SIZE = Config::DEFAULT_EXPORT_CHUNK_SIZE;
-
     /** Label ids per request. Same URL limit and multiple of four as ShipmentQuery::CHUNK_SIZE. */
     private const LABEL_CHUNK_SIZE = 100;
 
@@ -66,7 +58,7 @@ class ShipmentExportService
     {
         $report    = new ExportReport();
         $pending   = $this->withoutAlreadyShipped($builtShipments, $report);
-        $chunkSize = $this->chunkSize();
+        $chunkSize = $this->config->getExportChunkSize();
         $groups    = $this->groupByApiKey($pending);
 
         Logger::notice(sprintf(
@@ -107,7 +99,7 @@ class ShipmentExportService
     public function fetchLatestWithErrors(array $shipmentIdsByApiKey): array
     {
         $latest   = [];
-        $idsByKey = array_map([$this, 'normalizeIds'], $shipmentIdsByApiKey);
+        $idsByKey = array_map([IdList::class, 'ints'], $shipmentIdsByApiKey);
         $answered = [];
 
         $errors = $this->perKey(
@@ -147,7 +139,7 @@ class ShipmentExportService
         $pdfs = [];
 
         $errors = $this->perKey(
-            array_map([$this, 'normalizeIds'], $shipmentIdsByApiKey),
+            array_map([IdList::class, 'ints'], $shipmentIdsByApiKey),
             'fetch labels',
             function (string $apiKey, array $shipmentIds) use (&$pdfs, $positions): void {
                 // Chunked for the same reason the query is: every id goes into one path segment.
@@ -173,22 +165,6 @@ class ShipmentExportService
         }
 
         return ['pdf' => $merged['pdf'], 'errors' => $errors];
-    }
-
-    /**
-     * @param array<string,int[]> $shipmentIdsByApiKey
-     */
-    public function delete(array $shipmentIdsByApiKey): void
-    {
-        $this->perKey(
-            $shipmentIdsByApiKey,
-            'delete shipments',
-            function (string $apiKey, array $shipmentIds): void {
-                $this->tagged($apiKey, static function (string $key, $client) {
-                    return new ShipmentDeleteService($key, $client);
-                })->deleteMany($shipmentIds);
-            }
-        );
     }
 
     /**
@@ -550,15 +526,4 @@ class ShipmentExportService
             ->setUserAgents($this->userAgent->map());
     }
 
-    /** @return int[] deduplicated, reindexed, without empties */
-    private function normalizeIds(array $shipmentIds): array
-    {
-        return IdList::ints($shipmentIds);
-    }
-
-    /** Get the chunk size. A value outside 1..100 (a configured 0 loops forever) falls back. */
-    private function chunkSize(): int
-    {
-        return $this->config->getExportChunkSize();
-    }
 }

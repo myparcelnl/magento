@@ -113,11 +113,6 @@ class LinkResolver
 
             $number = htmlspecialchars($link['number'], ENT_QUOTES, 'UTF-8');
 
-            if ('' === $link['url']) {
-                $html .= $number . '<br/>';
-                continue;
-            }
-
             $href = self::safeHref($link['url']);
 
             if (null === $href) {

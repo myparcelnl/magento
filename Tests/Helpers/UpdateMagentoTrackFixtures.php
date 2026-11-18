@@ -45,6 +45,7 @@ function partialOrderCollection(array $shipmentList): MagentoOrderCollection
         ->makePartial()
         ->shouldAllowMockingProtectedMethods();
     $collection->shouldReceive('getShipmentsCollection')->andReturn($shipments);
+    setPrivateProperty($collection, 'trackRepository', savingTrackRepository());
 
     return $collection;
 }

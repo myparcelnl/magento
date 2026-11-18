@@ -62,42 +62,6 @@ class ShipmentApiProvider
     }
 
     /**
-     * Group MyParcel shipment ids by each order's own resolved key.
-     * A store without a key is skipped, never lent another store's key.
-     *
-     * @param iterable<\Magento\Sales\Model\Order\Shipment>                  $shipments
-     * @param array<int,\Magento\Sales\Model\Order\Shipment\Track[]>          $tracksByShipmentId keyed by shipment
-     *        id, read fresh by the caller: a Shipment caches its own tracks privately and would
-     *        answer with the tracks as they were before this run wrote its shipment ids
-     *
-     * @return array<string,int[]>
-     */
-    public function consignmentIdsByApiKey(iterable $shipments, array $tracksByShipmentId): array
-    {
-        $grouped = [];
-
-        foreach ($shipments as $shipment) {
-            $apiKey = $this->apiKeyForStoreOrNull((int) $shipment->getStoreId());
-
-            if (null === $apiKey) {
-                continue;
-            }
-
-            foreach ($tracksByShipmentId[(int) $shipment->getId()] ?? [] as $track) {
-                $consignmentId = (int) $track->getData('myparcel_consignment_id');
-
-                if (0 < $consignmentId) {
-                    // Keyed, not appended: a multicollo's colli share the parent's id until the
-                    // query response names them, and asking for the same shipment twice is waste.
-                    $grouped[$apiKey][$consignmentId] = $consignmentId;
-                }
-            }
-        }
-
-        return array_map('array_values', $grouped);
-    }
-
-    /**
      * @throws LocalizedException on an empty key, before the SDK factory can read the environment
      */
     public function clientFor(string $apiKey): ShipmentApi

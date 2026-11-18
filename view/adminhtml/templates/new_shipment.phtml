@@ -118,7 +118,7 @@ $form     = $block->getNewShipmentForm();
                             type="checkbox"
                             <?= $block->hasDefaultOption($option, $carrier['name']) ? 'checked="checked"' : '' ?> />
                         <label class="admin__field-label" for="<?= $optionId ?>">
-                            <span><?= $form->getShipmentOptionsHumanMap()[$option] ?? $escaper->escapeHtml($option) ?></span>
+                            <span><?= $escaper->escapeHtml($form->labelFor($option)) ?></span>
                         </label>
                     </div>
                 <?php endforeach; ?>

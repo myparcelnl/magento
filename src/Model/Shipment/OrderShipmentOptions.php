@@ -13,6 +13,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
@@ -207,7 +208,7 @@ class OrderShipmentOptions
             $options->setInsurance(
                 (new RefTypesPriceEuro())
                     ->setCurrency(RefTypesPriceEuro::CURRENCY_EUR)
-                    ->setAmount($insurance * 100)
+                    ->setAmount(InsuranceRange::toCents($insurance))
             );
         }
 

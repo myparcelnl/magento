@@ -74,6 +74,7 @@ function memoisedTrackCollection(array $tracks, ?int &$queries): MyParcelNL\Mage
     $collection = newInstanceWithoutConstructor(MyParcelNL\Magento\Model\Sales\MagentoOrderCollection::class);
     setPrivateProperty($collection, 'objectManager', $objectManager);
     setPrivateProperty($collection, 'orders', []);
+    setPrivateProperty($collection, 'trackRepository', savingTrackRepository());
 
     return $collection;
 }
@@ -165,6 +166,7 @@ it('reads the tracks from their own query, never from the shipment cache', funct
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
     setPrivateProperty($collection, 'objectManager', $objectManager);
     setPrivateProperty($collection, 'orders', []);
+    setPrivateProperty($collection, 'trackRepository', savingTrackRepository());
 
     invokePrivateMethod($collection, 'tracksByShipmentId');
     invokePrivateMethod($collection, 'tracksByShipmentId');

@@ -15,7 +15,6 @@ use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Shipping\Model\ShipmentNotifier;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -161,8 +160,7 @@ class MagentoOrderCollection extends MagentoCollection
      * chunks are still worth sending, the same way one order failing to build does not stop the
      * others in its chunk.
      *
-     * Protected rather than private so the chunking above can be tested without a live API: every
-     * path through this method ends in an HTTP call the SDK builds its own cURL handle for.
+     * Protected rather than private, so a test of the chunking above can replace the HTTP call.
      *
      * @param Order[] $magentoOrders
      */
@@ -475,10 +473,6 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($magentoShipments as $magentoShipment) {
             foreach ($tracksByShipmentId[(int) $magentoShipment->getId()] ?? [] as $magentoTrack) {
-                if (Carrier::CODE !== $magentoTrack->getCarrierCode()) {
-                    continue;
-                }
-
                 $host          = $host ?? $magentoShipment;
                 $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
 
@@ -527,7 +521,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ));
             }
 
-            $magentoTrack->save();
+            $this->trackRepository->save($magentoTrack);
             $written++;
         }
 
