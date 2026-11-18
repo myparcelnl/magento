@@ -40,11 +40,8 @@ class DeliveryCostsMatrix extends Field
     protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
 
     /**
-     * Every carrier the module has settings for that this account also has a contract for.
-     *
-     * This form configures rates with no shipment in hand, so the filter is contract definitions
-     * rather than the capabilities endpoint. Unresolvable bounds show every configured
-     * carrier: a merchant must not lose the ability to price a lane because we could not confirm it.
+     * Get the carriers with settings that the account has a contract for.
+     * When the contracts cannot be read, get all of them.
      */
     public function getCarriers(): array
     {

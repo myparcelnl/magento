@@ -36,7 +36,7 @@ class Client
     private CapabilitiesMapper $mapper;
 
     /** @var callable|null the innermost Guzzle handler; null is Guzzle's default */
-    private $handler;
+    private $handler = null;
 
     private ?GuzzleClient $http = null;
 
@@ -44,19 +44,12 @@ class Client
     private array $apis = [];
 
     /** Null is the SDK's default host. */
-    private ?string $host;
+    private ?string $host = null;
 
-    public function __construct(
-        UserAgent           $userAgent,
-        ?CapabilitiesMapper $mapper = null,
-        ?callable           $handler = null,
-        ?string             $host = null
-    )
+    public function __construct(UserAgent $userAgent)
     {
         $this->userAgent = $userAgent;
-        $this->mapper    = $mapper ?? new CapabilitiesMapper();
-        $this->handler   = $handler;
-        $this->host      = $host;
+        $this->mapper    = new CapabilitiesMapper();
     }
 
     /**

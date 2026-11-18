@@ -53,15 +53,32 @@ function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $delive
     $package->shouldReceive('getPriorityDelivery')->andReturn(false);
     $package->deliveryOptionsDisabled = false;
 
+    $checkout = checkoutWith([
+        'config'           => $config,
+        'tax'              => $tax,
+        'deliveryCosts'    => $deliveryCosts,
+        'package'          => $package,
+        'quote'            => $quote,
+        'capabilityLookup' => capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1),
+    ]);
+
+    return carrierSettingsOf($checkout, PackageType::PACKAGE_NAME, $carrier);
+}
+
+/** Make a Checkout without its constructor, which reads the checkout session, and set these private properties. */
+function checkoutWith(array $properties): Checkout
+{
     $checkout = newInstanceWithoutConstructor(Checkout::class);
-    setPrivateProperty($checkout, 'config', $config);
-    setPrivateProperty($checkout, 'tax', $tax);
-    setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
-    setPrivateProperty($checkout, 'package', $package);
-    setPrivateProperty($checkout, 'quote', $quote);
-    setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1));
 
-    $data = invokePrivateMethod($checkout, 'getDeliveryData', [PackageType::PACKAGE_NAME, 'NL']);
+    foreach ($properties as $name => $value) {
+        setPrivateProperty($checkout, $name, $value);
+    }
 
-    return $data['carrierSettings'][$carrier];
+    return $checkout;
+}
+
+/** Get the carrier settings that the private getDeliveryData() gives the widget for one carrier. */
+function carrierSettingsOf(Checkout $checkout, string $packageType, string $carrier): array
+{
+    return invokePrivateMethod($checkout, 'getDeliveryData', [$packageType, 'NL'])['carrierSettings'][$carrier];
 }

@@ -473,3 +473,7 @@ No MyParcel shipments were found to make a return label for.,"Nie znaleziono prz
 "Orders that were not exported because MyParcel refused this batch: %1. Reason: %2","Zamówienia, które nie zostały wyeksportowane, ponieważ MyParcel odrzucił tę partię: %1. Powód: %2"
 "Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2","Zamówienia, dla których nie udało się połączyć z MyParcel: %1. Nie wiadomo, czy przesyłki zostały utworzone. Sprawdź je w backoffice MyParcel, zanim wyeksportujesz je ponownie. Powód: %2"
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel utworzył te zamówienia, ale nie można ich było oznaczyć jako wyeksportowane: %1. Nie eksportuj ich ponownie. Sprawdź log."
+The MyParcel API refused this order without giving a reason.,API MyParcel odrzuciło to zamówienie bez podania powodu.
+The MyParcel API did not return a shipment for this order.,API MyParcel nie zwróciło przesyłki dla tego zamówienia.
+The MyParcel export could not be completed.,Nie udało się ukończyć eksportu MyParcel.
+The MyParcel labels could not be downloaded.,Nie udało się pobrać etykiet MyParcel.
