@@ -10,10 +10,7 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 /**
  * Precedence only: the explicit option, then what the checkout stored, then the configured
- * default. Nothing here overrides a stored type.
- *
- * One answer serves both export paths, so the pickup override the PPS path used to apply on top of
- * this is gone: a pickup keeps whatever type the precedence resolves.
+ * default. Nothing here overrides a stored type, also not for a pickup.
  */
 function packageTypeOf(
     array $options,
@@ -71,8 +68,6 @@ it('keeps the stored package type when an age check applies', function () {
 });
 
 it('leaves a pickup on the type the precedence resolved, rather than forcing a package', function () {
-    // The fulfilment path used to overwrite packageType with `package` for every pickup, which
-    // contradicted the checkout that offered a mailbox pickup. Both paths now answer the same.
     $result = packageTypeOf([], ['packageType' => 'mailbox', 'isPickup' => true]);
 
     expect($result)->toBe(PackageType::MAILBOX);

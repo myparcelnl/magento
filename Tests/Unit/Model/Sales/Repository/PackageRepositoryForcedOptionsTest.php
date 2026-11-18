@@ -81,9 +81,8 @@ it('keeps getAgeCheck answering the same question', function () {
 });
 
 /**
- * Checkout asks the same question three times per carrier (isAgeCheckActive(),
- * forcedLimitingOptions() and checkPackageType() all reduce to this), and each pass ran an EAV
- * query per quote item.
+ * Checkout asks this three times per carrier: isAgeCheckActive(), forcedLimitingOptions() and
+ * checkPackageType().
  */
 it('reads the product tier once per carrier and option', function () {
     $reads = 0;

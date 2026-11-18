@@ -12,8 +12,6 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\Tax;
 
-// capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
-
 /**
  * The constructor is skipped: it reads the checkout session. checkPackageType() needs only the
  * quote, the config, the package repository and the memoised capabilities.

@@ -41,9 +41,7 @@ it('returns null instead of throwing on the forgiving path', function () {
 });
 
 it('resolves a name it knows and answers null for one it does not', function () {
-    // isValidName()/isValidId() are gone: which types exist is the account's answer now, and a
-    // local predicate shaped like an allow-list is exactly what must not exist. The resolvers survive,
-    // because translating a name is not the same as deciding one is permitted.
+    // The resolvers translate a name; they do not decide that a type is permitted. The account does.
     expect(PackageType::toIdOrNull('digital_stamp'))->toBe(PackageType::DIGITAL_STAMP)
         ->and(PackageType::toIdOrNull('DIGITAL_STAMP'))->toBeNull()
         ->and(PackageType::nameFromIdOrNull(PackageType::LETTER))->toBe(PackageType::LETTER_NAME)

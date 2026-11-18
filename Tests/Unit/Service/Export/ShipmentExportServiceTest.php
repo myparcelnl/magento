@@ -8,11 +8,9 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipments;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipmentsData;
 
 /**
- * the export scenarios. Fixtures live in Tests/Helpers/ExportFixtures.php.
- *
- * The API deduplicates nothing, so the scenarios about skipping and per-chunk persistence are the
- * load-bearing ones: they are all that stands between a repeated mass action and a second billable
- * shipment.
+ * The export scenarios. The API deduplicates nothing, so the scenarios about skipping and per-chunk
+ * persistence are the load-bearing ones: they are all that stands between a repeated mass action and
+ * a second billable shipment.
  */
 beforeEach(function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault()->shouldReceive('warning')->byDefault();

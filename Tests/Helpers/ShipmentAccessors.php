@@ -35,18 +35,11 @@ function builtShipmentCustomsItems(Shipment $shipment): array
 /**
  * The item value as amount-plus-currency.
  *
- * The legacy item returned this array directly; the v11 item returns a
- * RefTypesMoney, so only this one customs getter needs insulating.
- *
  * @return array{amount: int, currency: string}
  */
 function customsItemValue(object $item): array
 {
     $value = $item->getItemValue();
-
-    if (is_array($value)) {
-        return $value;
-    }
 
     return ['amount' => $value->getAmount(), 'currency' => $value->getCurrency()];
 }

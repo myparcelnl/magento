@@ -10,8 +10,6 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
-// capabilityResult() and makeCapabilitiesRepository() live in Tests/Helpers/CapabilitiesFixtures.php.
-
 /**
  * The constructor is skipped: it builds half a dozen services, while canUseMultiCollo() reads only
  * the shipment, the API key it is handed, and the capabilities lookup.
@@ -75,10 +73,9 @@ it('refuses multicollo when the account reports a maximum of one', function () {
     ))->toBeFalse();
 });
 
-it('no longer hardcodes PostNL and NL or BE', function () {
+it('allows multicollo for any carrier and country the account reports', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    // A carrier and a country the old rule rejected outright.
     $c = createCollectionAnswering([new GuzzleHttp\Psr7\Response(200, [], capabilitiesBody([
         capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE'], 'collo' => ['max' => 5]]),
     ]))]);

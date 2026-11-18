@@ -44,8 +44,7 @@ class Weight
      */
     public function getEmptyPackageWeightInGrams(int $packageType): int
     {
-        // A type with no name has no config path either, so it weighs nothing extra. This is not a
-        // capability check: it only asks whether this module has a setting keyed by that name.
+        // A type with no name has no config path either, so it weighs nothing extra.
         $packageTypeName = PackageType::nameFromIdOrNull($packageType);
 
         if (null === $packageTypeName) {

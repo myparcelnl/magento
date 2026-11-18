@@ -392,10 +392,8 @@ class MagentoOrderCollection extends MagentoCollection
      * Give every shipped fulfilment shipment its own Magento track: the barcode, and the MyParcel
      * shipment id when the response carries one.
      *
-     * The shipment path gets both from updateMagentoTrack(), which refreshes by
-     * myparcel_consignment_id. A PPS order has no id until this runs, so without it the track keeps
-     * its placeholder and never joins the status or track & trace refresh at all. A shipment without
-     * an id is logged: its status and link can never arrive.
+     * A PPS order has no myparcel_consignment_id until this runs; without one the track keeps its
+     * placeholder and never joins the status refresh. A shipment without an id is logged.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilmentByIncrementId
      */
@@ -427,9 +425,8 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Get the collection's Magento shipments grouped by their order's increment id.
      *
-     * Allocation is per order, never per Magento shipment. An order shipped partly by hand before
-     * PPS ran has two Magento shipments, and looking the fulfilment data up once per shipment wrote
-     * the same barcode and the same shipment id onto a placeholder track of each.
+     * Allocate per order, never per Magento shipment: an order shipped partly by hand before PPS ran
+     * has two Magento shipments, and only one fulfilment barcode per fulfilment shipment.
      *
      * @return array<string,Shipment[]>
      */

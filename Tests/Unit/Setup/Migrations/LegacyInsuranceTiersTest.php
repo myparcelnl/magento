@@ -34,10 +34,7 @@ it('sorts before matching, so an unsorted list gives the same answer', function 
     expect(LegacyInsuranceTiers::snap([500, 100, 250], 137))->toBe(250);
 });
 
-/**
- * The map itself, not just snap(). Nothing exercised it, so moving the class out of
- * Model\Shipment silently broke the Carrier reference and every test still passed.
- */
+/** Covers the map itself, not only snap(). */
 it('resolves real tiers for a carrier and zone', function () {
     expect(LegacyInsuranceTiers::forCarrierAndZone(Carrier::POSTNL, LegacyInsuranceTiers::ZONE_LOCAL))
         ->toContain(100)

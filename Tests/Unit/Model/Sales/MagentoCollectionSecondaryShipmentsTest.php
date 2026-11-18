@@ -5,8 +5,6 @@ declare(strict_types=1);
 /**
  * The SDK's create response drops a multicollo's secondary shipments, so colli 2..N have no track.
  * updateMagentoTrack() makes those tracks from the query response, for both export modes.
- *
- * Helpers live in Tests/Helpers/UpdateMagentoTrackFixtures.php.
  */
 
 it('gives every collo of a multicollo its own track', function () {

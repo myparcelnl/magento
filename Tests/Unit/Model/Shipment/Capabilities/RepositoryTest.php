@@ -11,8 +11,6 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
-// Fixtures live in Tests/Helpers/{CapabilitiesFixtures,HttpMocks}.php.
-
 function capabilitiesOk(?array $results = null): GuzzleResponse
 {
     return new GuzzleResponse(200, [], capabilitiesBody($results ?? [capabilityResult()]));

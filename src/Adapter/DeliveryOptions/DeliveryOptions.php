@@ -129,9 +129,7 @@ class DeliveryOptions
      * The widget sends these two nested objects in camelCase, and a toArray() round trip writes them
      * back in snake_case, so both spellings exist in the database. The top level stays camelCase.
      *
-     * Every named constructor calls this on its own input rather than trusting the caller to have
-     * done it. Trusting the caller is what let fromOrderFallback() drop a pickup location silently
-     * for six years. Idempotent, so a second pass costs nothing.
+     * Every named constructor calls this on its own input; do not rely on the caller. Idempotent.
      */
     private static function normaliseNestedKeys(array $data): array
     {

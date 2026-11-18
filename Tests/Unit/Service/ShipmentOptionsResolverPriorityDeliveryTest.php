@@ -5,8 +5,6 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
-// createShipmentOptions() lives in Tests/Helpers/ShipmentOptionsResolverFixtures.php.
-
 it('returns true when priority delivery was explicitly chosen', function () {
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [
         ShipmentOption::PRIORITY_DELIVERY => true,

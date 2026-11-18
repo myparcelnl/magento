@@ -6,18 +6,13 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
  * A PPS order's barcode and shipment id must reach the track that would otherwise keep a
- * placeholder. The other half of that defect, a placeholder never reaching sales_order.track_number,
- * is pinned in OrderGridColumnsTest, where the rule lives.
- *
- * The allocation is the other half again: a fulfilment order can hold several separate
- * shipments, each needs its own track, and the cron runs every minute, so what is pinned hardest
- * here is that a second run writes nothing. Multicollo colli are not this path; they are expanded
- * from the shipment API by updateMagentoTrack().
+ * placeholder. A fulfilment order can hold several shipments, each needs its own track, and the
+ * cron runs every minute, so a second run must write nothing. Multicollo colli are not this path:
+ * updateMagentoTrack() expands them from the shipment API.
  */
 
 it('writes the barcode and the shipment id onto a track still holding a placeholder', function () {
-    // The id is what lets updateMagentoTrack() refresh this order afterwards, status and track &
-    // trace link included, which a PPS order never got.
+    // The id lets updateMagentoTrack() refresh the status and track & trace link afterwards.
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
@@ -50,8 +45,7 @@ it('replaces the printed placeholder once a real barcode arrives', function () {
 });
 
 it('leaves a track that already carries a barcode alone, and gives the new shipment its own', function () {
-    // The shipment used to be dropped here, which is how every collo after the first
-    // stayed invisible. The existing track is still never rewritten.
+    // The existing track is never rewritten.
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => '3SEXISTING']]);
 
     $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
@@ -71,8 +65,8 @@ it('does nothing for an order the fulfilment response said nothing about', funct
 });
 
 it('gives a second shipment its own track when only one placeholder is free', function () {
-    // The shape of the reported bug: two colli, one Magento shipment, one placeholder track.
-    // An order that ends up with more than one track says so in system.log; it is new behaviour.
+    // Two colli, one Magento shipment, one placeholder track. An order that ends up with more than
+    // one track logs a notice.
     $logger = mockLoggerFacade();
     $logger->shouldReceive('notice')->once()->andReturnNull();
 
@@ -118,8 +112,7 @@ it('creates no track for a shipment with neither an id nor a real barcode', func
 });
 
 it('claims a shipment once for an order that has two Magento shipments', function () {
-    // The lookup used to run per Magento shipment, so an order shipped partly by hand got the same
-    // barcode and the same id written onto a placeholder track of each.
+    // An order shipped partly by hand has two Magento shipments; only one track gets the barcode.
     [$collection, $saved] = collectionWithTracks(
         '100000001',
         [['number' => TrackAndTrace::VALUE_EMPTY]],

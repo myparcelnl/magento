@@ -25,6 +25,8 @@ use Throwable;
  * They answer the JSON that ExportResponse builds and neither redirects: the grid calls them over
  * AJAX so the page stays put, and a second request fetches the labels. A response can be a PDF or
  * JSON, not both.
+ *
+ * POST only: the export writes barcodes and can mail the customer.
  */
 abstract class LabelExportAction extends Action implements HttpPostActionInterface
 {

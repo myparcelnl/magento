@@ -11,7 +11,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipment;
  * What the admin is told after asking for return-label mails.
  *
  * A lookup that failed leaves its shipments out of the answer, which is shaped exactly like
- * "nothing to do". The run then made no return label at all and still reported success.
+ * "nothing to do". The report must not say success then.
  *
  * @param array{shipments: array<int,object>, errors: string[], failedApiKeys: string[]} $lookup
  * @param string[]                                              $createReturnsErrors
@@ -259,8 +259,7 @@ it('skips a return whose parent has no track, and still reports it sent', functi
 });
 
 it('leaves out a shipment whose carrier has no returns, and still returns the others', function () {
-    // UPS (8) is not in the return endpoint's carrier enum; the SDK throws on it, which used to
-    // cost every other shipment of that account its return label too.
+    // UPS (8) is not in the return endpoint's carrier enum, and the SDK throws on it.
     $run = returnMailRun(
         ['shipments' => [111 => returnMailShipment(), 222 => returnMailShipment(222, 8)], 'errors' => [], 'failedApiKeys' => []],
         [],

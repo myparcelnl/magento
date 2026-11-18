@@ -39,7 +39,7 @@ function customsObjectManager(
         $products[] = $product;
     }
 
-    // Both lookups now read the same collection: the HS codes through ProductAttributes and the
+    // Both lookups read the same collection: the HS codes through ProductAttributes and the
     // countries directly. One mock answers both.
     $productCollection = Mockery::mock(ProductCollection::class);
     $productCollection->shouldReceive('addIdFilter')->andReturnSelf();

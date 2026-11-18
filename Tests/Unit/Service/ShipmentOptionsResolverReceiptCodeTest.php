@@ -6,8 +6,6 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
-// createShipmentOptions() lives in Tests/Helpers/ShipmentOptionsResolverFixtures.php.
-
 /**
  * Receipt code is standard delivery only. The country and carrier are the API's business.
  */
@@ -47,11 +45,8 @@ it('treats an order without stored delivery options as standard', function () {
 });
 
 /**
- * The country and carrier gates are gone; the delivery-type one stays.
- *
- * Which carrier offers receipt code where is the API's answer, and per docs/sdk-v11.md the API is
- * the validator. The delivery-type rule is the
- * module's own, because capabilities answer per carrier and package type, never per delivery type.
+ * The API validates country and carrier. The module does not ask capabilities per delivery type, so
+ * that rule is the module's.
  */
 it('leaves country and carrier to the api, and keeps only the delivery-type rule', function () {
     expect(receiptCodeFor(DeliveryType::STANDARD_NAME, 'BE'))->toBeTrue()

@@ -48,8 +48,7 @@ class ExportReport
         $reason = trim($reason);
 
         if ('' === $reason) {
-            // The API named this order but gave no text. Dropping it here left the order in neither
-            // the success nor the failure list.
+            // The API named this order but gave no text. Keep it, or the order is in neither list.
             $reason = (string) __('The MyParcel API refused this order without giving a reason.');
         }
 

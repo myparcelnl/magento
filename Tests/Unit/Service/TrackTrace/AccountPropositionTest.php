@@ -10,9 +10,6 @@ use MyParcelNL\Magento\Service\TrackTrace\AccountProposition;
  *
  * Read once per store while the order grid renders, so a keyless store and a row that cannot be read
  * at all must both answer null instead of throwing, and one store must cost one read.
- *
- * stubAccountSettingsReader() and settingsPathFor() live in Tests/Helpers/AccountSettingsHelpers.php,
- * accountSettingsRow() in Tests/Helpers/CapabilitiesFixtures.php.
  */
 function makeAccountProposition(?string $apiKey, int $keyLookups = 1): AccountProposition
 {

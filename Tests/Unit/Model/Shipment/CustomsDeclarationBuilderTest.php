@@ -7,15 +7,7 @@ use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
-/**
- * The v11 customs stack is a second builder, unrelated to the Order v1 one the
- * fulfilment path uses. ConsignmentEncode::DEFAULT_CURRENCY named the
- * currency before; it is one of the classes beta.22 removed, so the same value
- * is now read off the generated money model.
- *
- * Product data (HS code, country of manufacture) is fetched in two batch
- * queries keyed by product id, never per item. That is what the mocks model.
- */
+/** Product data (HS code, country of manufacture) comes from two batch queries keyed by product id. */
 function createCustomsDeclarationBuilder(string $classification = '61', int $productId = 99): CustomsDeclarationBuilder
 {
     $config = createConfig(['print/weight_indication' => 'gram']);
@@ -115,8 +107,7 @@ it('adds each shipment item to the consignment exactly once', function () {
 });
 
 it('truncates a description the API would refuse rather than throwing', function () {
-    // MyParcelCustomsItem truncated at 50 with Str::limit; the generated setter throws instead.
-    // The ellipsis is inside the 50, not added to it.
+    // The generated setter throws above 50 characters. The ellipsis is inside the 50, not added to it.
     $item = createShipmentItem([
         'name'       => str_repeat('a', 80),
         'qty'        => 1,

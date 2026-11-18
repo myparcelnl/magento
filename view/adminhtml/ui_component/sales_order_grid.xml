@@ -9,7 +9,7 @@
                         <item name="label" xsi:type="string" translate="true">Print MyParcel labels directly</item>
                         <item name="url" xsi:type="url" path="myparcel/order/CreateAndPrintMyParcelTrack"/>
                         <!-- Without a callback the massaction submits a form at the controller, which
-                             now answers JSON. This hands the selection to the same export the modal
+                             answers JSON. This hands the selection to the same export the modal
                              uses, so the grid keeps it and reloads once. -->
                         <item name="callback" xsi:type="array">
                             <item name="provider" xsi:type="string">myparcel_grid_massaction</item>

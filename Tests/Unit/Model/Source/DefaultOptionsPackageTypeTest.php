@@ -26,7 +26,7 @@ it('resolves a known package type name without logging', function () {
     expect($options->getPackageType())->toBe(PackageType::DIGITAL_STAMP);
 });
 
-it('resolves the types beta.15 never knew', function () {
+it('resolves pallet and envelope', function () {
     mockLoggerFacade();
 
     expect(createDefaultOptionsWithChosen(['packageType' => 'pallet'])->getPackageType())

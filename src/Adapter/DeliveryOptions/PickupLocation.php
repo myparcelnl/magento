@@ -71,8 +71,7 @@ class PickupLocation
     /**
      * The old shape: pickup fields at the top level, and the name may be called 'location'.
      *
-     * Throws naming the missing key. The SDK read these unguarded and failed later with a TypeError,
-     * which is an Error rather than an Exception and so escaped some callers' catch blocks.
+     * Throws an exception that names the missing key, not a TypeError that a catch block misses.
      *
      * @throws \InvalidArgumentException
      */
