@@ -45,9 +45,9 @@ Three rules run through the result:
    module truth.
 
 **When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
-a permissive set in five cases: a store with no API key, a request that will not serialise, a
-request that failed within the last 60 seconds, a failed fetch, and a request another one is already
-fetching. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
+a permissive set when a store has no API key, a request will not serialise, the same request failed
+within the last 60 seconds, a fetch fails, the cache or lock backend throws, or another process is
+already fetching the same request. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
 concurrent render misses the same request at once, and making them wait for one call is the cost being
 avoided, not the fix.
 
@@ -89,7 +89,8 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
 
 ## Vocabulary per boundary
 
-Four vocabularies for the same five facts. Hand each boundary the one it expects.
+Four vocabularies for the same carrier, package type, delivery type and option names. Hand each
+boundary the one it expects.
 
 | Boundary | Vocabulary | Established by |
 |---|---|---|
@@ -107,8 +108,8 @@ one. `CapabilitySet::unknownValues()` reports a carrier, package type or deliver
 generated enums do not know, as a sign that the SDK needs an update.
 
 `Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
-`mapToCoreApi()`, because the SDK keeps its alias map private
-(`ShipmentOptionMapper::LEGACY_TO_V2_PROPERTIES`).
+`mapToCoreApi()`: the key the module reads from a capabilities response must be the key the SDK
+writes in a request.
 
 **The REST transformers keep their own maps.** `Model\Rest\Transformer\{Carrier,PackageType,
 DeliveryType}Transformer` bind to **Order API** enums while capabilities is **Core API**. The strings
@@ -136,16 +137,11 @@ Each workaround names what to delete once the fix lands.
 
 | # | Defect | Workaround, delete when fixed |
 |---|---|---|
-| 2 | `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | `ShipmentApiProvider` raises before any factory sees an empty key. `Capabilities\Client` uses no factory |
-| 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
-| 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
-| 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
-| 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
-| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
-
-Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
-the generated models, so it has no workaround for them; the numbers stay so references to the others
-hold.
+| 1 | `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | `ShipmentApiProvider` raises before any factory sees an empty key. `Capabilities\Client` uses no factory |
+| 2 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
+| 3 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
+| 4 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
+| 5 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
 One generation trap worth knowing: `ShipmentDefsShipment::getParentId()` returns a property-less
 stub, so colli are paired by nesting, never by id.
@@ -231,4 +227,4 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   PHP afterwards: an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
-  team before this can be narrowed. Defect 6 covers the user agent on the same call.
+  team before this can be narrowed. Defect 4 covers the user agent on the same call.

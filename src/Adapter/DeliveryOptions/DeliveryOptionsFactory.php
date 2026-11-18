@@ -10,7 +10,7 @@ use BadMethodCallException;
  * Picks the stored shape to read a DeliveryOptions from, by its top-level keys only.
  *
  * Each named constructor normalises its own nested keys. Keep throwing BadMethodCallException:
- * two call sites catch that class to fall back to DeliveryOptions::fromOrderFallback().
+ * OrderShipmentOptions::parse() catches that class to fall back to DeliveryOptions::fromOrderFallback().
  */
 class DeliveryOptionsFactory
 {
@@ -25,6 +25,6 @@ class DeliveryOptionsFactory
             return DeliveryOptions::fromCheckoutData($data);
         }
 
-        throw new BadMethodCallException('Can\'t create DeliveryOptions. No suitable adapter found');
+        throw new BadMethodCallException('Can\'t create DeliveryOptions: the data matches no known shape');
     }
 }

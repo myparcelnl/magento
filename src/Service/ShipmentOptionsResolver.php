@@ -181,11 +181,7 @@ class ShipmentOptionsResolver
         );
     }
 
-    /**
-     * Standard delivery only, and only where the account carries it.
-     *
-     * No country or carrier gate: which carrier offers receipt code where is a capabilities fact.
-     */
+    /** Standard delivery only: no country or carrier gate, that is a capabilities fact. */
     public function hasReceiptCode(): bool
     {
         if (! ShipmentOption::allowedForDeliveryType(

@@ -39,8 +39,7 @@ use Throwable;
  * Brings MyParcel shipment status, barcode and track & trace back into Magento.
  *
  * Polls once per API key, grouped by each order's own store, and skips a store that has none: it
- * never lends one store another store's key. It only reads: nothing here creates a shipment
- * upstream.
+ * never lends one store another store's key. It never creates a shipment at MyParcel.
  */
 class UpdateStatus
 {

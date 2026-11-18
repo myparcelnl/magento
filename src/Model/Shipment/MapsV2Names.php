@@ -18,7 +18,7 @@ trait MapsV2Names
         return self::V2_NAMES_MAP[$name] ?? null;
     }
 
-    /** Null for a v2 name the module does not know; the caller logs it rather than inventing one. */
+    /** Null for a v2 name the module does not know; the caller leaves it out rather than inventing one. */
     public static function fromV2Name(string $v2Name): ?string
     {
         $name = array_search($v2Name, self::V2_NAMES_MAP, true);

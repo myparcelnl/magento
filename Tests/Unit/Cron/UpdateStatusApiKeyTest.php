@@ -260,9 +260,7 @@ it('leaves the order row alone once the track carries the barcode', function () 
     expect($calls->orderRow)->toBe([]);
 });
 
-it('does not write the order row for a track still holding a placeholder', function () {
-    // A placeholder is not a barcode, so this order is not finished and must stay in scope rather
-    // than be settled on the order row.
+it('writes the barcodes on the order row while the track still holds a placeholder', function () {
     [, , $calls] = runPpsCron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
@@ -273,9 +271,7 @@ it('does not write the order row for a track still holding a placeholder', funct
     expect($calls->orderRow)->toBe(['track_number' => json_encode(['3SMYPA123'])]);
 });
 
-it('never lets the cron add a second track to a shipment that has one', function () {
-    // The default it used to inherit is a mass action's, and already-tracked orders reach
-    // setMagentoTrack() now that the canShip() pre-check is gone.
+it('tells the collection not to add a second track to a shipment that has one', function () {
     [, , $calls] = runPpsCron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001')])]

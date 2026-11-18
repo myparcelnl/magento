@@ -128,16 +128,17 @@ class ShipmentExportService
     }
 
     /**
-     * Fetch one merged label PDF for the whole batch, across accounts, in the order of the ids.
+     * Fetch one merged label PDF for the whole batch, grouped per account.
      *
      * A failing account never costs the other accounts their labels: its error is returned alongside
      * whatever merged, so the caller can say why the PDF is empty or incomplete instead of guessing.
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
+     * @param int[]|null          $positions           the A4 positions, or null for A6
      *
      * @return array{pdf: string, errors: string[]}
      */
-    public function fetchLabelPdf(array $shipmentIdsByApiKey, $positions = 1): array
+    public function fetchLabelPdf(array $shipmentIdsByApiKey, ?array $positions): array
     {
         $pdfs = [];
 

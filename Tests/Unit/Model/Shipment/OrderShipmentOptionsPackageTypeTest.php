@@ -63,15 +63,9 @@ it('falls back to the configured default when the explicit option name is unmapp
     expect($result)->toBe(PackageType::PACKAGE_SMALL);
 });
 
-it('leaves the package type alone when an age check applies', function () {
-    // This used to return PACKAGE, silently replacing what the customer was offered and charged
-    // for. Whether a mailbox can carry an age check is the account's answer, asked at checkout
-    // where a type is still being chosen; here there is only a stored type to respect.
-    $result = packageTypeOf(
-        [ShipmentOption::AGE_CHECK => true, 'package_type' => PackageType::MAILBOX],
-        ['packageType' => 'digital_stamp'],
-        true
-    );
+it('keeps the stored package type when an age check applies', function () {
+    // Whether a mailbox can carry an age check is the account's answer, asked at checkout.
+    $result = packageTypeOf([ShipmentOption::AGE_CHECK => true], ['packageType' => 'mailbox'], true);
 
     expect($result)->toBe(PackageType::MAILBOX);
 });

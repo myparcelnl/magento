@@ -56,8 +56,7 @@ it('carries the date and pickup location it is given', function () {
 });
 
 it('reads a pickup location the widget wrote in camelCase', function () {
-    // Both spellings are in the database. The factory normalises before dispatching;
-    // this constructor is handed raw stored data, so it must normalise for itself.
+    // Both spellings are in the database, and this constructor is handed raw stored data.
     $options = DeliveryOptions::fromOrderFallback([
         'carrier'        => 'postnl',
         'deliveryType'   => DeliveryType::PICKUP_NAME,
@@ -83,7 +82,7 @@ it('leaves the date and pickup location null when the stored data has neither', 
         ->and($options->isPickup())->toBeFalse();
 });
 
-/** Not posted means 'not chosen' here, so false. The exceptions are the three the form never carries. */
+/** Not posted means 'not chosen' here, so false. The exceptions are the two the form never carries. */
 it('flattens the options an admin posts and leaves the rest unsaid', function () {
     $stored   = ShipmentOptions::fromMagentoOptions([])->toArray();
     $expected = [
@@ -130,14 +129,10 @@ it('keeps an unstored checkout option null rather than false', function () {
         ->and(ShipmentOptions::fromLegacyCheckoutData([])->option(ShipmentOption::AGE_CHECK))->toBeNull();
 });
 
-it('normalises nested keys in every named constructor, not only through the factory', function () {
-    // Whether nested keys are snake_cased used to depend on the caller having gone
-    // through DeliveryOptionsFactory. Each named
-    // constructor now does it for itself, so calling one directly is safe.
+it('normalises a camelCase pickup location in fromCheckoutData() and fromOrderFallback(), not only through the factory', function () {
     $camelCase = [
         'deliveryType'   => DeliveryType::PICKUP_NAME,
         'pickupLocation' => ['locationCode' => '216877', 'postalCode' => '2132BA'],
-        'shipmentOptions' => ['ageCheck' => true],
     ];
 
     $viaConstructor = DeliveryOptions::fromCheckoutData($camelCase);

@@ -53,7 +53,7 @@ it('resolves a name it knows and answers null for one it does not', function () 
         ->and(DeliveryType::nameFromIdOrNull(99))->toBeNull();
 });
 
-it('names every type the SDK can round-trip', function () {
+it('maps all seven package types and delivery types, pallet and early morning included', function () {
     expect(PackageType::NAMES_IDS_MAP)->toHaveCount(7)
         ->and(DeliveryType::NAMES_IDS_MAP)->toHaveCount(7)
         ->and(PackageType::nameFromIdOrNull(PackageType::PALLET))->toBe(PackageType::PALLET_NAME)

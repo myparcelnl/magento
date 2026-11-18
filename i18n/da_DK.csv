@@ -493,3 +493,5 @@ This order is a pickup but its pickup location cannot be read (%1),"Denne ordre 
 this order is a pickup but carries no pickup location,"denne ordre er en afhentning, men har intet afhentningssted"
 %1 label file(s) could not be merged. Please check the log.,%1 labelfil(er) kunne ikke flettes. Tjek loggen.
 "created as MyParcel shipment %1, but the id could not be stored: %2","oprettet som MyParcel-forsendelse %1, men id'et kunne ikke gemmes: %2"
+"MyParcel carrier capabilities","MyParcel transportørers muligheder"
+"Per-account carrier capability answers from the MyParcel API","Svar fra MyParcel API om transportørernes muligheder, pr. konto"

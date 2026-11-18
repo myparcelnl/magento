@@ -497,3 +497,5 @@ This order is a pickup but its pickup location cannot be read (%1),"Diese Bestel
 this order is a pickup but carries no pickup location,"diese Bestellung ist eine Abholung, hat aber keinen Abholort"
 %1 label file(s) could not be merged. Please check the log.,%1 Etikettendatei(en) konnten nicht zusammengeführt werden. Bitte prüfen Sie das Protokoll.
 "created as MyParcel shipment %1, but the id could not be stored: %2","als MyParcel-Sendung %1 erstellt, aber die ID konnte nicht gespeichert werden: %2"
+"MyParcel carrier capabilities","MyParcel-Funktionen der Versanddienstleister"
+"Per-account carrier capability answers from the MyParcel API","Antworten der MyParcel-API zu den Funktionen der Versanddienstleister, pro Konto"

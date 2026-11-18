@@ -2,18 +2,11 @@ define(['jquery', 'mage/loader'], function ($) {
     'use strict';
 
     /**
-     * Bound via data-mage-init on the settings_button.phtml root div.
-     * config keys: ajaxUrl, buttonId, apiKeyFieldId, scopeName, scopeId,
-     *              successLabel, failurePrefix, failureLabel.
+     * Bound via data-mage-init on the settings_button.phtml root div. config keys: ajaxUrl, buttonId,
+     * apiKeyFieldId, scopeName, scopeId, successLabel, failurePrefix, failureLabel.
      *
-     * The button is disabled while there is no api key to import against, and again for the duration
-     * of the request: the import is the only place an invalid key surfaces, so the outcome has to be
-     * reported rather than left to a spinner that simply stops.
-     *
-     * The page-wide overlay runs alongside that report, not instead of it. The notice appears next to
-     * the button and reflows everything below, so the admin must not be working further down the page
-     * when it lands. fetch() does not pass through loaderAjax, so the pair is triggered by hand; the
-     * loader counts its starts, and the finally block keeps them balanced.
+     * The button is disabled while the api key field is disabled (the scope inherits the key) and while
+     * the request runs. fetch() does not pass through loaderAjax, so the overlay is started by hand.
      */
     return function (config, element) {
         const button = document.getElementById(config.buttonId);

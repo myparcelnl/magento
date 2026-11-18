@@ -75,7 +75,7 @@ Admin settings are in `etc/dynamic_settings.json`, a temporary solution until th
 3. Save with `Magento\Framework\App\Config\Storage\WriterInterface::save()`.
 4. To check whether a scope has its own value, use `Settings::hasOwnValue($path, $scope, $scopeId)`. It does not fall back to the parent scope.
 
-For insurance, a new carrier needs the amount fields `insurance_local_amount`, `insurance_belgium_amount`, `insurance_eu_amount` and `insurance_row_amount` with the `InsuranceAmount` frontend model in `etc/dynamic_settings.json`. The carrier must be in `Config::CARRIERS_XML_PATH_MAP`, or the validator skips its fields. The range comes from the contract definitions, so `etc/di.xml` needs nothing.
+For insurance, a new carrier needs an amount field for each zone it ships to (`insurance_local_amount`, `insurance_belgium_amount`, `insurance_eu_amount`, `insurance_row_amount`) with the `InsuranceAmount` frontend model in `etc/dynamic_settings.json`. The carrier must be in `Config::CARRIERS_XML_PATH_MAP`, or the validator skips its fields. The range comes from the contract definitions, so `etc/di.xml` needs nothing.
 
 ### Adding a shipment option
 

@@ -15,13 +15,13 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  * union of their options. Ask options, insurance and the collo maximum per package type.
  *
  * The memo is per instance: answeredPermissively() tells about what this instance asked. A caller
- * that reads it needs its own instance, as Block\Sales\NewShipment does; the shared one mixes callers.
+ * that reads it needs its own instance: etc/di.xml gives Block\Sales\NewShipment an unshared one.
  */
 class CapabilitiesLookup
 {
     private Repository $repository;
 
-    /** @var array<string,CapabilitySet> keyed by store, country and package type */
+    /** @var array<string,CapabilitySet> keyed by scope, country, package type and carrier */
     private array $answers = [];
 
     public function __construct(Repository $repository)
@@ -106,7 +106,7 @@ class CapabilitiesLookup
             $v2 = PackageType::toV2Name($packageType);
 
             if (null === $v2) {
-                // The API cannot be asked about it, and the broad answer would offer too much.
+                // The API cannot be asked about this package type, so the answer is permissive.
                 return $this->answers[$key] = CapabilitySet::permissive();
             }
 

@@ -25,8 +25,8 @@ what each fact does.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
   shipment that the API receives.
 
-The row order is the order of the REST v1 `shipmentOptions`, and of the New Shipment form when
-capabilities cannot be read.
+The row order is the order of every option list: the REST v1 `shipmentOptions` and the New Shipment
+form.
 
 ### The New Shipment form
 

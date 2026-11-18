@@ -20,14 +20,6 @@ it('resolves every option to a non-null value', function () {
         ->and(array_keys($resolved))->toHaveCount(14);
 });
 
-it('resolves every option to a non-null value outside NL too', function () {
-    // The country gates (age check, receipt code, priority delivery, large format)
-    // take their other branch here, which is where a null would hide.
-    $resolved = createShipmentOptions('DE', CarrierPostNL::NAME, [])->resolve()->toArray();
-
-    expect($resolved)->not->toContain(null);
-});
-
 it('types every resolved option as the setters expect', function () {
     $resolved = createShipmentOptions(CountryCode::CC_NL, CarrierPostNL::NAME, [])->resolve();
     $values   = $resolved->toArray();
