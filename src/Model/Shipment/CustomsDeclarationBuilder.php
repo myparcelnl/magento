@@ -14,7 +14,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 
 /**
- * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. Stateless; shared across a batch.
+ * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. One instance serves a whole batch.
  *
  * Deliberately separate from Helper\CustomsDeclarationFromOrder, which serves the Order v1
  * fulfilment path, a different API.
@@ -22,7 +22,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentTyp
  * Two traps this class exists to contain: country must go through the item constructor, because the
  * generated enum for setCountry() lists only '' and throws on every real country, which also makes
  * listInvalidProperties() report a false positive here; and descriptions must be truncated before
- * setting, because setDescription() throws where the old path truncated silently.
+ * setting, because setDescription() throws above its limit.
  */
 class CustomsDeclarationBuilder
 {
@@ -74,7 +74,7 @@ class CustomsDeclarationBuilder
                 ->setInvoice($invoice)
                 ->setItems($items);
         } catch (\InvalidArgumentException $e) {
-            throw new \RuntimeException('Customs declaration: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException((string) __('Customs declaration: %1', $e->getMessage()), 0, $e);
         }
     }
 
@@ -106,6 +106,5 @@ class CustomsDeclarationBuilder
             throw CustomsItems::refused($name, $sku, $e);
         }
     }
-
 
 }

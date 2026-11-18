@@ -479,3 +479,21 @@ The MyParcel API refused this order without giving a reason.,L'API MyParcel a re
 The MyParcel API did not return a shipment for this order.,L'API MyParcel n'a pas renvoyé d'envoi pour cette commande.
 The MyParcel export could not be completed.,L'export MyParcel n'a pas pu être terminé.
 The MyParcel labels could not be downloaded.,Les étiquettes MyParcel n'ont pas pu être téléchargées.
+The MyParcel export failed. Please check the log.,L'export MyParcel a échoué. Veuillez consulter le journal.
+No shipments were given to print labels for.,Aucun envoi n'a été indiqué pour imprimer des étiquettes.
+The MyParcel labels could not be fetched. Please check the log.,Les étiquettes MyParcel n'ont pas pu être récupérées. Veuillez consulter le journal.
+The MyParcel labels could not be fetched. %1,Les étiquettes MyParcel n'ont pas pu être récupérées. %1
+No MyParcel labels to download.,Aucune étiquette MyParcel à télécharger.
+Some labels are missing. %1,Certaines étiquettes sont manquantes. %1
+The return label mail is sent to the customer.,L'e-mail avec l'étiquette de retour a été envoyé au client.
+An unexpected error occurred. Please check the log.,Une erreur inattendue s'est produite. Veuillez consulter le journal.
+"Unknown configuration scope ""%1"".","Portée de configuration inconnue ""%1""."
+Configuration scope id must be a number.,L'identifiant de la portée de configuration doit être un nombre.
+"Configuration scope ""%1"" has no id %2.","La portée de configuration ""%1"" n'a pas d'identifiant %2."
+Customs declaration: %1,Déclaration en douane : %1
+"carrier ""%1"" is not one this module knows","le transporteur ""%1"" n'est pas connu de ce module"
+This order is a pickup but its pickup location cannot be read (%1),"Cette commande est un retrait, mais son point de retrait ne peut pas être lu (%1)"
+"This track has no Magento shipment, so there is nothing to export","Ce suivi n'a pas d'envoi Magento, il n'y a donc rien à exporter"
+this order is a pickup but carries no pickup location,"cette commande est un retrait, mais n'a pas de point de retrait"
+%1 label file(s) could not be merged. Please check the log.,%1 fichier(s) d'étiquettes n'ont pas pu être fusionnés. Veuillez consulter le journal.
+"created as MyParcel shipment %1, but the id could not be stored: %2","créé comme envoi MyParcel %1, mais l'identifiant n'a pas pu être enregistré : %2"

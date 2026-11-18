@@ -14,9 +14,9 @@ namespace MyParcelNL\Magento\Cron;
 use DateTime;
 use Exception;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 use MyParcelNL\Magento\Api\ShipmentStatus;
@@ -26,14 +26,14 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use Throwable;
-use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
 /**
  * Brings MyParcel shipment status, barcode and track & trace back into Magento.
@@ -51,7 +51,6 @@ class UpdateStatus
     private const POLL_WINDOW_DAYS = 14;
 
     private const PAGE_SIZE = 300;
-
 
     private ObjectManagerInterface $objectManager;
     private \Magento\Sales\Model\ResourceModel\Order $orderResource;

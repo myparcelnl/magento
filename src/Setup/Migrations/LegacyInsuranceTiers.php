@@ -17,7 +17,6 @@ final class LegacyInsuranceTiers
     public const ZONE_LOCAL = 'local';
     public const ZONE_BE    = 'BE';
     public const ZONE_EU    = 'EU';
-    public const ZONE_ROW   = 'ROW';
 
     private const FROM_100  = [100, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000];
     private const FROM_500  = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000];
@@ -33,22 +32,18 @@ final class LegacyInsuranceTiers
             self::ZONE_LOCAL => self::FROM_100,
             self::ZONE_BE    => self::FROM_100,
             self::ZONE_EU    => self::FIFTY_500,
-            self::ZONE_ROW   => self::FIFTY_500,
         ],
         Carrier::DHL_FOR_YOU       => [
             self::ZONE_LOCAL => self::FROM_500,
             self::ZONE_BE    => self::FROM_500,
-            self::ZONE_ROW   => self::FROM_100,
         ],
         Carrier::DHL_EUROPLUS      => [
             self::ZONE_LOCAL => self::FROM_500,
             self::ZONE_BE    => self::FROM_500,
             self::ZONE_EU    => self::FROM_500,
-            self::ZONE_ROW   => self::FROM_500,
         ],
         Carrier::DHL_PARCEL_CONNECT => [
-            self::ZONE_EU  => self::FROM_500,
-            self::ZONE_ROW => self::FROM_500,
+            self::ZONE_EU => self::FROM_500,
         ],
         Carrier::UPS_STANDARD      => [
             self::ZONE_LOCAL => self::FROM_100,
@@ -56,7 +51,6 @@ final class LegacyInsuranceTiers
         Carrier::GLS               => [
             self::ZONE_LOCAL => self::TEN_K,
             self::ZONE_EU    => self::TEN_K,
-            self::ZONE_ROW   => self::TEN_K,
         ],
     ];
 
@@ -69,9 +63,6 @@ final class LegacyInsuranceTiers
     /**
      * Rounds up to the nearest tier, or down to the largest when the amount exceeds it. Zero stays
      * zero, and an empty list returns the amount untouched.
-     *
-     * This is UpgradeData's historical rule, moved here rather than copied: two implementations of
-     * it would let the migration and the shim drift apart.
      *
      * @param int[] $tiers
      */
@@ -97,6 +88,4 @@ final class LegacyInsuranceTiers
 
         return $amount;
     }
-
-
 }

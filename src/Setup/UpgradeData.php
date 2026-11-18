@@ -27,12 +27,12 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
-use MyParcelNL\Magento\Setup\Migrations\LegacyInsuranceTiers;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
 use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
+use MyParcelNL\Magento\Setup\Migrations\LegacyInsuranceTiers;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
@@ -695,7 +695,6 @@ class UpgradeData implements UpgradeDataInterface
             );
 
             $this->replaceFitInMailbox->writeNewAttributeEntity();
-
 
             $this->replaceDisableCheckout->indexOldAttribute();
             $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_disable_checkout');

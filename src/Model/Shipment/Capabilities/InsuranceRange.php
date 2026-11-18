@@ -110,7 +110,7 @@ final class InsuranceRange
         return $this->required ? $this->min : 0;
     }
 
-    /** Clamp the amount into the range. Never zero: above the maximum becomes the maximum. */
+    /** Clamp the amount into the range: above the maximum becomes the maximum. */
     public function clamp(int $euros): int
     {
         return max($this->min, min($this->max, $euros));

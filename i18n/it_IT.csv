@@ -462,6 +462,8 @@ Return if no answer,Restituisci se nessuna risposta
 "Importing the MyParcel Backoffice settings failed:","L'importazione delle impostazioni MyParcel Backoffice non è riuscita:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importazione delle impostazioni MyParcel Backoffice non è riuscita. Controlla il log per i dettagli."
 "MyParcel Backoffice settings imported.","Impostazioni MyParcel Backoffice importate."
+Records per export request,Record per richiesta di esportazione
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Quante spedizioni o ordini vengono inviati a MyParcel in una richiesta. Lascia vuoto per 20. Riduci il valore se le esportazioni grandi vanno in timeout. Il massimo è 100.
 Return label sent,Etichetta di reso inviata
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel non conosce la spedizione %1 con l'API key di questo store.
 The carrier of shipment %1 does not support return labels.,Il corriere della spedizione %1 non supporta le etichette di reso.
@@ -477,3 +479,21 @@ The MyParcel API refused this order without giving a reason.,L'API MyParcel ha r
 The MyParcel API did not return a shipment for this order.,L'API MyParcel non ha restituito una spedizione per questo ordine.
 The MyParcel export could not be completed.,L'esportazione MyParcel non è stata completata.
 The MyParcel labels could not be downloaded.,Non è stato possibile scaricare le etichette MyParcel.
+The MyParcel export failed. Please check the log.,L'esportazione MyParcel non è riuscita. Controlla il log.
+No shipments were given to print labels for.,Non è stata indicata alcuna spedizione per cui stampare le etichette.
+The MyParcel labels could not be fetched. Please check the log.,Non è stato possibile recuperare le etichette MyParcel. Controlla il log.
+The MyParcel labels could not be fetched. %1,Non è stato possibile recuperare le etichette MyParcel. %1
+No MyParcel labels to download.,Nessuna etichetta MyParcel da scaricare.
+Some labels are missing. %1,Alcune etichette mancano. %1
+The return label mail is sent to the customer.,L'e-mail con l'etichetta di reso è stata inviata al cliente.
+An unexpected error occurred. Please check the log.,Si è verificato un errore imprevisto. Controlla il log.
+"Unknown configuration scope ""%1"".","Ambito di configurazione sconosciuto ""%1""."
+Configuration scope id must be a number.,L'ID dell'ambito di configurazione deve essere un numero.
+"Configuration scope ""%1"" has no id %2.","L'ambito di configurazione ""%1"" non ha l'ID %2."
+Customs declaration: %1,Dichiarazione doganale: %1
+"carrier ""%1"" is not one this module knows","il corriere ""%1"" non è noto a questo modulo"
+This order is a pickup but its pickup location cannot be read (%1),"Questo ordine è un ritiro, ma il punto di ritiro non può essere letto (%1)"
+"This track has no Magento shipment, so there is nothing to export","Questo tracking non ha una spedizione Magento, quindi non c'è nulla da esportare"
+this order is a pickup but carries no pickup location,"questo ordine è un ritiro, ma non ha un punto di ritiro"
+%1 label file(s) could not be merged. Please check the log.,Non è stato possibile unire %1 file di etichette. Controlla il log.
+"created as MyParcel shipment %1, but the id could not be stored: %2","creato come spedizione MyParcel %1, ma non è stato possibile salvare l'ID: %2"

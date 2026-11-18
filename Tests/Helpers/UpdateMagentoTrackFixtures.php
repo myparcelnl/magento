@@ -253,7 +253,6 @@ function apiShipment(int $id, ?string $barcode, ?string $link, ?int $status = 3)
     return $shipment;
 }
 
-
 /**
  * One collo of a multicollo, as the shipment API returns it: a full shipment in its own right, with
  * its own id, barcode, status and link. This is what the module never read.

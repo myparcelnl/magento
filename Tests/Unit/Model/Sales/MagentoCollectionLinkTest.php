@@ -9,7 +9,6 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 // collectionRefreshing() and apiShipment() live in Tests/Helpers/UpdateMagentoTrackFixtures.php.
 
-
 /**
  * A MagentoOrderCollection over one Magento shipment, counting how often the track collection was
  * created. $queries is filled by reference so a test can read the count after the fact.

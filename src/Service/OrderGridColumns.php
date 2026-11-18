@@ -7,9 +7,8 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Sales\Model\ResourceModel\Grid;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
  * Writes sales_order.track_status and track_number for a page of orders: one tracks query, one read
@@ -55,7 +54,7 @@ class OrderGridColumns
         $written = 0;
 
         foreach ($orderIds as $orderId) {
-            if ($this->write($orderId, $this->htmlForTracks($tracks[$orderId] ?? []), $current[$orderId] ?? [])) {
+            if ($this->write($orderId, $this->columnsForTracks($tracks[$orderId] ?? []), $current[$orderId] ?? [])) {
                 $written++;
             }
         }
@@ -113,7 +112,7 @@ class OrderGridColumns
      *
      * @return array{track_status: string, track_number: string}
      */
-    public function htmlForTracks(iterable $tracks): array
+    public function columnsForTracks(iterable $tracks): array
     {
         $statuses = [];
         $numbers  = [];
@@ -127,8 +126,8 @@ class OrderGridColumns
                 $statuses[] = __('status_' . $track['myparcel_status']);
             }
 
-            // A placeholder is not a track number: stamped onto sales_order.track_number it used to
-            // lock an order out of the PPS status cron for good.
+            // a placeholder is not a track number: on sales_order.track_number it would lock the order
+            // out of the PPS status cron
             if (TrackAndTrace::isRealBarcode($track['track_number'])) {
                 $numbers[] = $track['track_number'];
             }

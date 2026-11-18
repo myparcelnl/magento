@@ -59,7 +59,7 @@ class AccountPlatform
 
             return $account ? $account->getPropositionId() : null;
         } catch (Throwable $e) {
-            Logger::alert(
+            Logger::warning(
                 sprintf(
                     'Could not establish the account platform for store %d; the default track & trace host is used.',
                     $storeId

@@ -488,3 +488,21 @@ The MyParcel API refused this order without giving a reason.,De MyParcel API hee
 The MyParcel API did not return a shipment for this order.,De MyParcel API heeft geen zending teruggegeven voor deze bestelling.
 The MyParcel export could not be completed.,De MyParcel export kon niet worden voltooid.
 The MyParcel labels could not be downloaded.,De MyParcel labels konden niet worden gedownload.
+The MyParcel export failed. Please check the log.,De MyParcel export is mislukt. Controleer het log.
+No shipments were given to print labels for.,Er zijn geen zendingen opgegeven om labels voor te printen.
+The MyParcel labels could not be fetched. Please check the log.,De MyParcel labels konden niet worden opgehaald. Controleer het log.
+The MyParcel labels could not be fetched. %1,De MyParcel labels konden niet worden opgehaald. %1
+No MyParcel labels to download.,Er zijn geen MyParcel labels om te downloaden.
+Some labels are missing. %1,Sommige labels ontbreken. %1
+The return label mail is sent to the customer.,De mail met het retourlabel is naar de klant verstuurd.
+An unexpected error occurred. Please check the log.,Er is een onverwachte fout opgetreden. Controleer het log.
+"Unknown configuration scope ""%1"".","Onbekend configuratiebereik ""%1""."
+Configuration scope id must be a number.,Het id van het configuratiebereik moet een getal zijn.
+"Configuration scope ""%1"" has no id %2.","Configuratiebereik ""%1"" heeft geen id %2."
+Customs declaration: %1,Douaneaangifte: %1
+"carrier ""%1"" is not one this module knows","vervoerder ""%1"" is niet bekend in deze module"
+This order is a pickup but its pickup location cannot be read (%1),"Deze bestelling wordt opgehaald, maar de afhaallocatie kan niet worden gelezen (%1)"
+"This track has no Magento shipment, so there is nothing to export","Deze track heeft geen Magento zending, dus er is niets om te exporteren"
+this order is a pickup but carries no pickup location,"deze bestelling wordt opgehaald, maar heeft geen afhaallocatie"
+%1 label file(s) could not be merged. Please check the log.,%1 labelbestand(en) konden niet worden samengevoegd. Controleer het log.
+"created as MyParcel shipment %1, but the id could not be stored: %2","aangemaakt als MyParcel zending %1, maar het id kon niet worden opgeslagen: %2"

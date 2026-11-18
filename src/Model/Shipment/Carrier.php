@@ -21,15 +21,14 @@ use Throwable;
  * Same split as PackageType and DeliveryType: the lowercase names are ours and are config path
  * segments, so they cannot follow the SDK. V2_NAMES_MAP translates them to the Core API vocabulary
  * a capabilities response speaks.
- *
  */
 final class Carrier
 {
     use MapsV2Names;
 
-    // The SDK owns a carrier's name and label; this list is only which of them the module has
-    // admin settings and insurance virtual types for. The SDK ships more (bpost, brt, inpost,
-    // posteitaliane, upsexpresssaver) and an account's real set comes from capabilities.
+    // The SDK owns a carrier's name and label; this list is only which of them the module has admin
+    // settings for. The SDK ships more (bpost, brt, inpost, posteitaliane, upsexpresssaver), and an
+    // account's real set comes from capabilities.
     public const POSTNL             = CarrierPostNL::NAME;
     public const DHL_FOR_YOU        = CarrierDHLForYou::NAME;
     public const DHL_EUROPLUS       = CarrierDHLEuroplus::NAME;
@@ -63,7 +62,7 @@ final class Carrier
             self::TRUNKRS            => CountryCode::CC_NL,
         ];
 
-    /** Falls back to NL, which is what every carrier but DPD answers and what the old code hardcoded. */
+    /** Falls back to NL, which is what every carrier but DPD answers. */
     public static function localCountryCodeFor(?string $name): string
     {
         return self::LOCAL_COUNTRY_MAP[$name] ?? CountryCode::CC_NL;

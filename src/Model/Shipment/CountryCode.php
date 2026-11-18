@@ -9,8 +9,7 @@ use MyParcelNL\Sdk\Services\CountryCodes;
 /**
  * Country codes and the EU/ROW zone question.
  *
- * The EU list is not the one the old SDK used: it gains MT and loses XK, so those two countries
- * change customs behaviour. An unknown country counts as ROW.
+ * The EU list is the SDK's. An unknown country counts as ROW.
  */
 final class CountryCode
 {

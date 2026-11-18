@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service;
 
+use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\Module\Dir;
 use Magento\Framework\Module\Dir\Reader as ModuleDirReader;
 use Magento\Framework\Serialize\Serializer\Json;

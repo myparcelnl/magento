@@ -13,12 +13,12 @@ use Magento\Framework\Phrase;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Collection as ShipmentCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\CollectionFactory as ShipmentCollectionFactory;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
-use Throwable;
 use MyParcelNL\Magento\Service\IdList;
+use MyParcelNL\Magento\Service\LogContext;
+use Throwable;
 
 /**
  * Streams the label PDF for exported shipments, writes back the barcodes that request minted and,

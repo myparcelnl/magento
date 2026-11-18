@@ -24,10 +24,7 @@ $form     = $block->getNewShipmentForm();
 </div>
 <?php if ($block->hasUnverifiedCapabilities()): ?>
     <div class="message message-warning warning js--mypa-options" style="margin: 10px 0;">
-        <div><?= __(
-            'MyParcel could not confirm which options this account has, so every option is shown. '
-            . 'An option the account does not carry is refused when the shipment is exported.'
-        ) ?></div>
+        <div><?= $escaper->escapeHtml(__('MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.')) ?></div>
     </div>
 <?php endif; ?>
 <?php foreach ($carriers as $carrier): ?>
@@ -145,13 +142,10 @@ $form     = $block->getNewShipmentForm();
                             title=""/>
                         <?php if (null !== $packageType['insurance']['max']): ?>
                             <p class="note admin__field-note">
-                                <span><?= $escaper->escapeHtml(__(
-                                    $packageType['insurance']['required']
-                                        ? 'Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.'
-                                        : 'Your contract allows € %1 to € %2. Enter 0 to switch insurance off.',
-                                    (int) $packageType['insurance']['min'],
-                                    (int) $packageType['insurance']['max']
-                                )) ?></span>
+                                <span><?= $escaper->escapeHtml($packageType['insurance']['required']
+                                    ? __('Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.', (int) $packageType['insurance']['min'], (int) $packageType['insurance']['max'])
+                                    : __('Your contract allows € %1 to € %2. Enter 0 to switch insurance off.', (int) $packageType['insurance']['min'], (int) $packageType['insurance']['max'])
+                                ) ?></span>
                             </p>
                         <?php endif; ?>
                     </div>

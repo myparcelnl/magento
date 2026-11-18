@@ -306,7 +306,6 @@ class DeliveryCosts
         }
     }
 
-
     /**
      * Convert euros to cents. Rounded, not truncated: 0.29 * 100 is 28.999999999999996 in binary
      * floating point, and a cast makes 29 cents into 28.
