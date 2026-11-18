@@ -122,6 +122,15 @@ class NewShipment implements ObserverInterface
             unset($options['carrier']);
         }
 
+        // a PPS order needs no label shipment: building one would only call capabilities, and a build
+        // error would stop the export
+        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
+            $this->exportEntireOrder($shipment);
+            $this->updateTrackGrid($shipment, true);
+
+            return;
+        }
+
         $amount = (int) ($options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT);
 
         $builder = new ShipmentBuilder($this->objectManager, $shipment->getOrder());
@@ -155,13 +164,6 @@ class NewShipment implements ObserverInterface
                     break;
                 }
             }
-        }
-
-        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
-            $this->exportEntireOrder($shipment);
-            $this->updateTrackGrid($shipment, true);
-
-            return;
         }
 
         $report = $this->orderCollection()->getExportService()->createConcepts($builtShipments);

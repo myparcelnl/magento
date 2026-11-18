@@ -98,3 +98,31 @@ it('marks a PPS export exported rather than reading it off the tracks', function
 
     expect($written['track_status'])->toBe(MyParcelNL\Magento\Cron\UpdateStatus::ORDER_STATUS_EXPORTED);
 });
+
+it('exports a PPS order without building a label shipment first', function () {
+    // The observer has no object manager here: building a ShipmentBuilder would fail this test.
+    $order = createOrder(['getEntityId' => 7]);
+    $order->shouldReceive('setData')->andReturnSelf();
+
+    $shipment = createShipment(['getOrder' => $order, 'getTracksCollection' => []]);
+
+    $collection = Mockery::mock(MagentoOrderCollection::class);
+    $collection->shouldReceive('setOptionsFromParameters')->andReturnSelf();
+    $collection->shouldReceive('getOptions')->andReturn(['label_amount' => 2]);
+    $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
+    $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
+
+    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
+    $config->shouldReceive('getExportMode')->andReturn(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS);
+
+    $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
+    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
+    $gridColumns->shouldReceive('writeColumns')->andReturn(true);
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', $collection);
+    setPrivateProperty($observer, 'config', $config);
+    setPrivateProperty($observer, 'gridColumns', $gridColumns);
+
+    invokePrivateMethod($observer, 'setMagentoAndMyParcelTrack', [$shipment]);
+});

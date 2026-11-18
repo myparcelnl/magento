@@ -12,7 +12,7 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  * back: the API key of its order's store, its Magento track, and the increment id that names it in
  * a report. A v11 Shipment carries none of that, and pairing by result order is not allowed.
  */
-class BuiltShipment
+final class BuiltShipment
 {
     private Shipment $shipment;
     private Track    $track;
