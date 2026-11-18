@@ -45,3 +45,17 @@ function createNewShipmentBlockWith($capabilities, array $orderOverrides = []): 
 
     return $block;
 }
+
+/** The insurance field the form offers for package type `package`. */
+function packageInsuranceField(MyParcelNL\Magento\Block\Sales\NewShipment $block): ?array
+{
+    foreach ($block->getFormCarriers() as $carrier) {
+        foreach ($carrier['packageTypes'] as $packageType) {
+            if (\MyParcelNL\Magento\Model\Shipment\PackageType::PACKAGE_NAME === $packageType['name']) {
+                return $packageType['insurance'];
+            }
+        }
+    }
+
+    return null;
+}

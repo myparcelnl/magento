@@ -34,7 +34,7 @@ class DeliveryOptions
 
     private ?PickupLocation $pickupLocation;
 
-    private ?ShipmentOptions $shipmentOptions;
+    private ShipmentOptions $shipmentOptions;
 
     /**
      * @param string|int|null $deliveryType
@@ -45,7 +45,7 @@ class DeliveryOptions
         ?string $date,
         $deliveryType,
         $packageType,
-        ?ShipmentOptions $shipmentOptions,
+        ShipmentOptions  $shipmentOptions,
         ?PickupLocation $pickupLocation
     ) {
         $this->carrier         = $carrier;
@@ -191,7 +191,7 @@ class DeliveryOptions
         return $this->pickupLocation;
     }
 
-    public function getShipmentOptions(): ?ShipmentOptions
+    public function getShipmentOptions(): ShipmentOptions
     {
         return $this->shipmentOptions;
     }
@@ -223,7 +223,7 @@ class DeliveryOptions
             'packageType'     => $this->getPackageType(),
             'isPickup'        => $this->isPickup(),
             'pickupLocation'  => null === $this->pickupLocation ? null : $this->pickupLocation->toArray(),
-            'shipmentOptions' => null === $this->shipmentOptions ? null : $this->shipmentOptions->toArray(),
+            'shipmentOptions' => $this->shipmentOptions->toArray(),
         ];
     }
 }

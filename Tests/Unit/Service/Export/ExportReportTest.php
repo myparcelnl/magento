@@ -41,3 +41,11 @@ it('names an order whose other collo was refused after one collo shipped', funct
         ->and(implode('; ', $report->failureReasons()['100000001']))
         ->toContain('Not every collo of this order was exported: The postal code is invalid');
 });
+
+it('still lists an order the API refused without any text', function () {
+    $report = new ExportReport();
+    $report->fail('100000001', '   ');
+
+    expect(array_map('strval', array_keys($report->failureReasons())))->toBe(['100000001'])
+        ->and($report->failureReasons()['100000001'][0])->not->toBe('');
+});

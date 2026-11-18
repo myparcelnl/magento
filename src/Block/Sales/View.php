@@ -153,13 +153,11 @@ class View extends AbstractOrder
 
         $shipmentOptions = $deliveryOptions->getShipmentOptions();
 
-        if (null !== $shipmentOptions) {
-            if ($shipmentOptions->option(ShipmentOption::SIGNATURE)) {
-                echo ', ', __('Signature on receipt');
-            }
-            if ($shipmentOptions->option(ShipmentOption::ONLY_RECIPIENT)) {
-                echo ', ', __('Only recipient');
-            }
+        if ($shipmentOptions->option(ShipmentOption::SIGNATURE)) {
+            echo ', ', __('Signature on receipt');
+        }
+        if ($shipmentOptions->option(ShipmentOption::ONLY_RECIPIENT)) {
+            echo ', ', __('Only recipient');
         }
 
         return ob_get_clean();

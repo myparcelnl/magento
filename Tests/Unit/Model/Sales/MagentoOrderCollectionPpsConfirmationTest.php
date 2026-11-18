@@ -39,6 +39,45 @@ function ppsBuiltOrder(string $incrementId): FulfilmentOrder
 }
 
 /**
+ * A collection over one Magento order per increment id, whose order saves go to $save and whose
+ * messages land in $did->errors.
+ *
+ * @param string[] $incrementIds
+ *
+ * @return array{0: MagentoOrderCollection, 1: Order[]}
+ */
+function ppsExportingCollection(array $incrementIds, object $did, callable $save): array
+{
+    $orderResource = Mockery::mock(OrderResource::class);
+    $orderResource->shouldReceive('save')->andReturnUsing($save);
+
+    $objectManager = Mockery::mock(ObjectManagerInterface::class);
+    $objectManager->shouldReceive('get')->with(OrderResource::class)->andReturn($orderResource);
+
+    $userAgent = Mockery::mock(UserAgent::class);
+    $userAgent->shouldReceive('map')->andReturn([]);
+
+    $magentoOrders = [];
+
+    foreach ($incrementIds as $incrementId) {
+        $order = Mockery::mock(Order::class);
+        $order->shouldReceive('getIncrementId')->andReturn((string) $incrementId);
+        $order->shouldReceive('setData')->andReturnSelf();
+        $order->shouldReceive('setIsInProcess')->andReturnSelf();
+        $magentoOrders[] = $order;
+    }
+
+    $collection = instanceWithProperties(MagentoOrderCollection::class, [
+        'messageManager' => errorRecordingMessageManager($did),
+        'objectManager'  => $objectManager,
+        'userAgent'      => $userAgent,
+        'options'        => [],
+    ]);
+
+    return [$collection, $magentoOrders];
+}
+
+/**
  * Runs exportFulfilmentChunk() for one chunk, with every request answered by $answer.
  *
  * @param array<string,FulfilmentOrder> $builtByIncrementId what the builder returns per order
@@ -68,45 +107,22 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
         return $curl;
     });
 
-    $messageManager = errorRecordingMessageManager($did);
-
-    $orderResource = Mockery::mock(OrderResource::class);
-    $orderResource->shouldReceive('save')->andReturnUsing(
+    [$collection, $magentoOrders] = ppsExportingCollection(
+        array_keys($builtByIncrementId),
+        $did,
         static function (Order $order) use ($did): void {
             $did->exported[] = $order->getIncrementId();
         }
     );
 
-    $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('get')->with(OrderResource::class)->andReturn($orderResource);
+    $builder = Mockery::mock(FulfilmentOrderBuilder::class);
 
-    $userAgent = Mockery::mock(UserAgent::class);
-    $userAgent->shouldReceive('map')->andReturn([]);
-
-    $builder       = Mockery::mock(FulfilmentOrderBuilder::class);
-    $magentoOrders = [];
-
-    foreach ($builtByIncrementId as $incrementId => $built) {
-        $order = Mockery::mock(Order::class);
-        $order->shouldReceive('getIncrementId')->andReturn((string) $incrementId);
-        $order->shouldReceive('setData')->andReturnSelf();
-        $order->shouldReceive('setIsInProcess')->andReturnSelf();
-        $builder->shouldReceive('build')->with($order, Mockery::any())->andReturn($built);
-        $magentoOrders[] = $order;
+    foreach ($magentoOrders as $order) {
+        $builder->shouldReceive('build')->with($order, Mockery::any())
+            ->andReturn($builtByIncrementId[$order->getIncrementId()]);
     }
 
-    $collection = Mockery::mock(MagentoOrderCollection::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
-    $collection->shouldReceive('orderCommentsByIncrementId')->andReturn([]);
-    setPrivateProperty($collection, 'messageManager', $messageManager);
-    setPrivateProperty($collection, 'objectManager', $objectManager);
-    setPrivateProperty($collection, 'userAgent', $userAgent);
-    setPrivateProperty($collection, 'options', []);
-
-    (function () use ($builder, $magentoOrders): void {
-        $this->exportFulfilmentChunk($builder, $magentoOrders);
-    })->call($collection);
+    invokePrivateMethod($collection, 'exportFulfilmentChunk', [$builder, $magentoOrders]);
 
     return ['errors' => $did->errors, 'exported' => $did->exported, 'sent' => $did->sent];
 }
@@ -142,10 +158,9 @@ it('marks the other orders exported and names the one whose save failed', functi
 
     $did = new class { public array $errors = []; public array $exported = []; };
 
-    $messageManager = errorRecordingMessageManager($did);
-
-    $orderResource = Mockery::mock(OrderResource::class);
-    $orderResource->shouldReceive('save')->andReturnUsing(
+    [$collection, $magentoOrders] = ppsExportingCollection(
+        ['100000001', '100000002'],
+        $did,
         static function (Order $order) use ($did): void {
             if ('100000001' === $order->getIncrementId()) {
                 throw new RuntimeException('Deadlock found');
@@ -155,28 +170,10 @@ it('marks the other orders exported and names the one whose save failed', functi
         }
     );
 
-    $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('get')->with(OrderResource::class)->andReturn($orderResource);
-
-    $magentoOrders = [];
-
-    foreach (['100000001', '100000002'] as $incrementId) {
-        $order = Mockery::mock(Order::class);
-        $order->shouldReceive('getIncrementId')->andReturn($incrementId);
-        $order->shouldReceive('setData')->andReturnSelf();
-        $order->shouldReceive('setIsInProcess')->andReturnSelf();
-        $magentoOrders[] = $order;
-    }
-
-    $savedOrders = new OrderCollection([conceptApiOrder('100000001'), conceptApiOrder('100000002')]);
-
-    $collection = Mockery::mock(MagentoOrderCollection::class)->makePartial();
-    setPrivateProperty($collection, 'messageManager', $messageManager);
-    setPrivateProperty($collection, 'objectManager', $objectManager);
-
-    $unconfirmed = Closure::bind(function () use ($magentoOrders, $savedOrders): array {
-        return $this->setMagentoOrdersAsExported($magentoOrders, $savedOrders);
-    }, $collection, MagentoOrderCollection::class)();
+    $unconfirmed = invokePrivateMethod($collection, 'setMagentoOrdersAsExported', [
+        $magentoOrders,
+        new OrderCollection([conceptApiOrder('100000001'), conceptApiOrder('100000002')]),
+    ]);
 
     expect($unconfirmed)->toBe([])
         ->and($did->exported)->toBe(['100000002'])

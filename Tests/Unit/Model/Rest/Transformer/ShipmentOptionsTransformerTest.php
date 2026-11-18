@@ -5,10 +5,6 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Model\Rest\Transformer\ShipmentOptionsTransformer;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\ShipmentOptions as OrderApiShipmentOptions;
 
-it('returns null for null input', function () {
-    expect((new ShipmentOptionsTransformer())->transform(null))->toBeNull();
-});
-
 it('returns null when no options are set', function () {
     expect((new ShipmentOptionsTransformer())->transform(shipmentOptionsFixture()))->toBeNull();
 });

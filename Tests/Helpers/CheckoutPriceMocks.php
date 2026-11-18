@@ -68,13 +68,7 @@ function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $delive
 /** Make a Checkout without its constructor, which reads the checkout session, and set these private properties. */
 function checkoutWith(array $properties): Checkout
 {
-    $checkout = newInstanceWithoutConstructor(Checkout::class);
-
-    foreach ($properties as $name => $value) {
-        setPrivateProperty($checkout, $name, $value);
-    }
-
-    return $checkout;
+    return instanceWithProperties(Checkout::class, $properties);
 }
 
 /** Get the carrier settings that the private getDeliveryData() gives the widget for one carrier. */

@@ -282,7 +282,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @param  string[] $incrementIds
      * @return array<string,string[]> increment id => comments
      */
-    protected function orderCommentsByIncrementId(array $incrementIds): array
+    private function orderCommentsByIncrementId(array $incrementIds): array
     {
         if (! $incrementIds) {
             return [];

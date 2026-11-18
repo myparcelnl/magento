@@ -11,7 +11,6 @@ use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
@@ -47,14 +46,9 @@ class DeliveryCostsMatrix extends Field
     {
         [$scopeName, $scopeId] = $this->settings->getCurrentScopeFromRequest($this->getRequest());
 
-        $contracted = $this->contractDefinitions->forScope($scopeName, $scopeId);
-        $carriers   = [];
+        $carriers = [];
 
-        foreach (array_keys(Config::CARRIERS_XML_PATH_MAP) as $carrierName) {
-            if (! $contracted->isPermissive() && ! in_array($carrierName, $contracted->carriers(), true)) {
-                continue;
-            }
-
+        foreach ($this->contractDefinitions->forScope($scopeName, $scopeId)->configuredCarriers() as $carrierName) {
             $carriers[$carrierName] = ShipmentCarrier::humanFor($carrierName);
         }
 

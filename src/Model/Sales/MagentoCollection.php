@@ -71,7 +71,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
     /** @var BuiltShipment[] built and ready to send */
-    public array                     $builtShipments = [];
+    private array                    $builtShipments = [];
     protected ShipmentExportService  $exportService;
     public ?RequestInterface         $request = null;
     protected Manager                $moduleManager;
@@ -358,11 +358,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         return $this;
     }
 
-    public function getExportService(): ShipmentExportService
-    {
-        return $this->exportService;
-    }
-
     /**
      * Get the Magento shipments that carry a MyParcel shipment id, for the label page.
      *
@@ -577,7 +572,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $shipments = $this->getShipmentsCollection();
         $tracks    = $this->tracksByShipmentId();
 
-        $multiColloConsignments = []; // parent shipment id => built shipment + collo count
+        $groups = []; // parent shipment id => built shipment and the tracks of its colli
         /**
          * @var Order\Shipment $shipment
          * @var Track          $magentoTrack
@@ -592,11 +587,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                 $parentId = $magentoTrack->getData('parent_id');
 
-                if (isset($multiColloConsignments[$parentId])) {
-                    $multiColloConsignments[$parentId]['colli']++;
-                    // Kept, not just counted: each collo must pair with its own track row, or every
-                    // returned shipment id lands on the first row and the others stay id-less.
-                    $multiColloConsignments[$parentId]['tracks'][] = $magentoTrack;
+                if (isset($groups[$parentId])) {
+                    // Each collo pairs with its own track row, or every returned shipment id lands on
+                    // the first row and the others stay id-less.
+                    $groups[$parentId]['tracks'][] = $magentoTrack;
                     continue;
                 }
 
@@ -609,15 +603,11 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     continue;
                 }
 
-                $multiColloConsignments[$parentId] = [
-                    'built'  => $built,
-                    'tracks' => [$magentoTrack],
-                    'colli'  => 1,
-                ];
+                $groups[$parentId] = ['built' => $built, 'tracks' => [$magentoTrack]];
             }
         }
 
-        return $this->addGroupedShipments($multiColloConsignments);
+        return $this->addGroupedShipments($groups);
     }
 
     /** Get the shipment as one multicollo, or null when this order must ship as separate colli. */
@@ -633,14 +623,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param array<int,array{built:BuiltShipment,tracks:Track[],colli:int}> $multiColloConsignments
+     * @param array<int,array{built:BuiltShipment,tracks:Track[]}> $groups
      */
-    protected function addGroupedShipments(array $multiColloConsignments): self
+    protected function addGroupedShipments(array $groups): self
     {
-        foreach ($multiColloConsignments as $group) {
-            /** @var BuiltShipment $built */
+        foreach ($groups as $group) {
             $built    = $group['built'];
-            $quantity = (int) $group['colli'];
+            $quantity = count($group['tracks']);
 
             $multiCollo = $this->asMultiCollo($built, $quantity);
 
@@ -841,37 +830,26 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     abstract protected function getShipmentsCollection(): ShipmentCollection;
 
     /**
+     * Group the MyParcel shipment ids by each order's own resolved key. A store without a key is
+     * skipped, never lent another store's key.
+     *
      * @param array<int,Track[]>|null $tracks the caller's own read, when it already holds one
-     *
-     * @return array<string,int[]> MyParcel shipment ids grouped by resolved API key
-     */
-    public function getMyparcelConsignmentIdsByApiKey(?array $tracks = null): array
-    {
-        return $this->consignmentIdsByApiKey($this->getShipmentsCollection(), $tracks ?? $this->tracksByShipmentId());
-    }
-
-    /**
-     * Group the MyParcel shipment ids by each order's own resolved key.
-     * A store without a key is skipped, never lent another store's key.
-     *
-     * @param iterable<Order\Shipment> $shipments
-     * @param array<int,Track[]>        $tracksByShipmentId read fresh: a Shipment caches its own tracks
-     *        from before this run wrote its shipment ids
      *
      * @return array<string,int[]>
      */
-    private function consignmentIdsByApiKey(iterable $shipments, array $tracksByShipmentId): array
+    public function getMyparcelConsignmentIdsByApiKey(?array $tracks = null): array
     {
+        $tracks  = $tracks ?? $this->tracksByShipmentId();
         $grouped = [];
 
-        foreach ($shipments as $shipment) {
+        foreach ($this->getShipmentsCollection() as $shipment) {
             $apiKey = $this->apiProvider->apiKeyForStoreOrNull((int) $shipment->getStoreId());
 
             if (null === $apiKey) {
                 continue;
             }
 
-            foreach ($tracksByShipmentId[(int) $shipment->getId()] ?? [] as $track) {
+            foreach ($tracks[(int) $shipment->getId()] ?? [] as $track) {
                 $consignmentId = (int) $track->getData('myparcel_consignment_id');
 
                 if (0 < $consignmentId) {

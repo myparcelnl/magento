@@ -58,7 +58,7 @@ class ShipmentBuilder
      */
     private function shipmentOptionsFor(Order $order, array $options, ?int $shipmentId): OrderShipmentOptions
     {
-        $key = ($shipmentId ?? 'new') . '|' . md5(serialize($options));
+        $key = ($shipmentId ?? 'new') . '|' . json_encode($options);
 
         return $this->shipmentOptions[$key] ?? $this->shipmentOptions[$key] = new OrderShipmentOptions(
             $this->objectManager,
@@ -122,18 +122,9 @@ class ShipmentBuilder
      * A label_amount above one makes several tracks for one shipment, and create() pairs a response
      * by this value, so each track needs its own.
      */
-    public static function referenceIdentifierFor(string $shipmentKey, int $colloNumber): string
+    private static function referenceIdentifierFor(string $shipmentKey, int $colloNumber): string
     {
         return "$shipmentKey-$colloNumber";
-    }
-
-    /**
-     * Create an unsaved Track with the fields the observer needs.
-     * It is added to the Magento shipment only when the export gives it a barcode.
-     */
-    public function createTrackForShipment(MagentoShipment $magentoShipment): Track
-    {
-        return self::newTrackFor($this->objectManager, $magentoShipment);
     }
 
     /**

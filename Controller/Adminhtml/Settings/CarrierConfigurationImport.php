@@ -17,7 +17,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
@@ -170,7 +169,6 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
     {
         $cacheFrontendPool = $this->pool;
         $this->typeListInterface->cleanType('config');
-        $this->typeListInterface->cleanType(CapabilitiesCache::TYPE_IDENTIFIER);
 
         foreach ($cacheFrontendPool as $cacheFrontend) {
             $cacheFrontend->getBackend()

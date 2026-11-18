@@ -495,3 +495,6 @@ this order is a pickup but carries no pickup location,"denne ordre er en afhentn
 "created as MyParcel shipment %1, but the id could not be stored: %2","oprettet som MyParcel-forsendelse %1, men id'et kunne ikke gemmes: %2"
 "MyParcel carrier capabilities","MyParcel transportørers muligheder"
 "Per-account carrier capability answers from the MyParcel API","Svar fra MyParcel API om transportørernes muligheder, pr. konto"
+"this order has no billing address, so it cannot be exported","denne ordre har ingen faktureringsadresse og kan derfor ikke eksporteres"
+"this order has no shipping address, so it cannot be exported","denne ordre har ingen leveringsadresse og kan derfor ikke eksporteres"
+"customs item %1: %2","toldvare %1: %2"

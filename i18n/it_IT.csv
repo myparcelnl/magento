@@ -499,3 +499,6 @@ this order is a pickup but carries no pickup location,"questo ordine è un ritir
 "created as MyParcel shipment %1, but the id could not be stored: %2","creato come spedizione MyParcel %1, ma non è stato possibile salvare l'ID: %2"
 "MyParcel carrier capabilities","Funzionalità dei corrieri MyParcel"
 "Per-account carrier capability answers from the MyParcel API","Risposte dell'API MyParcel sulle funzionalità dei corrieri, per account"
+"this order has no billing address, so it cannot be exported","questo ordine non ha un indirizzo di fatturazione, quindi non può essere esportato"
+"this order has no shipping address, so it cannot be exported","questo ordine non ha un indirizzo di spedizione, quindi non può essere esportato"
+"customs item %1: %2","articolo doganale %1: %2"

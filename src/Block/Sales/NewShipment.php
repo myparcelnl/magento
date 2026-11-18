@@ -66,6 +66,10 @@ class NewShipment extends AbstractItems
 
     private Config $configService;
 
+    private bool $deliveryTypeRead = false;
+
+    private ?int $deliveryType = null;
+
     /**
      * @param Context                     $context
      * @param StockRegistryInterface      $stockRegistry
@@ -170,6 +174,13 @@ class NewShipment extends AbstractItems
      */
     public function getDeliveryType(): ?int
     {
+        // Read once: the form asks per carrier, package type and option, and an unknown type logs.
+        if ($this->deliveryTypeRead) {
+            return $this->deliveryType;
+        }
+
+        $this->deliveryTypeRead = true;
+
         try {
             $deliveryOptions  = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true);
             $deliveryTypeName = $deliveryOptions['deliveryType'] ?? null;
@@ -178,10 +189,10 @@ class NewShipment extends AbstractItems
         }
 
         if (null === $deliveryTypeName) {
-            return DeliveryType::DEFAULT;
+            return $this->deliveryType = DeliveryType::DEFAULT;
         }
 
-        $deliveryType = DeliveryType::toIdOrNull($deliveryTypeName);
+        $deliveryType = $this->deliveryType = DeliveryType::toIdOrNull($deliveryTypeName);
 
         if (null === $deliveryType) {
             Logger::warning(sprintf(
@@ -206,23 +217,14 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * Carriers to offer: those the account has a contract for, narrowed to those this module has
-     * settings for. A carrier the account has but we have no config path for cannot be offered:
-     * it would have no fee, no active flag and no drop-off days. The Repository already logs any
-     * carrier name the module does not know, and V2NameMapTest pins the two lists to the same keys,
-     * so there is no second gap to report here.
+     * Get the carriers to offer. A carrier without settings in this module cannot be offered: it would
+     * have no fee, no active flag and no drop-off days.
      *
      * @return string[]
      */
     public function getCarriers(): array
     {
-        $configured = array_keys(Config::CARRIERS_XML_PATH_MAP);
-
-        if ($this->getCapabilities()->isPermissive()) {
-            return $configured;
-        }
-
-        return array_values(array_intersect($configured, $this->getCapabilities()->carriers()));
+        return $this->getCapabilities()->configuredCarriers();
     }
 
     /**
@@ -267,10 +269,14 @@ class NewShipment extends AbstractItems
 
     public function hasShipmentOption(string $carrier, string $packageType, string $shipmentOption): bool
     {
-        // getDeliveryType() answers null for a stored type the module does not know, and
-        // allowedForDeliveryType() reads that as standard, so name it explicitly instead.
         $deliveryTypeId = $this->getDeliveryType();
-        $deliveryType   = null === $deliveryTypeId ? 'unknown' : DeliveryType::nameFromIdOrNull($deliveryTypeId);
+
+        // An unknown stored type allows no option that only some delivery types take.
+        if (null === $deliveryTypeId && isset(ShipmentOption::LIMIT_DELIVERY_TYPE[$shipmentOption])) {
+            return false;
+        }
+
+        $deliveryType = DeliveryType::nameFromIdOrNull($deliveryTypeId);
 
         if (! ShipmentOption::allowedForDeliveryType($shipmentOption, $deliveryType)) {
             return false;
@@ -386,13 +392,11 @@ class NewShipment extends AbstractItems
         );
 
         return [
-            'default'  => $this->getDefaultInsurance($carrier),
-            'min'      => $range ? $range->min() : null,
-            'max'      => $range ? $range->max() : null,
-            // Zero is enterable unless the contract makes insurance compulsory; the rule lives on
-            // InsuranceRange so the form and the settings screen cannot disagree about it.
-            'floor'    => $range ? $range->lowestAccepted() : 0,
-            'required' => $range && $range->isRequired(),
+            'default' => $this->getDefaultInsurance($carrier),
+            'max'     => $range ? $range->max() : null,
+            // Zero is enterable unless the contract makes insurance compulsory.
+            'floor'   => $range ? $range->lowestAccepted() : 0,
+            'note'    => $range ? $range->note() : null,
         ];
     }
 

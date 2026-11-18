@@ -106,7 +106,7 @@ class FulfilmentOrderBuilder
         $billingAddress = $magentoOrder->getBillingAddress();
 
         if (! $billingAddress) {
-            throw new RuntimeException('This order has no billing address, so it cannot be exported');
+            throw new RuntimeException((string) __('this order has no billing address, so it cannot be exported'));
         }
 
         return $this->recipientFrom($billingAddress)
@@ -142,7 +142,7 @@ class FulfilmentOrderBuilder
         $shippingAddress = $magentoOrder->getShippingAddress();
 
         if (! $shippingAddress) {
-            throw new RuntimeException('This order has no shipping address, so it cannot be exported');
+            throw new RuntimeException((string) __('this order has no shipping address, so it cannot be exported'));
         }
 
         $country     = $shippingAddress->getCountryId();
@@ -176,13 +176,13 @@ class FulfilmentOrderBuilder
         $location = $deliveryOptions->getPickupLocation();
 
         if (null === $location) {
-            throw new RuntimeException('This order is a pickup but carries no pickup location');
+            throw new RuntimeException((string) __('this order is a pickup but carries no pickup location'));
         }
 
         return new PickupLocation($location->toArray());
     }
 
-    private function localCreatedAtDate(Order $magentoOrder, string $format = 'Y-m-d H:i:s'): string
+    private function localCreatedAtDate(Order $magentoOrder): string
     {
         $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
         $datetime    = DateTime::createFromFormat('Y-m-d H:i:s', (string) $magentoOrder->getCreatedAt());
@@ -201,7 +201,7 @@ class FulfilmentOrderBuilder
             $datetime->setTimezone(new DateTimeZone($timezone));
         }
 
-        return $datetime->format($format);
+        return $datetime->format('Y-m-d H:i:s');
     }
 
     /** @return int weight in grams */

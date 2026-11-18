@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipments;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipmentsData;
@@ -168,7 +167,7 @@ it('re-sends only the orders that have no shipment id yet', function () {
 it('correlates by reference identifier rather than by result order', function () {
     // The spy answers in reverse. Pairing by position would give every order the wrong shipment id.
     $calls   = [];
-    $service = makeExportService(['key' => makeShipmentApiSpy($calls, false, true)]);
+    $service = makeExportService(['key' => makeShipmentApiSpy($calls)]);
 
     $built = [
         builtShipmentFor('key', '100000001'),
@@ -229,7 +228,7 @@ it('reports a shipment whose id could not be stored as created, not as refused',
 
 it('keeps a failure visible when a sibling collo of the same order succeeded', function () {
     // One order exports one shipment per collo under the same increment id. A response naming only
-    // collo 1 used to read as a clean export while collo 2 had no shipment and no label.
+    // collo 1 must not read as a clean export while collo 2 has no shipment and no label.
     $calls = [];
 
     $api = Mockery::mock(MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi::class);
@@ -258,10 +257,6 @@ it('keeps a failure visible when a sibling collo of the same order succeeded', f
     expect($report->succeeded())->toHaveKey('100000001')
         ->and($report->hasFailures())->toBeTrue()
         ->and(implode('; ', $report->failureReasons()['100000001']))->toContain('did not return a shipment');
-});
-
-it('has twenty as the default chunk size', function () {
-    expect(Config::DEFAULT_EXPORT_CHUNK_SIZE)->toBe(20);
 });
 
 it('names the accounts whose lookup failed, apart from the ones that answered without a shipment', function () {

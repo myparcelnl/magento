@@ -103,6 +103,24 @@ class InsuranceRange
         return (0 === $euros && ! $this->required) || $this->contains($euros);
     }
 
+    /** Get the sentence that states the range beside an insurance field. */
+    public function note(): string
+    {
+        if ($this->required) {
+            return (string) __(
+                'Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.',
+                $this->min,
+                $this->max
+            );
+        }
+
+        return (string) __(
+            'Your contract allows € %1 to € %2. Enter 0 to switch insurance off.',
+            $this->min,
+            $this->max
+        );
+    }
+
     /** Get the lowest enterable amount, for a form control that can only express one span. */
     public function lowestAccepted(): int
     {

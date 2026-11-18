@@ -21,6 +21,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -31,10 +32,6 @@ use Throwable;
 class DefaultOptions
 {
     private const INSURANCE_FROM_PRICE     = 'insurance_from_price';
-    private const INSURANCE_LOCAL_AMOUNT   = 'insurance_local_amount';
-    private const INSURANCE_BELGIUM_AMOUNT = 'insurance_belgium_amount';
-    private const INSURANCE_EU_AMOUNT      = 'insurance_eu_amount';
-    private const INSURANCE_ROW_AMOUNT     = 'insurance_row_amount';
     private const INSURANCE_PERCENTAGE     = 'insurance_percentage';
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
@@ -158,18 +155,18 @@ class DefaultOptions
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCode::CC_NL;
 
         if (CountryCode::CC_NL === $shippingCountry) {
-            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT);
+            return $this->getInsurance($carrier, InsuranceAmountSetting::LOCAL);
         }
 
         if (CountryCode::CC_BE === $shippingCountry) {
-            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT);
+            return $this->getInsurance($carrier, InsuranceAmountSetting::BELGIUM);
         }
 
         if (CountryCode::isEu($shippingCountry)) {
-            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT);
+            return $this->getInsurance($carrier, InsuranceAmountSetting::EU);
         }
 
-        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT);
+        return $this->getInsurance($carrier, InsuranceAmountSetting::ROW);
     }
 
     /**

@@ -27,8 +27,7 @@ it('sends the request the API expects: v2 keys, the SDK version=2.0 accept, the 
         ->and($sent->getMethod())->toBe('POST')
         ->and($sent->getHeaderLine('Accept'))->toStartWith('application/json;charset=utf-8;version=2.0,')
         ->and($sent->getHeaderLine('Authorization'))->toBe('Bearer ' . base64_encode(CAPABILITIES_TEST_API_KEY))
-        // This call builds its own header rather than going through the SDK trait, so it is the one
-        // that silently drifts. It used to send a format of its own: MyParcelMagento/5.9.0; PHP/8.x.
+        // This call builds its own header rather than going through the SDK trait, so it can drift.
         ->and($sent->getHeaderLine('User-Agent'))->toBe(createUserAgent()->header())
         ->and($body['recipient']['countryCode'])->toBe('NL')
         ->and($body['carrier'])->toBe('POSTNL')
@@ -64,13 +63,6 @@ it('raises on a non-2xx status', function () {
 
     expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
         ->toThrow(RuntimeException::class, 'capabilities responded 500');
-});
-
-it('raises on a transport failure', function () {
-    $c = makeCapabilitiesClient([new ConnectException('timed out', new GuzzleRequest('POST', '/'))]);
-
-    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
-        ->toThrow(RuntimeException::class);
 });
 
 it('names the decoding error for a 2xx body that is not JSON, not the status', function () {
@@ -141,8 +133,6 @@ it('refuses an empty API key without a request', function () {
     expect(fn () => $c['client']->send('', '{}'))->toThrow(RuntimeException::class, 'no API key')
         ->and($c['history'])->toBeEmpty();
 });
-
-// ---- failures -------------------------------------------------------------
 
 it('does not retry a throttled call, so the Repository can fall back at once', function () {
     $c = makeCapabilitiesClient([

@@ -207,44 +207,23 @@ class UpgradeSchema implements UpgradeSchemaInterface
         if (version_compare($context->getVersion(), '6.0.0', '<')) {
             $tableTrack = $setup->getTable('sales_shipment_track');
 
-            // Length above 255 makes this a TEXT column, not a varchar(1023): Magento maps TYPE_TEXT to
-            // varchar only up to 255. This is deliberate: a tokenised portal link must not be truncated,
-            // and nothing indexes or filters on it.
-            if (
-                $setup->getConnection()->isTableExists($tableTrack)
-                && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_tracktrace_url')
-            ) {
-                $setup->getConnection()->addColumn(
+            if ($setup->getConnection()->isTableExists($tableTrack)) {
+                // Length above 255 makes this a TEXT column: a tokenised portal link must not be
+                // truncated, and nothing indexes or filters on it.
+                $this->addTextColumnOnce(
+                    $setup,
                     $tableTrack,
                     'myparcel_tracktrace_url',
-                    [
-                        'type'     => Table::TYPE_TEXT,
-                        'length'   => 1023,
-                        'nullable' => true,
-                        'comment'  => 'MyParcel consumer portal link as received from the api',
-                    ]
+                    'MyParcel consumer portal link as received from the api'
                 );
-            }
-
-            // A JSON list: every return mail sent for this track adds the return shipment it created.
-            if (
-                $setup->getConnection()->isTableExists($tableTrack)
-                && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_return_ids')
-            ) {
-                $setup->getConnection()->addColumn(
+                // A JSON list: every return mail sent for this track adds the return shipment it created.
+                $this->addTextColumnOnce(
+                    $setup,
                     $tableTrack,
                     'myparcel_return_ids',
-                    [
-                        'type'     => Table::TYPE_TEXT,
-                        'length'   => 1023,
-                        'nullable' => true,
-                        'comment'  => 'MyParcel return shipment ids created by the return mail',
-                    ]
+                    'MyParcel return shipment ids created by the return mail'
                 );
-            }
-
-            // carrier_code first: equality; myparcel_status is the IN().
-            if ($setup->getConnection()->isTableExists($tableTrack)) {
+                // carrier_code first: equality; myparcel_status is the IN().
                 $this->addIndexOnce($setup, $tableTrack, ['carrier_code', 'myparcel_status']);
             }
 
@@ -252,6 +231,26 @@ class UpgradeSchema implements UpgradeSchemaInterface
         }
 
         $setup->endSetup();
+    }
+
+    /** Add a nullable TEXT(1023) column unless it is already there. */
+    private function addTextColumnOnce(
+        SchemaSetupInterface $setup,
+        string $table,
+        string $column,
+        string $comment
+    ): void
+    {
+        if ($setup->getConnection()->tableColumnExists($table, $column)) {
+            return;
+        }
+
+        $setup->getConnection()->addColumn($table, $column, [
+            'type'     => Table::TYPE_TEXT,
+            'length'   => 1023,
+            'nullable' => true,
+            'comment'  => $comment,
+        ]);
     }
 
     /**

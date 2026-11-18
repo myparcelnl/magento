@@ -21,15 +21,6 @@ trait MapsNamesToIds
      *
      * @throws \InvalidArgumentException
      */
-    public static function toId(string $name): int
-    {
-        if (! isset(self::NAMES_IDS_MAP[$name])) {
-            throw new InvalidArgumentException(sprintf("Unknown %s '%s'", self::TYPE_LABEL, $name));
-        }
-
-        return self::NAMES_IDS_MAP[$name];
-    }
-
     /** Forgiving: use on read paths. */
     public static function toIdOrNull(?string $name): ?int
     {

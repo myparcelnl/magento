@@ -71,7 +71,7 @@ Automate 'Insurance € 250',Automatiseer 'Verzekerd tot €250'
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 Automate 'Insure shipments to Belgium',Automatiseer 'Verzeker zendingen naar België'
 Automate Priority delivery (mailbox),Automatiseer Prio levering (brievenbus)
-Automatically enable priority delivery for mailbox packages during export,Automatisch prio levering inschakelen voor brievenbuspakketten tijdens export
+Automatically enable priority delivery for mailbox packages during export,Automatisch prioriteitslevering inschakelen voor brievenbuspakketten tijdens export
 Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
 'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn handtekening voor ontvangst en alleen ontvanger inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en 's avonds.
@@ -508,3 +508,6 @@ this order is a pickup but carries no pickup location,"deze bestelling wordt opg
 "created as MyParcel shipment %1, but the id could not be stored: %2","aangemaakt als MyParcel zending %1, maar het id kon niet worden opgeslagen: %2"
 "MyParcel carrier capabilities","MyParcel vervoerdermogelijkheden"
 "Per-account carrier capability answers from the MyParcel API","Antwoorden van de MyParcel API over de mogelijkheden van de vervoerders, per account"
+"this order has no billing address, so it cannot be exported","deze bestelling heeft geen factuuradres en kan daarom niet worden geëxporteerd"
+"this order has no shipping address, so it cannot be exported","deze bestelling heeft geen verzendadres en kan daarom niet worden geëxporteerd"
+"customs item %1: %2","douane-artikel %1: %2"

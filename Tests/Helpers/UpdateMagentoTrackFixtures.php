@@ -136,31 +136,7 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
         ]
     );
 
-    $shipment = createShipment();
-
-    $exportService = recordingExportService($latest, $saved);
-
-    $collection = partialOrderCollection([$shipment]);
-    $collection->shouldReceive('tracksByShipmentId')->andReturn([(int) $shipment->getId() => [$track]]);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
-               ->andReturnUsing(consignmentIdsStub([$consignmentId]));
-    $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
-    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use ($saved) {
-        $made = ['number' => null, 'data' => []];
-        $key  = array_push($saved->created, $made) - 1;
-
-        return recordingTrack([
-            'setTrackNumber' => static function ($number) use ($saved, $key): void {
-                $saved->created[$key]['number'] = $number;
-            },
-            'setData'        => static function ($field, $value) use ($saved, $key): void {
-                $saved->created[$key]['data'][$field] = $value;
-            },
-        ]);
-    })->byDefault();
-    setPrivateProperty($collection, 'exportService', $exportService);
-
-    return [$collection, $saved];
+    return [refreshingCollection([$track], [$consignmentId], $latest, $saved), $saved];
 }
 
 /**
@@ -207,9 +183,18 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
         );
     }
 
-    $shipment = createShipment();
+    return [refreshingCollection($existing, $consignmentIds, $latest, $saved), $saved];
+}
 
-    $exportService = recordingExportService($latest, $saved);
+/**
+ * The wiring both refresh fixtures share: one Magento shipment that carries $existing, an export
+ * service answering from $latest, and new tracks recorded in $saved->created.
+ *
+ * @param int[] $consignmentIds
+ */
+function refreshingCollection(array $existing, array $consignmentIds, array $latest, object $saved): MagentoOrderCollection
+{
+    $shipment = createShipment();
 
     $collection = partialOrderCollection([$shipment]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn([(int) $shipment->getId() => $existing]);
@@ -227,11 +212,12 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
                 $saved->created[$key]['data'][$field] = $value;
             },
         ]);
-    });
-    setPrivateProperty($collection, 'exportService', $exportService);
+    })->byDefault();
+    setPrivateProperty($collection, 'exportService', recordingExportService($latest, $saved));
 
-    return [$collection, $saved];
+    return $collection;
 }
+
 function apiShipment(int $id, ?string $barcode, ?string $link, ?int $status = 3): ShipmentDefsShipment
 {
     $shipment = (new ShipmentDefsShipment())->setId($id);

@@ -31,7 +31,7 @@ function exportResponseWith(array $messages = []): ExportResponse
     return $response;
 }
 
-function message(string $type, string $text): MessageInterface
+function messageOfType(string $type, string $text): MessageInterface
 {
     $message = Mockery::mock(MessageInterface::class);
     $message->shouldReceive('getType')->andReturn($type);
@@ -82,8 +82,8 @@ it('leaves the positions parameter off entirely rather than sending it empty', f
 
 it('hands the messages over as type and text', function () {
     $response = exportResponseWith([
-        message('error', 'Order 100 has a bad postal code'),
-        message('warning', 'Order 101 was already exported'),
+        messageOfType('error', 'Order 100 has a bad postal code'),
+        messageOfType('warning', 'Order 101 was already exported'),
     ]);
 
     expect(invokePrivateMethod($response, 'messages'))->toBe([
