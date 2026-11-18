@@ -79,9 +79,6 @@ class MagentoShipmentCollection extends MagentoCollection
         return $this;
     }
 
-
-
-
     /**
      * Send the shipment email with the track & trace link.
      *

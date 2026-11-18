@@ -25,10 +25,10 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
@@ -230,8 +230,8 @@ class NewShipment extends AbstractItems
     public function getPackageTypes(string $carrier): array
     {
         if ($this->getCapabilities()->isPermissive()) {
-            // What this form offered before capabilities existed. Degrading to the old behaviour
-            // beats both hiding everything and offering pallets that never appeared here.
+            // without capabilities, offer the types of PACKAGE_TYPE_HUMAN_MAP: hiding everything is
+            // worse, and pallet and envelope do not belong on this form
             return array_map(
                 [PackageType::class, 'nameFromId'],
                 array_keys(NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP)
@@ -340,8 +340,7 @@ class NewShipment extends AbstractItems
     /**
      * Digital stamp weight ranges, with the one the order falls in pre-selected.
      *
-     * The ranges are DigitalStampWeight's, shared with the admin default-weight setting. This form
-     * used to hold its own list, which still offered the two values the setting had retired.
+     * The ranges are DigitalStampWeight's, shared with the admin default-weight setting.
      *
      * @return array<int,array{value:int,label:\Magento\Framework\Phrase,selected:bool}>
      */

@@ -13,7 +13,6 @@ use MyParcelNL\Magento\Service\Config;
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php,
 // createNewShipmentBlockWith() in Tests/Helpers/NewShipmentBlockMocks.php.
 
-
 function postnlAndDpdCapabilities(): CapabilitySet
 {
     return CapabilitySet::fromApiResults([

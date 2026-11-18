@@ -36,7 +36,7 @@ class ExportResponse
     }
 
     /**
-     * @param array{url: string, failureLabel: string}|null $labels
+     * @param array{url: string, params: array<string,string|int>, failureLabel: string}|null $labels
      */
     public function json(?array $labels): ResultInterface
     {
@@ -93,7 +93,6 @@ class ExportResponse
         return [
             'url'    => $this->url->getUrl('myparcel/order/PrintMyParcelLabels'),
             'params' => $params,
-            // Translated here rather than in JS, as the other admin components in this module do.
             'failureLabel' => (string) __('The MyParcel labels could not be downloaded.'),
         ];
     }

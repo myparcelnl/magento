@@ -76,7 +76,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param ResultFactory        $rateFactory
      * @param MethodFactory        $rateMethodFactory
      * @param array                $data
-     *
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,

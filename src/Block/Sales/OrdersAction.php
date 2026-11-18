@@ -68,7 +68,6 @@ class OrdersAction extends Template
         return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
     }
 
-
     /**
      * Get the grid's data source component, so the export can refresh the rows it changed without a
      * page load. The name is <namespace>.<dataSource name>, and the namespace is the name of the

@@ -78,7 +78,7 @@ class ShipmentBuilder
         $magentoShipment = $magentoTrack->getShipment();
 
         if (null === $magentoShipment) {
-            throw new \RuntimeException('This track has no Magento shipment, so there is nothing to export');
+            throw new \RuntimeException((string) __('This track has no Magento shipment, so there is nothing to export'));
         }
 
         $order       = $magentoShipment->getOrder();
@@ -185,7 +185,7 @@ class ShipmentBuilder
         $location = $deliveryOptions->getPickupLocation();
 
         if (null === $location) {
-            throw new \RuntimeException('this order is a pickup but carries no pickup location');
+            throw new \RuntimeException((string) __('this order is a pickup but carries no pickup location'));
         }
 
         $pickup = (new RefShipmentPickup())
@@ -206,8 +206,8 @@ class ShipmentBuilder
 
     /**
      * A digital stamp weight is always grams, whatever the weight unit setting says. A preset of
-     * zero (nothing posted and no default configured) falls through to the item weights, as the
-     * consignment path did; the API refuses a zero weight.
+     * zero (nothing posted and no default configured) falls through to the item weights: the API
+     * refuses a zero weight.
      */
     private function weightInGrams(Track $magentoTrack, array $options, int $packageType): int
     {

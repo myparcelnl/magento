@@ -9,7 +9,7 @@ namespace MyParcelNL\Magento\Service;
  *
  * The host follows the account's platform: a Belgian account's consumer portal is not myparcel.me.
  * Platform ids are the API's own (AccountDefsPlatformId); an unmapped or unknown one keeps the Dutch
- * host, which is what every install produced before this map existed. Both values live in etc/di.xml.
+ * host. Both values live in etc/di.xml.
  */
 class TrackTraceUrl
 {

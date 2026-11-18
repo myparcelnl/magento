@@ -46,7 +46,10 @@ final class ShipmentOption
     /** @var array<string,string|null> toV2Name() per name */
     private static $v2Names = [];
 
-    /** What the module knows about an option, one row per option, in settings form order. */
+    /**
+     * What the module knows about an option, one row per option. The row order is the order of the
+     * REST v1 shipmentOptions, and of the New Shipment form when capabilities cannot be read.
+     */
     public const DEFINITIONS
         = [
             self::SIGNATURE          => ['toggle' => true, 'checkout' => true, 'label' => 'Signature on receipt'],

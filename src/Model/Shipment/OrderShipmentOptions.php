@@ -32,8 +32,7 @@ use RuntimeException;
  * only what its own API shape needs: a recipient array against a Recipient, a RefShipmentPickup
  * against a PickupLocation, shipment item weights against order item weights.
  *
- * Generated-model traps: booleans must be a literal 1 or 0 (a PHP bool throws at serialization),
- * setLabelDescription() throws above its limit, and setDeliveryType() throws on a string enum name.
+ * Generated-model trap: setLabelDescription() throws above its limit.
  */
 class OrderShipmentOptions
 {
@@ -89,9 +88,7 @@ class OrderShipmentOptions
         $v2Name  = null === $carrier ? null : Carrier::toV2Name($carrier);
 
         if (null === $v2Name) {
-            throw new RuntimeException(
-                sprintf('carrier "%s" is not one this module knows', (string) $carrier)
-            );
+            throw new RuntimeException((string) __('carrier "%1" is not one this module knows', (string) $carrier));
         }
 
         return SdkCarrier::toId($v2Name);
@@ -250,7 +247,7 @@ class OrderShipmentOptions
             return DeliveryOptionsFactory::create($stored);
         } catch (InvalidArgumentException $e) {
             throw new RuntimeException(
-                sprintf('This order is a pickup but its pickup location cannot be read (%s)', $e->getMessage()),
+                (string) __('This order is a pickup but its pickup location cannot be read (%1)', $e->getMessage()),
                 0,
                 $e
             );

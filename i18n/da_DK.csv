@@ -458,6 +458,8 @@ Return if no answer,Returner hvis intet svar
 "Importing the MyParcel Backoffice settings failed:","Import af MyParcel Backoffice-indstillingerne mislykkedes:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Import af MyParcel Backoffice-indstillingerne mislykkedes. Se loggen for detaljer."
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-indstillingerne er importeret."
+Records per export request,Poster pr. eksportanmodning
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,"Hvor mange forsendelser eller ordrer der sendes til MyParcel i én anmodning. Lad feltet være tomt for 20. Sænk værdien, hvis store eksporter får timeout. Maksimum er 100."
 Return label sent,Returlabel sendt
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kender ikke forsendelse %1 under API-nøglen for denne butik.
 The carrier of shipment %1 does not support return labels.,Transportøren af forsendelse %1 understøtter ikke returlabels.
@@ -473,3 +475,21 @@ The MyParcel API refused this order without giving a reason.,MyParcel API afvist
 The MyParcel API did not return a shipment for this order.,MyParcel API returnerede ingen forsendelse for denne ordre.
 The MyParcel export could not be completed.,MyParcel-eksporten kunne ikke fuldføres.
 The MyParcel labels could not be downloaded.,MyParcel-etiketterne kunne ikke downloades.
+The MyParcel export failed. Please check the log.,MyParcel-eksporten mislykkedes. Tjek loggen.
+No shipments were given to print labels for.,Der er ikke angivet nogen forsendelser at udskrive labels til.
+The MyParcel labels could not be fetched. Please check the log.,MyParcel-labels kunne ikke hentes. Tjek loggen.
+The MyParcel labels could not be fetched. %1,MyParcel-labels kunne ikke hentes. %1
+No MyParcel labels to download.,Ingen MyParcel-labels at downloade.
+Some labels are missing. %1,Nogle labels mangler. %1
+The return label mail is sent to the customer.,Mailen med returlabel er sendt til kunden.
+An unexpected error occurred. Please check the log.,Der opstod en uventet fejl. Tjek loggen.
+"Unknown configuration scope ""%1"".","Ukendt konfigurationsområde ""%1""."
+Configuration scope id must be a number.,Id'et for konfigurationsområdet skal være et tal.
+"Configuration scope ""%1"" has no id %2.","Konfigurationsområdet ""%1"" har intet id %2."
+Customs declaration: %1,Toldangivelse: %1
+"carrier ""%1"" is not one this module knows","transportøren ""%1"" er ikke kendt af dette modul"
+This order is a pickup but its pickup location cannot be read (%1),"Denne ordre er en afhentning, men afhentningsstedet kan ikke læses (%1)"
+"This track has no Magento shipment, so there is nothing to export","Denne track har ingen Magento-forsendelse, så der er intet at eksportere"
+this order is a pickup but carries no pickup location,"denne ordre er en afhentning, men har intet afhentningssted"
+%1 label file(s) could not be merged. Please check the log.,%1 labelfil(er) kunne ikke flettes. Tjek loggen.
+"created as MyParcel shipment %1, but the id could not be stored: %2","oprettet som MyParcel-forsendelse %1, men id'et kunne ikke gemmes: %2"

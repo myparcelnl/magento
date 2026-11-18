@@ -244,7 +244,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             }
 
             // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
-            // over the whole table (no order narrows it first), and had no index to start from.
+            // over the whole table, because no order narrows it first.
             // carrier_code leads because it is the equality; myparcel_status is the IN().
             //
             // No index on myparcel_consignment_id: that query already filters it, but only alongside

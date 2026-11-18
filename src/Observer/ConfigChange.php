@@ -2,18 +2,18 @@
 
 namespace MyParcelNL\Magento\Observer;
 
+use InvalidArgumentException;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Event\Observer as EventObserver;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Event\Observer as EventObserver;
+use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
-use InvalidArgumentException;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
@@ -22,7 +22,6 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\Settings;
 use Throwable;
-
 
 class ConfigChange implements ObserverInterface
 {
@@ -227,18 +226,11 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
-     * Reloads what this save wrote, and nothing else.
+     * Reload what this save wrote, and nothing else, the same way Magento's own config save does.
      *
-     * reinit() is the same call Magento's own config save makes: it drops the merged config values
-     * (cache tag `config_scopes`) and pre-warms them under a lock. cleanType('config') would empty
-     * the whole cache type instead, discarding the merged system.xml structure that lives in it, and
-     * every following request would rebuild that from every module's system.xml.
-     *
-     * Capability entries are keyed on the api key and stored without expiry, so nothing but an api
-     * key change can invalidate them; dropping them for any other setting buys an API round trip.
-     *
-     * Do not use cleanType('config'): it also drops the merged system.xml structure. Only an api key
-     * change drops the capabilities. Rendered output is marked invalid, not flushed.
+     * Do not use cleanType('config'): it also drops the merged system.xml structure, which every next
+     * request then rebuilds. Only an api key change drops the capabilities, which are keyed on the
+     * key. Rendered output is marked invalid, not flushed.
      */
     private function reinitConfig(bool $apiKeyChanged): void
     {

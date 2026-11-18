@@ -31,14 +31,6 @@ class ShipmentApiProvider
         $this->userAgent = $userAgent;
     }
 
-    /** One wording for the two places a missing key surfaces. */
-    private function noApiKey(): LocalizedException
-    {
-        return new LocalizedException(
-            __('API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.')
-        );
-    }
-
     /**
      * @throws LocalizedException when the store has no API key, naming nothing it could fall back to
      */
@@ -74,5 +66,13 @@ class ShipmentApiProvider
         // every Core API call goes out under the OpenAPI generator's default.
         return $this->clients[$apiKey]
             ?? ($this->clients[$apiKey] = ShipmentApiFactory::make($apiKey, null, $this->userAgent->header()));
+    }
+
+    /** One wording for the two places a missing key surfaces. */
+    private function noApiKey(): LocalizedException
+    {
+        return new LocalizedException(
+            __('API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.')
+        );
     }
 }

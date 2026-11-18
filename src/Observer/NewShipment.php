@@ -208,7 +208,7 @@ class NewShipment implements ObserverInterface
      */
     private function updateTrackGrid($shipment, $entireOrder): void
     {
-        $columns = $this->gridColumns->htmlForTracks($shipment->getTracksCollection());
+        $columns = $this->gridColumns->columnsForTracks($shipment->getTracksCollection());
 
         if ($entireOrder) {
             $columns['track_status'] = UpdateStatus::ORDER_STATUS_EXPORTED;

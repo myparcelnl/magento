@@ -80,7 +80,6 @@ it('leaves out an order whose store has no api key rather than borrowing another
     expect($grouped)->toBe(['key-a' => [111]]);
 });
 
-
 it('answers POST only, because fetching a label writes and mails', function () {
     // Fetching the labels mints the barcodes, writes them back and, with notify, mails the customer.
     // On POST the admin validates form_key; on GET it falls back to the secret key, which is a

@@ -17,10 +17,10 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
+use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
 use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
-use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 
 class Config extends AbstractHelper
 {
@@ -212,7 +212,6 @@ class Config extends AbstractHelper
 
         return $this->getConfigValue("$path$code", $storeId);
     }
-
 
     /**
      * Get general settings

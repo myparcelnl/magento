@@ -19,8 +19,8 @@ delivery types and option names are gone, and there are none to adopt.
 **Carriers are the exception.** `MyParcelNL\Sdk\Model\Carrier\` survived beta.22, so
 `Model\Shipment\Carrier` takes each name from the SDK class that owns it
 (`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
-stays the module's own is *which* carriers it supports (the eight it has admin settings and
-insurance virtual types for, against the SDK's thirteen) and the two maps the SDK has no
+stays the module's own is *which* carriers it supports (the eight it has admin settings for,
+against the SDK's thirteen) and the two maps the SDK has no
 equivalent of, `V2_NAMES_MAP` and `LOCAL_COUNTRY_MAP`. An account's real set comes from
 capabilities, never from either list.
 
@@ -107,8 +107,7 @@ one. `CapabilitySet::unknownValues()` reports a carrier, package type or deliver
 generated enums do not know, as a sign that the SDK needs an update.
 
 `Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
-`mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private and the map is
-therefore written out by hand.
+`mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private.
 
 **The REST transformers keep their own maps.** `Model\Rest\Transformer\{Carrier,PackageType,
 DeliveryType}Transformer` bind to **Order API** enums while capabilities is **Core API**. The strings
