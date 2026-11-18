@@ -21,7 +21,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
  * side is ours, and a drift between them is a silent wrong answer rather than an error.
  *
  * The option keys are asserted by round-tripping a real request rather than by comparing to a copy
- * of CapabilitiesMapper's own map, which is private.
+ * of the SDK's alias map (ShipmentOptionMapper::LEGACY_TO_V2_PROPERTIES), which is private.
  */
 
 /** Wire keys the request model carries for one module option, via the SDK's own mapper. */

@@ -16,10 +16,12 @@ the facts the option needs. The docblocks of `ShipmentOption::FLAGS` and `Shipme
 what each fact does.
 
 - **A label of its own:** `label`, and its translation in `i18n/`. Without one, the label is the
-  name, translated through `i18n/`. The shipping method title shows the label when the option is on.
+  name with spaces and a capital (`no_tracking` is "No tracking"), translated through `i18n/`. The shipping method title shows the label when the option is on.
 - **A checkout fee:** `checkout`. The rate then adds the fee from `delivery/<name>_fee`.
 - **A mailbox option:** `mailbox`. The rate then adds the fee from `mailbox/<name>_fee`.
-- **A place in the New Shipment form:** `toggle`. Each toggle is also a key stored on every order.
+- **A yes/no option of the shipment:** `toggle`. The New Shipment form shows the toggles when
+  capabilities cannot be read; otherwise it shows the options that capabilities give. Each toggle is
+  also a key stored on every order.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
   shipment that the API receives.
 
@@ -38,7 +40,8 @@ its price from `delivery/<name>_fee`, as `signature` does.
 
 ### A rule that capabilities do not give
 
-Add a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. A delivery type rule goes
+Add a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. `RULES` applies only to an
+option with `toggle`. A delivery type rule goes
 in `ShipmentOption::LIMIT_DELIVERY_TYPE`.
 
 ### A toggle on the product
