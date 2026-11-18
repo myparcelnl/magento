@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -64,11 +65,15 @@ class ContractDefinitions
     /**
      * Get the advisory insurance bound for one carrier, or null when none resolves. It has no zone.
      * The settings form and the save observer both use it, so the form and the save check agree.
+     * The bound is the one of a package; a carrier without a package contract gets its first bound.
      */
     public function insuranceRangeFor(string $carrier, string $scopeName, ?int $scopeId): ?InsuranceRange
     {
+        $capabilities = $this->forScope($scopeName, $scopeId);
+
         return InsuranceRange::fromOptionValue(
-            $this->forScope($scopeName, $scopeId)->optionValue($carrier, null, ShipmentOption::INSURANCE)
+            $capabilities->optionValue($carrier, PackageType::PACKAGE_NAME, ShipmentOption::INSURANCE)
+            ?? $capabilities->optionValue($carrier, null, ShipmentOption::INSURANCE)
         );
     }
 

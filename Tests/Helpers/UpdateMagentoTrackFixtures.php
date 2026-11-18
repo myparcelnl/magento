@@ -158,7 +158,7 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
                 $saved->created[$key]['data'][$field] = $value;
             },
         ]);
-    });
+    })->byDefault();
     setPrivateProperty($collection, 'exportService', $exportService);
 
     return [$collection, $saved];

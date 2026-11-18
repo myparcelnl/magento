@@ -114,12 +114,15 @@ it('renders a real barcode as a link', function () {
     );
 });
 
-it('does not link a stored url whose scheme is not http', function () {
+it('does not link a stored url whose scheme is not http, but the built one', function () {
     // The column is written verbatim from the api response, and the grid renders this string
     // through a `html:` binding. htmlspecialchars alone would keep a javascript: href clickable.
     $links = makeLinkResolver([trackRow(['myparcel_tracktrace_url' => 'javascript:alert(1)'])]);
 
-    expect($links->htmlForOrder(7))->toBe('3STBJG123456789<br/>');
+    expect($links->htmlForOrder(7))->toBe(
+        '<a class="myparcel-barcode-link" target="_blank" rel="noopener"'
+        . ' href="https://myparcel.me/track-trace/3STBJG123456789/2131BC/NL">3STBJG123456789</a><br/>'
+    );
 });
 
 it('links a stored https url from the api', function () {

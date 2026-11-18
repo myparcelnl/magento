@@ -4,6 +4,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
  * Class MagentoOrderCollection
@@ -86,6 +87,7 @@ class MagentoShipmentCollection extends MagentoCollection
      *
      * One failed send does not stop the loop. With `sales_email/general/async_sending` off, a large
      * batch pays one SMTP round trip per shipment before the label PDF reaches the admin.
+     * A shipment without a real barcode gets no mail yet: email_sent would block the mail that has the link.
      *
      * @return $this
      */
@@ -98,8 +100,10 @@ class MagentoShipmentCollection extends MagentoCollection
             return $this;
         }
 
+        $tracks = $this->tracksByShipmentId();
+
         foreach ($this->shipments as $shipment) {
-            if ($shipment->getEmailSent() != null) {
+            if ($shipment->getEmailSent() != null || ! self::hasRealBarcode($tracks[(int) $shipment->getId()] ?? [])) {
                 continue;
             }
 
@@ -114,5 +118,17 @@ class MagentoShipmentCollection extends MagentoCollection
         }
 
         return $this;
+    }
+
+    /** @param \Magento\Sales\Model\Order\Shipment\Track[] $tracks */
+    private static function hasRealBarcode(array $tracks): bool
+    {
+        foreach ($tracks as $track) {
+            if (TrackAndTrace::isRealBarcode((string) $track->getTrackNumber())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
