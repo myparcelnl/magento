@@ -16,6 +16,8 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
  */
 final class InsuranceRange
 {
+    private const CENTS_PER_EURO = 100;
+
     private int  $min;
     private int  $max;
     private bool $required;
@@ -25,6 +27,12 @@ final class InsuranceRange
         $this->min      = $min;
         $this->max      = $max;
         $this->required = $required;
+    }
+
+    /** Get a whole-euro amount in the cents the Core API takes. */
+    public static function toCents(int $euros): int
+    {
+        return $euros * self::CENTS_PER_EURO;
     }
 
     /**
@@ -54,8 +62,8 @@ final class InsuranceRange
         // Round inwards, so a fractional bound can never widen the range: a min of 1050 cents
         // permits €11, not €10.
         $minCents = self::cents($option->getMin()) ?? 0;
-        $min      = (int) ceil($minCents / 100);
-        $maximum  = (int) floor($max / 100);
+        $min      = (int) ceil($minCents / self::CENTS_PER_EURO);
+        $maximum  = (int) floor($max / self::CENTS_PER_EURO);
 
         // A maximum under one euro floors to zero, and a [0,0] range makes clamp() answer zero for
         // every amount: the uninsured parcel clamp() must never produce.

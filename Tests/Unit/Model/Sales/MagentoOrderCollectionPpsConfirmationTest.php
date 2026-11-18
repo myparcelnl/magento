@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
@@ -69,14 +68,7 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
         return $curl;
     });
 
-    $messageManager = Mockery::mock(ManagerInterface::class);
-    $messageManager->shouldReceive('addErrorMessage')->andReturnUsing(
-        static function ($message) use ($messageManager, $did) {
-            $did->errors[] = (string) $message;
-
-            return $messageManager;
-        }
-    );
+    $messageManager = errorRecordingMessageManager($did);
 
     $orderResource = Mockery::mock(OrderResource::class);
     $orderResource->shouldReceive('save')->andReturnUsing(
@@ -150,14 +142,7 @@ it('marks the other orders exported and names the one whose save failed', functi
 
     $did = new class { public array $errors = []; public array $exported = []; };
 
-    $messageManager = Mockery::mock(ManagerInterface::class);
-    $messageManager->shouldReceive('addErrorMessage')->andReturnUsing(
-        static function ($message) use ($messageManager, $did) {
-            $did->errors[] = (string) $message;
-
-            return $messageManager;
-        }
-    );
+    $messageManager = errorRecordingMessageManager($did);
 
     $orderResource = Mockery::mock(OrderResource::class);
     $orderResource->shouldReceive('save')->andReturnUsing(

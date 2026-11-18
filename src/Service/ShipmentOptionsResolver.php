@@ -192,8 +192,7 @@ class ShipmentOptionsResolver
     /**
      * Standard delivery only, and only where the account carries it.
      *
-     * The country and carrier gates are gone: which carrier offers receipt code where is a
-     * capabilities fact, the same reasoning hasAgeCheck() already carried.
+     * No country or carrier gate: which carrier offers receipt code where is a capabilities fact.
      */
     public function hasReceiptCode(): bool
     {
@@ -210,24 +209,6 @@ class ShipmentOptionsResolver
     public function hasSameDayDelivery(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::SAME_DAY_DELIVERY);
-    }
-
-    /** No country gate: which carrier carries an age check where is a capabilities fact. */
-    public function hasAgeCheck(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::AGE_CHECK);
-    }
-
-    /**
-     * The myparcel_priority_delivery product attribute only controls checkout
-     * visibility (allowPriorityDelivery); it never sets the shipment option
-     * itself. Priority delivery is only enabled by an explicit choice.
-     *
-     * @return bool
-     */
-    public function hasPriorityDelivery(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::PRIORITY_DELIVERY);
     }
 
     /**

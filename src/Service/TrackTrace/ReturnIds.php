@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\TrackTrace;
 
+use MyParcelNL\Magento\Service\IdList;
+
 /**
  * Reads the return shipment ids a track holds, written when a return mail is sent.
  *
@@ -22,6 +24,6 @@ class ReturnIds
     {
         $decoded = json_decode((string) $track->getData(self::FIELD), true);
 
-        return is_array($decoded) ? array_values(array_filter(array_map('intval', $decoded))) : [];
+        return is_array($decoded) ? IdList::ints($decoded) : [];
     }
 }

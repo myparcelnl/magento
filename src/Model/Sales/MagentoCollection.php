@@ -20,13 +20,13 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Sales\Api\ShipmentTrackRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Collection as ShipmentCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\PaperType;
 use MyParcelNL\Magento\Model\Source\SourceItem;
@@ -84,6 +84,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected ShipmentApiProvider    $apiProvider;
     protected UserAgent              $userAgent;
     protected CapabilitiesLookup     $capabilityLookup;
+    protected ShipmentTrackRepositoryInterface $trackRepository;
 
     /** @var array<int,ShipmentBuilder> one per order, built on first use */
     private array $shipmentBuilders = [];
@@ -136,6 +137,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->apiProvider    = $objectManager->get(ShipmentApiProvider::class);
         $this->userAgent      = $objectManager->get(UserAgent::class);
         $this->capabilityLookup = $objectManager->get(CapabilitiesLookup::class);
+        $this->trackRepository  = $objectManager->get(ShipmentTrackRepositoryInterface::class);
 
         $this->setSourceItemWhenInventoryApiEnabled();
     }
@@ -233,10 +235,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected function setNewMagentoTrack($shipment)
     {
         $track = ShipmentBuilder::newTrackFor($this->objectManager, $shipment);
-        $track->save();
-
-        // The memo no longer describes the rows on disk.
-        $this->trackMemo = null;
+        $this->trackRepository->save($track);
+        $this->forgetTracks();
 
         return $track;
     }
@@ -552,7 +552,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         foreach ($changed as $track) {
             try {
-                $track->save();
+                $this->trackRepository->save($track);
             } catch (Throwable $e) {
                 // The mail is already sent; losing the record is the smaller problem.
                 Logger::warning('MyParcel: could not record a return shipment on its track', LogContext::of($e));
@@ -580,9 +580,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $magentoTracks = $tracks[(int) $shipment->getId()] ?? [];
 
             foreach ($magentoTracks as $magentoTrack) {
-                if ($magentoTrack->getData('myparcel_consignment_id')
-                    || Carrier::CODE !== $magentoTrack->getCarrierCode()
-                ) {
+                if ($magentoTrack->getData('myparcel_consignment_id')) {
                     continue;
                 }
 
@@ -726,7 +724,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 // still a transaction.
                 if ($magentoTrack->hasDataChanges()) {
                     try {
-                        $magentoTrack->save();
+                        $this->trackRepository->save($magentoTrack);
                     } catch (Throwable $e) {
                         // The cron selects on status without excluding a row that failed before, so
                         // one unsaveable track would take every order behind it down with it, tick
@@ -789,7 +787,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                 $magentoTrack->setData('myparcel_consignment_id', $colloId);
                 $this->writeShipmentToTrack($magentoTrack, $collo);
-                $magentoTrack->save();
+                $this->trackRepository->save($magentoTrack);
             } catch (Throwable $e) {
                 Logger::warning('MyParcel: could not save the track of one collo', LogContext::of($e));
 
@@ -844,7 +842,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
 
             try {
-                $entry['track']->save();
+                $this->trackRepository->save($entry['track']);
             } catch (Throwable $e) {
                 Logger::warning('MyParcel: could not save the track of one collo', LogContext::of($e));
             }
@@ -903,10 +901,42 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function getMyparcelConsignmentIdsByApiKey(?array $tracks = null): array
     {
-        return $this->apiProvider->consignmentIdsByApiKey(
-            $this->getShipmentsCollection(),
-            $tracks ?? $this->tracksByShipmentId()
-        );
+        return $this->consignmentIdsByApiKey($this->getShipmentsCollection(), $tracks ?? $this->tracksByShipmentId());
+    }
+
+    /**
+     * Group the MyParcel shipment ids by each order's own resolved key.
+     * A store without a key is skipped, never lent another store's key.
+     *
+     * @param iterable<Order\Shipment> $shipments
+     * @param array<int,Track[]>        $tracksByShipmentId read fresh: a Shipment caches its own tracks
+     *        from before this run wrote its shipment ids
+     *
+     * @return array<string,int[]>
+     */
+    private function consignmentIdsByApiKey(iterable $shipments, array $tracksByShipmentId): array
+    {
+        $grouped = [];
+
+        foreach ($shipments as $shipment) {
+            $apiKey = $this->apiProvider->apiKeyForStoreOrNull((int) $shipment->getStoreId());
+
+            if (null === $apiKey) {
+                continue;
+            }
+
+            foreach ($tracksByShipmentId[(int) $shipment->getId()] ?? [] as $track) {
+                $consignmentId = (int) $track->getData('myparcel_consignment_id');
+
+                if (0 < $consignmentId) {
+                    // Keyed, not appended: a multicollo's colli share the parent's id until the
+                    // query response names them, and asking for the same shipment twice is waste.
+                    $grouped[$apiKey][$consignmentId] = $consignmentId;
+                }
+            }
+        }
+
+        return array_map('array_values', $grouped);
     }
 
     /**

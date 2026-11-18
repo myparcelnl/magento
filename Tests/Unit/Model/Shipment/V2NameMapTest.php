@@ -52,14 +52,6 @@ it('agrees with the SDK request mapper on every option wire key', function () {
     }
 });
 
-it('carries fresh food and frozen, which the request model could not always ask about', function () {
-    // CapabilitiesOptionsV2 needs a setter per option; without one the request silently omits it.
-    foreach ([ShipmentOption::FRESH_FOOD, ShipmentOption::FROZEN] as $moduleName) {
-        expect(mappedOptionKeys($moduleName))
-            ->toBe([ShipmentOption::toV2Name($moduleName)], "'$moduleName' stopped being sendable");
-    }
-});
-
 it('round-trips every stored option name through its wire key', function () {
     foreach (moduleOptionNames() as $moduleName) {
         expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName);

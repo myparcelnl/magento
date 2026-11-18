@@ -6,15 +6,13 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
-use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
  * The PPS export chunks by print/export_chunk_size, the same setting the shipment export uses.
  *
- * Only the chunking is driven here. Sending a chunk ends in an HTTP call the SDK builds its own
- * cURL handle for, so exportFulfilmentChunk() is stubbed and what reaches it is what these cases
- * assert.
+ * Only the chunking is driven here: exportFulfilmentChunk() is stubbed, and what reaches it is what
+ * these cases assert.
  *
  * @param array<int|string,int> $storeIdsByIncrementId order increment id => store id
  *
@@ -34,8 +32,7 @@ function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null): ob
     $objectManager->shouldReceive('get')->with(Weight::class)->andReturn(new Weight($config));
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)->andReturn($apiProvider);
 
-    $userAgent = Mockery::mock(UserAgent::class);
-    $userAgent->shouldReceive('map')->andReturn([]);
+    $userAgent = createUserAgent();
 
     $orders = [];
 

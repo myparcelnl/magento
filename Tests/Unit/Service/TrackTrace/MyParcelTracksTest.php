@@ -26,3 +26,10 @@ it('reads a DataObject the same way as an array', function () {
     expect(MyParcelTracks::isOwn(new DataObject(['carrier_code' => Carrier::CODE])))->toBeTrue()
         ->and(MyParcelTracks::isOwn(new DataObject(['carrier_code' => 'dhl'])))->toBeFalse();
 });
+
+it('reads only the module carrier tracks, so no other carrier track reaches the export', function () {
+    $collection = Mockery::mock();
+    $collection->shouldReceive('addAttributeToFilter')->once()->with('carrier_code', Carrier::CODE)->andReturnSelf();
+
+    expect(MyParcelTracks::scopeCollection($collection))->toBe($collection);
+});

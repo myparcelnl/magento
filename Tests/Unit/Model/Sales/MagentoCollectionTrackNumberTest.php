@@ -61,17 +61,6 @@ it('leaves a track that already carries a barcode alone, and gives the new shipm
         ->and($saved->ids)->toBe([4242]);
 });
 
-it('touches no track of another carrier', function () {
-    [$collection, $saved] = collectionWithTracks('100000001', [
-        ['number' => TrackAndTrace::VALUE_EMPTY, 'carrier' => 'dhl'],
-    ]);
-
-    $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
-
-    expect($saved->numbers)->toBe([])
-        ->and($saved->createdNumbers)->toBe(['3SMYPA123']);
-});
-
 it('does nothing for an order the fulfilment response said nothing about', function () {
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
