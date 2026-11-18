@@ -154,7 +154,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
-        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions();
         $deliveryType    = $deliveryOptions->getDeliveryType();
         $shipmentFees    = [];
 
@@ -183,7 +183,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private function getMethodTitle(Quote $quote): string
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
-        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions();
         $carrierName     = $deliveryOptions->getCarrier();
 
         if (null === $carrierName || '0' === $this->config->getGeneralConfig('shipping_methods/show_details_in_summary')) {

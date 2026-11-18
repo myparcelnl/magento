@@ -3,19 +3,13 @@
 declare(strict_types=1);
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Hash\Fingerprint;
 
 function insuranceRangeOfContracts(array $items): ?int
 {
-    $config = createConfig([], [], [], [
-        ScopeConfigInterface::SCOPE_TYPE_DEFAULT => [0 => [Config::XML_PATH_API_KEY => 'live-key']],
-    ]);
-    $contracts = new ContractDefinitions(
-        mockScopeConfig([settingsPathFor('live-key') => accountSettingsRow($items)]),
-        new Fingerprint(),
-        $config
+    $contracts = contractDefinitionsFor(
+        [settingsPathFor('live-key') => accountSettingsRow($items)],
+        [ScopeConfigInterface::SCOPE_TYPE_DEFAULT => [0 => [Config::XML_PATH_API_KEY => 'live-key']]]
     );
 
     $range = $contracts->insuranceRangeFor('postnl', ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0);
@@ -27,11 +21,7 @@ function contractWithInsuranceMax(array $packageTypes, int $maxCents): array
 {
     return contractDefinitionItem([
         'packageTypes' => $packageTypes,
-        'options'      => capabilityOptions(['insurance' => [
-            'isRequired' => false,
-            'min'        => ['amount' => 0, 'currency' => 'EUR'],
-            'max'        => ['amount' => $maxCents, 'currency' => 'EUR'],
-        ]]),
+        'options'      => capabilityOptions(['insurance' => insuranceBounds(0, $maxCents)]),
     ]);
 }
 

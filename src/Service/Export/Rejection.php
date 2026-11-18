@@ -82,7 +82,9 @@ class Rejection
             $summary = trim($summary . ' ' . implode('; ', $unattached));
         }
 
-        $refused = self::isSafeToRetry($e);
+        // Only a 422 guarantees that nothing was created. Anything else can have been processed, and
+        // the API deduplicates nothing, so a retry risks a second billable shipment.
+        $refused = $e instanceof ApiException && 422 === $e->getCode();
 
         return new self(
             $reasons,
@@ -177,16 +179,6 @@ class Rejection
     public function isRefusal(): bool
     {
         return $this->refused;
-    }
-
-    /**
-     * Check whether re-sending is safe. Only a 422 guarantees that nothing was created.
-     * Anything else can have been processed, and the API deduplicates nothing, so a retry risks a
-     * second billable shipment. Add a status only when the same is true for it.
-     */
-    private static function isSafeToRetry(Throwable $e): bool
-    {
-        return $e instanceof ApiException && 422 === $e->getCode();
     }
 
     /** Get the index of the shipment a JSON Pointer points at, or null when it names no shipment. */

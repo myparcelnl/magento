@@ -8,21 +8,24 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
- * A MagentoOrderCollection over one Magento shipment, counting how often the track collection was
- * created. $queries is filled by reference so a test can read the count after the fact.
+ * A MagentoOrderCollection over one Magento shipment, counting how often the track and shipment
+ * collections were created. The counts are filled by reference, so a test reads them after the fact.
  *
  * @param Track[] $tracks what the track query answers with
  */
-function memoisedTrackCollection(array $tracks, ?int &$queries): MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+function memoisedTrackCollection(array $tracks, ?int &$queries, ?int &$shipmentLoads = null): MagentoOrderCollection
 {
-    $queries  = 0;
-    $shipment = createShipment(['getId' => 7, 'getEntityId' => 7]);
+    $queries       = 0;
+    $shipmentLoads = 0;
+    $shipment      = createShipment(['getId' => 7, 'getEntityId' => 7]);
 
     $objectManager = Mockery::mock(Magento\Framework\ObjectManagerInterface::class);
 
     $objectManager->shouldReceive('create')
         ->with(MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection::PATH_MODEL_SHIPMENT_COLLECTION)
-        ->andReturnUsing(static function () use ($shipment) {
+        ->andReturnUsing(static function () use ($shipment, &$shipmentLoads) {
+            $shipmentLoads++;
+
             $collection = Mockery::mock(
                 Magento\Sales\Model\ResourceModel\Order\Shipment\Collection::class . ', IteratorAggregate'
             );
@@ -68,13 +71,14 @@ function memoisedTrackCollection(array $tracks, ?int &$queries): MyParcelNL\Mage
             return $track;
         });
 
-    $collection = newInstanceWithoutConstructor(MyParcelNL\Magento\Model\Sales\MagentoOrderCollection::class);
+    $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
     setPrivateProperty($collection, 'objectManager', $objectManager);
     setPrivateProperty($collection, 'orders', []);
     setPrivateProperty($collection, 'trackRepository', savingTrackRepository());
 
     return $collection;
 }
+
 it('stores the consumer portal link the API returned', function () {
     [$collection, $saved] = collectionRefreshing(4242, [
         4242 => apiShipment(4242, '3SMYPA123', 'https://myparcel.me/track-trace/3SMYPA123/1234AB/NL'),
@@ -115,70 +119,19 @@ it('leaves a track the response said nothing about untouched', function () {
         ->and($saved->numbers)->toBe([]);
 });
 
-it('reads the tracks from their own query, never from the shipment cache', function () {
+it('reads the tracks from their own query once, and hands every caller the same objects', function () {
     // A Shipment caches its own tracks with no way to reset them, so reading from it misses what
-    // setFulfilmentTrackData() wrote. A track with a barcode leaves the cron's scope, so a missed
-    // link is missed for good. The query answer is memoised; adding a row clears the memo.
-    $shipmentsCreated = 0;
-    $trackQueries     = 0;
-
-    $shipment = createShipment(['getId' => 7, 'getEntityId' => 7]);
-
-    $objectManager = Mockery::mock(Magento\Framework\ObjectManagerInterface::class);
-    $objectManager->shouldReceive('create')
-        ->with(MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection::PATH_MODEL_SHIPMENT_COLLECTION)
-        ->andReturnUsing(static function () use (&$shipmentsCreated, $shipment) {
-            $shipmentsCreated++;
-
-            $collection = Mockery::mock(
-                Magento\Sales\Model\ResourceModel\Order\Shipment\Collection::class . ', IteratorAggregate'
-            );
-            $collection->shouldReceive('addAttributeToFilter')->andReturnSelf();
-            $collection->shouldReceive('getIterator')->andReturnUsing(static function () use ($shipment) {
-                return new ArrayIterator([$shipment]);
-            });
-
-            return $collection;
-        });
-
-    $objectManager->shouldReceive('create')
-        ->with('\\Magento\\Sales\\Model\\ResourceModel\\Order\\Shipment\\Track\\Collection')
-        ->andReturnUsing(static function () use (&$trackQueries) {
-            $trackQueries++;
-
-            $collection = Mockery::mock(
-                Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection::class
-            );
-            $collection->shouldReceive('addAttributeToFilter')->andReturnSelf();
-            $collection->shouldReceive('getItems')->andReturn([]);
-
-            return $collection;
-        });
-
-    $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
-    setPrivateProperty($collection, 'objectManager', $objectManager);
-    setPrivateProperty($collection, 'orders', []);
-    setPrivateProperty($collection, 'trackRepository', savingTrackRepository());
-
-    invokePrivateMethod($collection, 'tracksByShipmentId');
-    invokePrivateMethod($collection, 'tracksByShipmentId');
-
-    // One query for both reads, and the shipments collection loaded once.
-    expect($trackQueries)->toBe(1)
-        ->and($shipmentsCreated)->toBe(1);
-});
-
-it('hands every caller the same track objects, so a write by one is seen by the next', function () {
-    // setFulfilmentTrackData() writes the shipment id onto these objects and updateMagentoTrack()
-    // reads it back. Fresh instances lose it unless every writer saves first.
+    // setFulfilmentTrackData() wrote. updateMagentoTrack() then reads that shipment id back off these
+    // objects, so fresh instances lose it unless every writer saves first.
     $track      = recordingTrack([], ['getParentId' => 7]);
-    $collection = memoisedTrackCollection([$track], $queries);
+    $collection = memoisedTrackCollection([$track], $queries, $shipmentLoads);
 
     $first  = invokePrivateMethod($collection, 'tracksByShipmentId');
     $second = invokePrivateMethod($collection, 'tracksByShipmentId');
 
     expect($first[7][0])->toBe($second[7][0])
-        ->and($queries)->toBe(1);
+        ->and($queries)->toBe(1)
+        ->and($shipmentLoads)->toBe(1);
 });
 
 it('reads again once a row has been added, which the memo cannot describe', function () {

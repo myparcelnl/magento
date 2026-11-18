@@ -48,3 +48,19 @@ function newInstanceWithoutConstructor(string $class): object
 {
     return (new ReflectionClass($class))->newInstanceWithoutConstructor();
 }
+
+/**
+ * Builds an instance without its constructor and sets the named properties of any visibility.
+ *
+ * @param array<string,mixed> $properties
+ */
+function instanceWithProperties(string $class, array $properties): object
+{
+    $instance = newInstanceWithoutConstructor($class);
+
+    foreach ($properties as $property => $value) {
+        setPrivateProperty($instance, $property, $value);
+    }
+
+    return $instance;
+}

@@ -51,51 +51,42 @@ function insuranceResolver(
     );
 }
 
-function bounds(int $minCents, int $maxCents, bool $required = false): array
-{
-    return [
-        'isRequired' => $required,
-        'min'        => ['amount' => $minCents, 'currency' => 'EUR'],
-        'max'        => ['amount' => $maxCents, 'currency' => 'EUR'],
-    ];
-}
-
 it('passes an amount inside the contract range through untouched', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(insuranceResolver(137, bounds(0, 500000))->getInsurance())->toBe(137);
+    expect(insuranceResolver(137, insuranceBounds(0, 500000))->getInsurance())->toBe(137);
 });
 
 it('clamps an amount above the contract maximum down, and says so', function () {
     mockLoggerFacade()->shouldReceive('notice')->once()
         ->with(Mockery::pattern('/^Insurance for order 100000001 clamped from 5000 to 2500, .*postnl being 0-2500\.$/'));
 
-    expect(insuranceResolver(5000, bounds(0, 250000))->getInsurance())->toBe(2500);
+    expect(insuranceResolver(5000, insuranceBounds(0, 250000))->getInsurance())->toBe(2500);
 });
 
 it('clamps an amount below the contract minimum up, never to zero', function () {
     mockLoggerFacade()->shouldReceive('notice')->once();
 
-    expect(insuranceResolver(25, bounds(10000, 250000))->getInsurance())->toBe(100);
+    expect(insuranceResolver(25, insuranceBounds(10000, 250000))->getInsurance())->toBe(100);
 });
 
 it('clamps the configured default too, not only a posted amount', function () {
     mockLoggerFacade()->shouldReceive('notice')->once();
 
-    expect(insuranceResolver(null, bounds(0, 250000), 5000)->getInsurance())->toBe(2500);
+    expect(insuranceResolver(null, insuranceBounds(0, 250000), 5000)->getInsurance())->toBe(2500);
 });
 
 it('leaves zero as zero, because zero means insurance is off', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    expect(insuranceResolver(0, bounds(10000, 250000))->getInsurance())->toBe(0);
+    expect(insuranceResolver(0, insuranceBounds(10000, 250000))->getInsurance())->toBe(0);
 });
 
 it('raises zero to the minimum when the contract compels insurance, and says so', function () {
     mockLoggerFacade()->shouldReceive('notice')->once()
         ->with(Mockery::pattern('/^Insurance for order 100000001 raised to 100, the minimum postnl requires\.$/'));
 
-    expect(insuranceResolver(0, bounds(10000, 250000, true))->getInsurance())->toBe(100);
+    expect(insuranceResolver(0, insuranceBounds(10000, 250000, true))->getInsurance())->toBe(100);
 });
 
 it('leaves zero as zero when no contract range resolves at all', function () {
@@ -173,11 +164,11 @@ it('clamps against the type the admin switched to, not the one the checkout stor
         new GuzzleResponse(200, [], capabilitiesBody([
             capabilityResult([
                 'packageTypes' => ['MAILBOX'],
-                'options'      => capabilityOptions(['insurance' => bounds(0, 10000)]),
+                'options'      => capabilityOptions(['insurance' => insuranceBounds(0, 10000)]),
             ]),
             capabilityResult([
                 'packageTypes' => ['PACKAGE'],
-                'options'      => capabilityOptions(['insurance' => bounds(0, 50000)]),
+                'options'      => capabilityOptions(['insurance' => insuranceBounds(0, 50000)]),
             ]),
         ])),
     ])['repository'];

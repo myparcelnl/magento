@@ -2,13 +2,20 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Block\Sales\NewShipment;
-use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
+
+/** @return string[] what the form offers when capabilities could not be reached */
+function toggleOptionsWithoutInsurance(): array
+{
+    return array_values(array_filter(
+        ShipmentOption::having('toggle'),
+        static fn (string $o): bool => ShipmentOption::INSURANCE !== $o
+    ));
+}
 
 function postnlAndDpdCapabilities(): CapabilitySet
 {
@@ -132,10 +139,7 @@ it('offers the form its usual options when capabilities could not be reached', f
     $block = createNewShipmentBlockWith(CapabilitySet::permissive());
 
     expect($block->getShipmentOptions(Carrier::POSTNL, PackageType::PACKAGE_NAME))
-        ->toBe(array_values(array_filter(
-            ShipmentOption::having('toggle'),
-            static fn (string $o): bool => ShipmentOption::INSURANCE !== $o
-        )));
+        ->toBe(toggleOptionsWithoutInsurance());
 });
 
 it('shows the insurance selector only where the account has insurance', function () {
@@ -152,24 +156,13 @@ it('shows the insurance selector only where the account has insurance', function
 });
 
 it('offers the contract range as the field bounds, not a list of tiers', function () {
-    $block = createNewShipmentBlockWith(CapabilitySet::fromApiResults([capabilityResult()]));
-
-    $insurance = null;
-
-    foreach ($block->getFormCarriers() as $carrier) {
-        foreach ($carrier['packageTypes'] as $packageType) {
-            if (PackageType::PACKAGE_NAME === $packageType['name']) {
-                $insurance = $packageType['insurance'];
-            }
-        }
-    }
+    $insurance = packageInsuranceField(createNewShipmentBlockWith(CapabilitySet::fromApiResults([capabilityResult()])));
 
     expect($insurance)->toBe([
-        'default'  => 0,
-        'min'      => 0,
-        'max'      => 5000,
-        'floor'    => 0,
-        'required' => false,
+        'default' => 0,
+        'max'     => 5000,
+        'floor'   => 0,
+        'note'    => 'Your contract allows € 0 to € 5000. Enter 0 to switch insurance off.',
     ]);
 });
 
@@ -178,57 +171,29 @@ it('leaves the field unbounded when the account named no insurance bounds', func
         capabilityResult(['options' => ['insurance' => ['isRequired' => false]]]),
     ]);
 
-    $block     = createNewShipmentBlockWith($withoutBounds);
-    $insurance = null;
-
-    foreach ($block->getFormCarriers() as $carrier) {
-        foreach ($carrier['packageTypes'] as $packageType) {
-            if (PackageType::PACKAGE_NAME === $packageType['name']) {
-                $insurance = $packageType['insurance'];
-            }
-        }
-    }
-
-    expect($insurance)->toBe([
-        'default'  => 0,
-        'min'      => null,
-        'max'      => null,
-        'floor'    => 0,
-        'required' => false,
+    expect(packageInsuranceField(createNewShipmentBlockWith($withoutBounds)))->toBe([
+        'default' => 0,
+        'max'     => null,
+        'floor'   => 0,
+        'note'    => null,
     ]);
 });
 
 it('floors the form at the minimum when the contract requires insurance', function () {
     $required = CapabilitySet::fromApiResults([
-        capabilityResult(['options' => capabilityOptions(['insurance' => [
-            'isRequired' => true,
-            'min'        => ['amount' => 10000],
-            'max'        => ['amount' => 250000],
-        ]])]),
+        capabilityResult(['options' => capabilityOptions(['insurance' => insuranceBounds(10000, 250000, true)])]),
     ]);
 
-    $block     = createNewShipmentBlockWith($required);
-    $insurance = null;
-
-    foreach ($block->getFormCarriers() as $carrier) {
-        foreach ($carrier['packageTypes'] as $packageType) {
-            if (PackageType::PACKAGE_NAME === $packageType['name']) {
-                $insurance = $packageType['insurance'];
-            }
-        }
-    }
+    $insurance = packageInsuranceField(createNewShipmentBlockWith($required));
 
     expect($insurance['floor'])->toBe(100)
-        ->and($insurance['required'])->toBeTrue();
+        ->and($insurance['note'])->toContain('Insurance is required for this carrier');
 });
 
 it('asks nothing for an order with no shipping address rather than inventing a country', function () {
-    $block = newInstanceWithoutConstructor(NewShipment::class);
-    setPrivateProperty($block, 'order', createOrder(['getShippingAddress' => null]));
     // Nothing seeded and no repository behind the lookup: an order with a country would fatal on
     // reaching the repository, and that is the assertion.
-    setPrivateProperty($block, 'capabilityLookup', capabilityLookupWith([]));
-    setPrivateProperty($block, 'form', new NewShipmentForm());
+    $block = createNewShipmentBlockWith([], ['getShippingAddress' => null]);
 
     expect($block->getCountry())->toBe('')
         ->and($block->getCarriers())->toBe(array_keys(Config::CARRIERS_XML_PATH_MAP));
@@ -292,8 +257,5 @@ it('falls back to the permissive set for a package type it cannot express as a v
 
     // 'hovercraft' has no v2 name, so no request can be built for it.
     expect($block->getShipmentOptions(Carrier::POSTNL, 'hovercraft'))
-        ->toBe(array_values(array_filter(
-            ShipmentOption::having('toggle'),
-            static fn (string $o): bool => ShipmentOption::INSURANCE !== $o
-        )));
+        ->toBe(toggleOptionsWithoutInsurance());
 });

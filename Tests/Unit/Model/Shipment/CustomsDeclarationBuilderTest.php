@@ -94,7 +94,7 @@ it('refuses a line above the API maximum rather than truncating it', function ()
     ]);
 
     expect(fn() => buildCustomsFor([$item]))
-        ->toThrow(RuntimeException::class, 'Customs item "Widget": invalid value for $amount');
+        ->toThrow(RuntimeException::class, 'customs item "Widget": invalid value for $amount');
 });
 
 it('adds each shipment item to the consignment exactly once', function () {

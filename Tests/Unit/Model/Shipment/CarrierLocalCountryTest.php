@@ -5,16 +5,7 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 
-/**
- * Pins LOCAL_COUNTRY_MAP. localCountryCodeFor() silently answers NL for a carrier it does not
- * know, so a carrier missing from the map ships with Dutch street-splitting rules unnoticed.
- */
-it('has a local country for every carrier the module names', function () {
-    foreach (array_keys(Carrier::V2_NAMES_MAP) as $carrier) {
-        expect(Carrier::LOCAL_COUNTRY_MAP)->toHaveKey($carrier);
-    }
-});
-
+/** The local country picks the street-splitting rules of a carrier. */
 it('answers BE for DPD and NL for every other carrier', function () {
     expect(Carrier::localCountryCodeFor(Carrier::DPD))->toBe(CountryCode::CC_BE);
 

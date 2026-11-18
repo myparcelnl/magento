@@ -37,15 +37,15 @@ class OrderDeliveryOptionsV1Request
         $this->pickupLocationTransformer = $pickupLocationTransformer;
     }
 
-    public function transform(DeliveryOptions $adapter): array
+    public function transform(DeliveryOptions $deliveryOptions): array
     {
         return [
-            'carrier'         => $this->carrierTransformer->transform($adapter->getCarrier()),
-            'packageType'     => $this->packageTypeTransformer->transform($adapter->getPackageType()),
-            'deliveryType'    => $this->deliveryTypeTransformer->transform($adapter->getDeliveryType()),
-            'shipmentOptions' => $this->shipmentOptionsTransformer->transform($adapter->getShipmentOptions()),
-            'date'            => $this->dateTransformer->transform($adapter->getDate()),
-            'pickupLocation'  => $this->pickupLocationTransformer->transform($adapter->getPickupLocation()),
+            'carrier'         => $this->carrierTransformer->transform($deliveryOptions->getCarrier()),
+            'packageType'     => $this->packageTypeTransformer->transform($deliveryOptions->getPackageType()),
+            'deliveryType'    => $this->deliveryTypeTransformer->transform($deliveryOptions->getDeliveryType()),
+            'shipmentOptions' => $this->shipmentOptionsTransformer->transform($deliveryOptions->getShipmentOptions()),
+            'date'            => $this->dateTransformer->transform($deliveryOptions->getDate()),
+            'pickupLocation'  => $this->pickupLocationTransformer->transform($deliveryOptions->getPickupLocation()),
         ];
     }
 }

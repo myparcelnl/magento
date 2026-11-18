@@ -124,19 +124,7 @@ class InsuranceAmount extends Template implements NoteProviderInterface
             );
         }
 
-        if ($range->isRequired()) {
-            return (string) __(
-                'Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.',
-                $range->min(),
-                $range->max()
-            );
-        }
-
-        return (string) __(
-            'Your contract allows € %1 to € %2. Enter 0 to switch insurance off.',
-            $range->min(),
-            $range->max()
-        );
+        return $range->note();
     }
 
     private function resolveRange(): ?InsuranceRange

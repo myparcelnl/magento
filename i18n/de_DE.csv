@@ -499,3 +499,6 @@ this order is a pickup but carries no pickup location,"diese Bestellung ist eine
 "created as MyParcel shipment %1, but the id could not be stored: %2","als MyParcel-Sendung %1 erstellt, aber die ID konnte nicht gespeichert werden: %2"
 "MyParcel carrier capabilities","MyParcel-Funktionen der Versanddienstleister"
 "Per-account carrier capability answers from the MyParcel API","Antworten der MyParcel-API zu den Funktionen der Versanddienstleister, pro Konto"
+"this order has no billing address, so it cannot be exported","diese Bestellung hat keine Rechnungsadresse und kann daher nicht exportiert werden"
+"this order has no shipping address, so it cannot be exported","diese Bestellung hat keine Lieferadresse und kann daher nicht exportiert werden"
+"customs item %1: %2","Zollposition %1: %2"

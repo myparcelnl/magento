@@ -26,6 +26,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Export\ShipmentExportService;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
 /**
@@ -145,7 +146,7 @@ class NewShipment implements ObserverInterface
         $builtShipments = [];
 
         for ($collo = 1; $collo <= $amount; $collo++) {
-            $track = $builder->createTrackForShipment($shipment);
+            $track = ShipmentBuilder::newTrackFor($this->objectManager, $shipment);
 
             try {
                 $builtShipments[] = $builder->build($track, $options, $collo);
@@ -172,7 +173,7 @@ class NewShipment implements ObserverInterface
             }
         }
 
-        $report = $this->orderCollection()->getExportService()->createConcepts($builtShipments);
+        $report = $this->objectManager->get(ShipmentExportService::class)->createConcepts($builtShipments);
 
         foreach ($report->failureMessages() as $message) {
             $this->messageManager->addErrorMessage($message);

@@ -132,13 +132,15 @@ class Importer
                 }
             }
         } catch (Throwable $e) {
-            $this->logger->notice('No contract definitions could be fetched', LogContext::of($e));
+            $definitions = [];
+            $context     = LogContext::of($e);
         }
 
         if ([] === $definitions) {
             $this->logger->warning(
                 'No contract definitions could be fetched for any carrier; capability-bounded admin '
-                . 'screens will fall open until the next import.'
+                . 'screens will fall open until the next import.',
+                $context ?? []
             );
         }
 

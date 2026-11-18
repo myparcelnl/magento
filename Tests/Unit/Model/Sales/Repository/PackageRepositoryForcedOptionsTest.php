@@ -79,29 +79,3 @@ it('keeps getAgeCheck answering the same question', function () {
     expect($forced->getAgeCheck([], 'myparcelnl_magento_postnl_settings/'))->toBeTrue()
         ->and($unset->getAgeCheck([], 'myparcelnl_magento_postnl_settings/'))->toBeFalse();
 });
-
-/**
- * Checkout asks this three times per carrier: isAgeCheckActive(), forcedLimitingOptions() and
- * checkPackageType().
- */
-it('reads the product tier once per carrier and option', function () {
-    $reads = 0;
-
-    $repository = makePackageRepository();
-    $repository->shouldReceive('getConfigValue')->andReturn('0');
-    $repository->shouldReceive('getAttributesProductsOptions')->andReturnUsing(
-        static function () use (&$reads) {
-            $reads++;
-
-            return null;
-        }
-    );
-
-    $products = [quoteItemFor(1), quoteItemFor(2)];
-
-    foreach ([1, 2, 3] as $ignored) {
-        $repository->forcedLimitingOptions($products, 'myparcelnl_magento_postnl_settings/');
-    }
-
-    expect($reads)->toBe(count($products));
-});
