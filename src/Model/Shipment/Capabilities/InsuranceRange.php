@@ -12,9 +12,9 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
  *
  * The API answers in **cents**, the module stores **euros**. This is the only place that converts:
  * a missing division by 100 insures a parcel for a hundredth of the amount, and nothing throws.
- * Zero is not in the range: `isRequired` alone decides whether "no insurance" is allowed.
+ * A missing min reads as 0. The API refuses an uninsured shipment that the contract requires.
  */
-final class InsuranceRange
+class InsuranceRange
 {
     private const CENTS_PER_EURO = 100;
 
@@ -54,7 +54,6 @@ final class InsuranceRange
         }
 
         // A min that is present but has no amount voids the range, exactly as a bad max does.
-        // Reading it as zero would let allows(0) pass an isRequired contract uninsured.
         if (null !== $option->getMin() && null === self::cents($option->getMin())) {
             return null;
         }

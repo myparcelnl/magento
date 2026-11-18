@@ -6,6 +6,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Service\Export\LabelHttpClient;
 use MyParcelNL\Magento\Service\Export\LabelPdfMerger;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
@@ -192,8 +193,11 @@ function makeShipmentApiSpy(array &$calls, bool $failing = false, bool $reverse 
 }
 
 /** @param array<string,ShipmentApi> $clientsByKey */
-function makeExportService(array $clientsByKey, $chunkSize = null): ShipmentExportService
+/** @param \Psr\Http\Client\ClientInterface|null $httpClient what the label and return services send with */
+function makeExportService(array $clientsByKey, $chunkSize = null, ?\Psr\Http\Client\ClientInterface $httpClient = null): ShipmentExportService
 {
+    $httpClient = $httpClient ?? Mockery::mock(\Psr\Http\Client\ClientInterface::class);
+
     $provider = Mockery::mock(ShipmentApiProvider::class);
     $provider->shouldReceive('clientFor')->andReturnUsing(function (string $apiKey) use ($clientsByKey) {
         if (! isset($clientsByKey[$apiKey])) {
@@ -207,7 +211,9 @@ function makeExportService(array $clientsByKey, $chunkSize = null): ShipmentExpo
         $provider,
         createConfig(['print/export_chunk_size' => $chunkSize]),
         new LabelPdfMerger(),
-        createUserAgent()
+        createUserAgent(),
+        new LabelHttpClient($httpClient),
+        $httpClient
     );
 }
 

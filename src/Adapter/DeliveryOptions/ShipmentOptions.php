@@ -14,7 +14,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
  *
  * The named constructors read different stored shapes and deliberately disagree on defaults.
  */
-final class ShipmentOptions
+class ShipmentOptions
 {
     private const DEFAULT_INSURANCE = 0;
 

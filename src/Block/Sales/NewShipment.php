@@ -28,7 +28,6 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
@@ -73,13 +72,15 @@ class NewShipment extends AbstractItems
      * @param StockConfigurationInterface $stockConfiguration
      * @param Registry                    $registry
      * @param ObjectManagerInterface      $objectManager
+     * @param CapabilitiesLookup          $capabilityLookup
      */
     public function __construct(
         Context                     $context,
         StockRegistryInterface      $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
         Registry                    $registry,
-        ObjectManagerInterface      $objectManager
+        ObjectManagerInterface      $objectManager,
+        CapabilitiesLookup          $capabilityLookup
     )
     {
         $this->order         = $registry->registry('current_shipment')->getOrder();
@@ -87,7 +88,7 @@ class NewShipment extends AbstractItems
         $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
 
-        $this->capabilityLookup = new CapabilitiesLookup($objectManager->get(CapabilitiesRepository::class));
+        $this->capabilityLookup = $capabilityLookup;
 
         $this->defaultOptions = new DefaultOptions($this->order);
 

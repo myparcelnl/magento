@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Service\IdList;
  *
  * The column is a JSON list. A missing, empty or malformed value reads as no returns.
  */
-final class ReturnIds
+class ReturnIds
 {
     public const FIELD = 'myparcel_return_ids';
 

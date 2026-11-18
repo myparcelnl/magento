@@ -11,7 +11,7 @@ use MyParcelNL\Sdk\Services\CountryCodes;
  *
  * The EU list is the SDK's. An unknown country counts as ROW.
  */
-final class CountryCode
+class CountryCode
 {
     public const CC_NL = CountryCodes::CC_NL;
     public const CC_BE = CountryCodes::CC_BE;

@@ -19,7 +19,7 @@ use MyParcelNL\Sdk\Support\Str;
  * The two types are value objects so an unrecognised one survives instead of being defaulted. The
  * plain getters answer with the name; the *Value() getters say whether it resolved.
  */
-final class DeliveryOptions
+class DeliveryOptions
 {
     // NeedsQuoteProps and Carrier read these off an empty instance, so '' rather than null matters.
     private const DEFAULT_DATE          = '';

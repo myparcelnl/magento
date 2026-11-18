@@ -9,7 +9,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException;
 use Throwable;
 
 /** Why the API refused a chunk, and which orders it named. */
-final class Rejection
+class Rejection
 {
     /** @var array<string,string[]> increment id => every reason the API gave for it */
     private array $reasons;

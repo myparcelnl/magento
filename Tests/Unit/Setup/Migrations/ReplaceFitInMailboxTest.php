@@ -42,13 +42,12 @@ function runReplaceFitInMailbox(string $linkField = 'entity_id', array $rows = [
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with('Magento\Framework\App\ResourceConnection')->andReturn($resource);
-    $objectManager->shouldReceive('get')->with(MetadataPool::class)->andReturn(productMetadataPool($linkField));
     ObjectManager::setInstance($objectManager);
 
     $setup = Mockery::mock(SchemaSetupInterface::class);
     $setup->shouldReceive('getTable')->andReturnUsing(static fn(string $name): string => $name);
 
-    (new ReplaceFitInMailbox(new QueryBuilder(), $setup))->updateCatalogProductEntity();
+    (new ReplaceFitInMailbox(new QueryBuilder(), $setup, productMetadataPool($linkField)))->updateCatalogProductEntity();
 
     return $did;
 }

@@ -109,26 +109,24 @@ class FulfilmentOrderBuilder
             throw new RuntimeException('This order has no billing address, so it cannot be exported');
         }
 
-        return $this->recipientFrom($billingAddress, $magentoOrder)
+        return $this->recipientFrom($billingAddress)
                     ->setStreet(implode(' ', $billingAddress->getStreet() ?? []));
     }
 
     /**
-     * Get the fields both recipients share. The shipping one then replaces the street.
-     *
-     * The person is the billing name for both, which is what the fulfilment path has always sent, so
-     * a gift order carries the buyer's name, not the recipient's.
+     * Get the fields both recipients share, each from its own address. The shipping one then replaces
+     * the street.
      *
      * @param \Magento\Sales\Model\Order\Address $address
      */
-    private function recipientFrom($address, Order $magentoOrder): Recipient
+    private function recipientFrom($address): Recipient
     {
         return (new Recipient())
             ->setCc($address->getCountryId())
             ->setCity($address->getCity())
             ->setCompany($address->getCompany())
             ->setEmail($address->getEmail())
-            ->setPerson($this->fullCustomerName($magentoOrder))
+            ->setPerson($this->personOf($address))
             ->setPhone($address->getTelephone())
             ->setPostalCode($address->getPostcode());
     }
@@ -154,26 +152,21 @@ class FulfilmentOrderBuilder
             $country
         );
 
-        return $this->recipientFrom($shippingAddress, $magentoOrder)
+        return $this->recipientFrom($shippingAddress)
                     ->setStreet($streetParts->getStreet())
                     ->setNumber((string) $streetParts->getNumber())
                     ->setNumberSuffix((string) $streetParts->getNumberSuffix())
                     ->setBoxNumber((string) $streetParts->getBoxNumber());
     }
 
-    private function fullCustomerName(Order $magentoOrder): string
+    /** @param \Magento\Sales\Model\Order\Address $address */
+    private function personOf($address): string
     {
-        $billingAddress = $magentoOrder->getBillingAddress();
-
-        if (! $billingAddress) {
-            return '';
-        }
-
         // Filtered, not interpolated, so an empty middle name gives no double space.
         return implode(' ', array_filter([
-            $billingAddress->getFirstname(),
-            $billingAddress->getMiddlename(),
-            $billingAddress->getLastname(),
+            $address->getFirstname(),
+            $address->getMiddlename(),
+            $address->getLastname(),
         ], static fn($part): bool => '' !== trim((string) $part)));
     }
 

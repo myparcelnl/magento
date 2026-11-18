@@ -15,7 +15,7 @@ use InvalidArgumentException;
  *
  * @TODO Use promoted readonly properties when the minimum PHP version is 8.1.
  */
-final class PickupLocation
+class PickupLocation
 {
     private string $locationName;
 

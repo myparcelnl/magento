@@ -10,7 +10,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
  * `value` is not the upper bound: the 50-350 range sends 200. Read a range with `max`, send `value`.
  * Labels are translated here because i18n:collect-phrases only finds a literal argument.
  */
-final class DigitalStampWeight
+class DigitalStampWeight
 {
     /** The "let MyParcel decide" choice. Never selected automatically. */
     public const NO_STANDARD_WEIGHT = 0;

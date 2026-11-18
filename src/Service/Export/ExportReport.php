@@ -11,7 +11,7 @@ namespace MyParcelNL\Magento\Service\Export;
  * A **collateral** order only shared a rejected chunk: it is counted, never named, so it does
  * not hide the message that matters.
  */
-final class ExportReport
+class ExportReport
 {
     /** @var array<string,int> increment id => MyParcel shipment id */
     private array $succeeded = [];
