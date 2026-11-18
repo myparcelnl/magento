@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Shipment\ShipmentValidator;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclaration;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 /**
@@ -26,13 +27,12 @@ it('recurses into a nested model and labels whose problem it is', function () {
         ->and($shipment->listInvalidProperties())->not->toContain("recipient: 'cc' can't be null");
 });
 
-it('leaves customs alone, because its items report a false invalid country for every country we send', function () {
-    $shipment = (new Shipment())->setCustomsDeclaration(new RefShipmentCustomsDeclaration());
+it('checks customs and each of its items', function () {
+    $item     = (new RefShipmentCustomsDeclarationItem())->setCountry('NL');
+    $customs  = (new RefShipmentCustomsDeclaration())->setItems([$item]);
+    $problems = (new ShipmentValidator())->problemsWith((new Shipment())->setCustomsDeclaration($customs));
 
-    $customsProblems = array_filter(
-        (new ShipmentValidator())->problemsWith($shipment),
-        static fn(string $problem): bool => false !== stripos($problem, 'customs')
-    );
-
-    expect($customsProblems)->toBe([]);
+    expect($problems)->toContain("customs: 'contents' can't be null")
+        ->toContain("customs item 1: 'description' can't be null")
+        ->not->toContain("customs item 1: invalid value 'NL' for 'country', must be one of ''");
 });

@@ -19,10 +19,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentTyp
  * Deliberately separate from Helper\CustomsDeclarationFromOrder, which serves the Order v1
  * fulfilment path, a different API.
  *
- * Two traps this class exists to contain: country must go through the item constructor, because the
- * generated enum for setCountry() lists only '' and throws on every real country, which also makes
- * listInvalidProperties() report a false positive here; and descriptions must be truncated before
- * setting, because setDescription() throws above its limit.
+ * Descriptions are truncated before they are set, because setDescription() throws above its limit.
  */
 class CustomsDeclarationBuilder
 {
@@ -96,7 +93,8 @@ class CustomsDeclarationBuilder
             ->setAmount($this->items->lineValueInCents($unitPrice, (float) $amount));
 
         try {
-            return (new RefShipmentCustomsDeclarationItem(['country' => $countryOfOrigin]))
+            return (new RefShipmentCustomsDeclarationItem())
+                ->setCountry($countryOfOrigin)
                 ->setDescription($this->items->description($name))
                 ->setAmount($amount)
                 ->setWeight($this->items->lineWeightInGrams($unitWeight, (float) $amount))
