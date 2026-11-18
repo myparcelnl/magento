@@ -66,8 +66,8 @@ function createShipmentOptions(
         $carrier,
         $options,
         null,
-        // Production reads this off OrderShipmentOptions::packageType(), which prefers the admin
-        // override. Defaulting to the stored type keeps a test that varies only the checkout honest;
+        // Production reads this off OrderShipmentOptions::effectivePackageTypeName(), which prefers the
+        // admin override. Defaulting to the stored type keeps a test that varies only the checkout honest;
         // a test about the override passes the two apart.
         $exportedPackageType ?? $deliveryOptions->getPackageType()
     );

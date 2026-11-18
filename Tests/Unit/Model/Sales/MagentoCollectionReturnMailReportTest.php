@@ -70,10 +70,6 @@ function returnMailRun(
     return ['sent' => $sent, 'rows' => $rows] + $recorded;
 }
 
-/**
- * The real type fetchLatest() answers with, not a double. This class has no getCarrier(); the
- * export's shipment class does. The real type makes a wrong call a test failure, not an admin fatal.
- */
 /** A Magento shipment of the given order, as the collection iterates it. */
 function returnMailMagentoShipment(int $id, string $incrementId): object
 {
@@ -97,6 +93,10 @@ function returnMailTrack(int $myParcelId, int $parentId, string $barcode = ''): 
     return $track;
 }
 
+/**
+ * The real type fetchLatestWithErrors() answers with, not a double. This class has no getCarrier(); the
+ * export's shipment class does. The real type makes a wrong call a test failure, not an admin fatal.
+ */
 function returnMailShipment(int $id = 111, int $carrierId = 1): ShipmentDefsShipment
 {
     return (new ShipmentDefsShipment())

@@ -290,11 +290,10 @@ it('still takes the carrier and package type lists from the broad answer', funct
         ->toBe([PackageType::PACKAGE_NAME, PackageType::MAILBOX_NAME]);
 });
 
-it('withholds rather than over-reports for a package type it cannot express as a v2 name', function () {
+it('falls back to the permissive set for a package type it cannot express as a v2 name', function () {
     $block = createNewShipmentBlockWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
 
-    // 'hovercraft' has no v2 name, so no request can be built for it. Permissive, not the broad
-    // superset, because the superset would claim options no one asked about.
+    // 'hovercraft' has no v2 name, so no request can be built for it.
     expect($block->getShipmentOptions(Carrier::POSTNL, 'hovercraft'))
         ->toBe(array_values(array_filter(
             ShipmentOption::having('toggle'),

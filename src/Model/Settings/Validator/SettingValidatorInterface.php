@@ -19,7 +19,7 @@ interface SettingValidatorInterface
     public function handles(string $path): bool;
 
     /**
-     * @param  mixed  $value the posted value, already flattened to a scalar
+     * @param  mixed  $value the posted value; it can be null or an array
      * @return Phrase|null null when the value may be saved, otherwise the reason to show the admin
      */
     public function validate(string $path, $value, string $scopeName, int $scopeId): ?Phrase;

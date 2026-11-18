@@ -10,8 +10,8 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  * flat min/max/default Money properties. A shape change would unbound every merchant's insurance
  * field with no error.
  *
- * The SDK models declare only the deprecated wrapper, so the witness is a captured acceptance
- * response. Refresh it with the live case:
+ * The witness is a captured acceptance response, so a change of the real API shape fails here.
+ * Refresh it with the live case:
  *
  *     MYPARCEL_ACCEPTANCE_API_KEY=… vendor/bin/pest --test-directory=Tests --filter=InsuranceShape
  *

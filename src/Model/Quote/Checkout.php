@@ -43,7 +43,7 @@ class Checkout
     private StoreManagerInterface $storeManager;
     private CapabilitiesLookup    $capabilityLookup;
 
-    /** @var string[]|null the carriers with delivery or pickup on; getDeliveryOptions() asks three times */
+    /** @var string[]|null the carriers with delivery or pickup on; getDeliveryOptions() asks more than once */
     private ?array $activeCarriers = null;
 
     /**

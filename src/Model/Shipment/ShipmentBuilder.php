@@ -25,8 +25,8 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  *
  * Carrier, package type and the option set come from OrderShipmentOptions, which the fulfilment
  * path shares. What is decided here is what only a label needs: the weight of these shipment items,
- * the recipient array and the pickup model. A shipment that cannot be built fails on its own,
- * naming the order, never by substituting a value the merchant did not choose.
+ * the recipient array and the pickup model. A shipment that cannot be built fails on its own, and
+ * the caller names the order; a value the merchant did not choose is never substituted.
  */
 class ShipmentBuilder
 {
@@ -228,7 +228,7 @@ class ShipmentBuilder
         return $this->weight->convertToGrams($total) + $this->weight->getEmptyPackageWeightInGrams($packageType);
     }
 
-    /** @throws \RuntimeException naming the order, so one bad shipment does not fail the batch */
+    /** @throws \RuntimeException with the problems, so one bad shipment does not fail the batch */
     private function assertValid(Shipment $shipment): void
     {
         $problems = $this->validator->problemsWith($shipment);

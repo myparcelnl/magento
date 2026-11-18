@@ -22,9 +22,6 @@ class ExportReport
     /** @var array<string,array{reason: string, refused: bool}> increment ids that did not ship but were never blamed */
     private array $collateral = [];
 
-    /** Why the collateral did not ship. The same for all of them, so it is kept once. */
-    private string $collateralReason = '';
-
     /** True while every chunk that produced collateral was refused; one transport failure clears it. */
     private bool $collateralRefused = true;
 
@@ -69,7 +66,7 @@ class ExportReport
      * @param bool $refused the API validated the chunk and refused it, so nothing was created.
      *                      False for a timeout or a 5xx, which changes what the admin is told.
      */
-    public function failCollateral(string $incrementId, string $reason, bool $refused = true): void
+    public function failCollateral(string $incrementId, string $reason, bool $refused): void
     {
         if (isset($this->blamed[$incrementId])) {
             return;
@@ -82,7 +79,6 @@ class ExportReport
         }
 
         $this->collateral[$incrementId] = ['reason' => trim($reason), 'refused' => $refused];
-        $this->collateralReason         = trim($reason) ?: $this->collateralReason;
         $this->collateralRefused        = $this->collateralRefused && $refused;
     }
 
@@ -137,6 +133,8 @@ class ExportReport
 
         // A count, not a sentence per number: __() has no plural forms.
         $count = count($this->collateral);
+        // One reason per failed chunk, so a batch over several chunks can give more than one.
+        $reason = implode(' ', array_unique(array_filter(array_column($this->collateral, 'reason'))));
 
         if ($this->blamed) {
             $messages[] = (string) __('Other orders in this batch that were not exported: %1. Correct the orders above and run the action again.', $count);
@@ -145,14 +143,14 @@ class ExportReport
         }
 
         if ($this->collateralRefused) {
-            $messages[] = (string) __('Orders that were not exported because MyParcel refused this batch: %1. Reason: %2', $count, $this->collateralReason);
+            $messages[] = (string) __('Orders that were not exported because MyParcel refused this batch: %1. Reason: %2', $count, $reason);
 
             return $messages;
         }
 
         // Never "not exported" here: the call may have been processed, and re-running would then
         // create a second billable shipment for every one of these orders.
-        $messages[] = (string) __('Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2', $count, $this->collateralReason);
+        $messages[] = (string) __('Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2', $count, $reason);
 
         return $messages;
     }

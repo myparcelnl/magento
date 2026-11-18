@@ -31,9 +31,9 @@ class ShipmentOption
     public const FROZEN             = 'frozen';
 
     /**
-     * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
-     * not be read, and a stored key. checkout: in the widget, with a fee. mailbox: its fee is in the
-     * mailbox group.
+     * The yes/no facts having() takes; a missing one is false. toggle: a yes/no option of the shipment,
+     * resolved and sent on every export, stored on the order, and shown when capabilities cannot be
+     * read. checkout: in the widget, with a fee. mailbox: its fee is in the mailbox group.
      */
     private const FLAGS = ['toggle', 'checkout', 'mailbox'];
 
@@ -46,10 +46,7 @@ class ShipmentOption
     /** @var array<string,string|null> toV2Name() per name */
     private static $v2Names = [];
 
-    /**
-     * What the module knows about an option, one row per option. The row order is the order of the
-     * REST v1 shipmentOptions, and of the New Shipment form when capabilities cannot be read.
-     */
+    /** What the module knows about an option, one row per option. The row order is the order of every option list. */
     public const DEFINITIONS
         = [
             self::SIGNATURE          => ['toggle' => true, 'checkout' => true, 'label' => 'Signature on receipt'],
@@ -113,28 +110,17 @@ class ShipmentOption
     }
 
     /**
-     * Options that rule out a package type when the merchant has forced them on.
-     *
-     * Stated, not derived from the config shape: a forced option only narrows the choice when it
-     * applies to the whole order. Priority delivery is the counter-example: it is a mailbox
-     * option, so treating it as limiting would rule out every package type but mailbox, backwards.
-     *
-     * Which types can carry one is the capabilities API's answer, per carrier: DPD may offer an
-     * age check on a mailbox where PostNL does not.
+     * Options that rule out a package type when the merchant has forced them on. Which types can carry
+     * one is the capabilities answer, per carrier. Priority delivery is not here: it is a mailbox option.
      *
      * @var string[]
      */
     public const LIMIT_PACKAGE_TYPE = [self::AGE_CHECK];
 
     /**
-     * Options the API accepts on some delivery types only.
-     *
-     * Not a capabilities fact: the capabilities response answers per carrier and package type, not
-     * per delivery type, so this rule is the module's own. Stating it here keeps the export and the
-     * admin form from disagreeing, which they did, one gated on country and carrier as well.
-     *
-     * The checkout cannot use this: it builds one config per carrier before the customer has picked
-     * a delivery type, and the widget decides what to render under each.
+     * Options the API accepts on some delivery types only. The module does not ask capabilities per
+     * delivery type yet; the checkout does not use this list, because it builds one config per carrier
+     * before the customer picks a delivery type.
      *
      * @var array<string,string[]>
      */
@@ -167,7 +153,7 @@ class ShipmentOption
         return self::$v2Names[$name];
     }
 
-    /** Null for a v2 name the module does not know; the caller logs it rather than inventing one. */
+    /** Null for a v2 name the module does not know; the caller leaves it out rather than inventing one. */
     public static function fromV2Name(string $v2Name): ?string
     {
         foreach (array_merge(array_keys(self::DEFINITIONS), [self::INSURANCE]) as $name) {

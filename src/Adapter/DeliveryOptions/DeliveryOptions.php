@@ -21,7 +21,6 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class DeliveryOptions
 {
-    // NeedsQuoteProps and Carrier read these off an empty instance, so '' rather than null matters.
     private const DEFAULT_DATE          = '';
     private const DEFAULT_DELIVERY_TYPE = DeliveryType::STANDARD_NAME;
 

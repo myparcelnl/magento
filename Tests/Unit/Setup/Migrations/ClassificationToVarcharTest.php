@@ -13,11 +13,11 @@ use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
  * not survive. The SQL is raw, so what it sends is the thing worth asserting: the migration runs
  * offline and a wrong statement is a column of HS codes silently emptied.
  *
- * @param int|null $attributeId what EavSetup answers for the attribute; 0 means it does not exist
+ * @param int $attributeId what EavSetup answers for the attribute; 0 means it does not exist
  *
- * @return array{0: object, 1: callable} a recorder of what was sent, and the run
+ * @return object a recorder of what was sent
  */
-function runClassificationToVarchar(?int $attributeId = 137, string $linkField = 'entity_id'): object
+function runClassificationToVarchar(int $attributeId = 137, string $linkField = 'entity_id'): object
 {
     $did = new class {
         /** @var array<int,array{sql: string, bind: array}> */
