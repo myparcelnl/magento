@@ -95,22 +95,31 @@ it('honours a configured chunk size inside the range', function () {
 });
 
 it('persists each chunk before issuing the next, and keeps earlier chunks when a later one fails', function () {
-    $calls    = [];
-    $failing  = [];
-    $service  = makeExportService(['key' => makeShipmentApiSpy($calls)], 2);
-
     $built = [
         builtShipmentFor('key', '100000001'),
         builtShipmentFor('key', '100000002'),
         builtShipmentFor('key', '100000003'),
     ];
 
-    $report = $service->createConcepts($built);
+    $idsAtSecondCall = null;
+    $calls           = [];
+    $spy             = makeShipmentApiSpy($calls, 2, static function (int $call) use ($built, &$idsAtSecondCall): void {
+        if (2 === $call) {
+            $idsAtSecondCall = [
+                $built[0]->getTrack()->getData('myparcel_consignment_id'),
+                $built[1]->getTrack()->getData('myparcel_consignment_id'),
+            ];
+        }
+    });
 
-    expect($built[0]->getTrack()->getData('myparcel_consignment_id'))->not->toBeNull()
-        ->and($built[1]->getTrack()->getData('myparcel_consignment_id'))->not->toBeNull()
-        ->and($report->succeeded())->toHaveCount(3)
-        ->and($report->hasFailures())->toBeFalse();
+    $report = makeExportService(['key' => $spy], 2)->createConcepts($built);
+
+    expect($idsAtSecondCall)->each->not->toBeNull()
+        ->and($built[0]->getTrack()->getData('myparcel_consignment_id'))->toBe($idsAtSecondCall[0])
+        ->and($built[1]->getTrack()->getData('myparcel_consignment_id'))->toBe($idsAtSecondCall[1])
+        ->and($built[2]->getTrack()->getData('myparcel_consignment_id'))->toBeNull()
+        ->and(array_map('strval', array_keys($report->succeeded())))->toEqualCanonicalizing(['100000001', '100000002'])
+        ->and(array_map('strval', $report->collateral()))->toBe(['100000003']);
 });
 
 it('reports an unattributable chunk rejection once, not once per order', function () {

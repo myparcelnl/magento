@@ -4,39 +4,19 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
-use InvalidArgumentException;
-
 /**
  * Translates between module names and the SDK ids.
  *
- * Requires the using class to declare: public const NAMES_IDS_MAP, module name => SDK id, and
- * public const TYPE_LABEL, lower case, which names the type in an exception message.
+ * Requires the using class to declare public const NAMES_IDS_MAP, module name => SDK id. Both
+ * lookups answer null for a value they do not know.
  *
  * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
 trait MapsNamesToIds
 {
-    /**
-     * Strict: use on any path that ends in an API request.
-     *
-     * @throws \InvalidArgumentException
-     */
-    /** Forgiving: use on read paths. */
     public static function toIdOrNull(?string $name): ?int
     {
         return null === $name ? null : (self::NAMES_IDS_MAP[$name] ?? null);
-    }
-
-    /** @throws \InvalidArgumentException */
-    public static function nameFromId(int $id): string
-    {
-        $name = self::nameFromIdOrNull($id);
-
-        if (null === $name) {
-            throw new InvalidArgumentException(sprintf("Unknown %s id '%d'", self::TYPE_LABEL, $id));
-        }
-
-        return $name;
     }
 
     public static function nameFromIdOrNull(?int $id): ?string

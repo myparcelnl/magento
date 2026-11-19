@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use DateTimeImmutable;
+use Throwable;
 
 class Dating
 {

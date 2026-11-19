@@ -110,38 +110,45 @@ class Importer
             [
                 'shop'                 => $shop,
                 'account'              => $account,
-                'contract_definitions' => $this->fetchContractDefinitions($apiKey),
+                // A failed fetch keeps the stored list rather than replacing it with nothing.
+                'contract_definitions' => $this->fetchContractDefinitions($apiKey) ?? $this->storedContractDefinitions($apiKey),
             ]
         );
     }
 
+    /** @return array<int, array<string, mixed>>|null the stored list, or null when none is stored */
+    private function storedContractDefinitions(string $apiKey): ?array
+    {
+        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey));
+        $decoded = is_string($stored) ? json_decode($stored, true) : null;
+        $items   = is_array($decoded) ? ($decoded['contract_definitions'] ?? null) : null;
+
+        return is_array($items) && [] !== $items ? $items : null;
+    }
+
     /**
      * Fetch the contract definitions of every carrier in one call.
-     * A refusal gives an empty list, so the admin screens stay open instead of locked.
      *
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>|null null when the call failed
      */
-    private function fetchContractDefinitions(string $apiKey): array
+    private function fetchContractDefinitions(string $apiKey): ?array
     {
-        $definitions = [];
-
         try {
-            foreach ($this->client->sendContractDefinitions($apiKey) as $item) {
-                if (is_array($item)) {
-                    $definitions[] = $item;
-                }
-            }
+            $answer = $this->client->sendContractDefinitions($apiKey);
         } catch (Throwable $e) {
-            $definitions = [];
-            $context     = LogContext::of($e);
+            $this->logger->warning(
+                'No contract definitions could be fetched; the stored ones are kept, or the screens '
+                . 'fall open until the next import.',
+                LogContext::of($e)
+            );
+
+            return null;
         }
 
+        $definitions = array_values(array_filter($answer, 'is_array'));
+
         if ([] === $definitions) {
-            $this->logger->warning(
-                'No contract definitions could be fetched for any carrier; capability-bounded admin '
-                . 'screens will fall open until the next import.',
-                $context ?? []
-            );
+            $this->logger->warning('The account answered no contract definitions; the screens fall open until the next import.');
         }
 
         return $definitions;
@@ -165,9 +172,10 @@ class Importer
                 'name' => $shop->getName(),
             ],
             'account'              => $account->toArray(),
+        ] + (null === $settings->get('contract_definitions') ? [] : [
             // Stored verbatim: a generated model is an allow-list and would drop the insurance
-            // bounds the settings screen reads.
+            // bounds the settings screen reads. Left out when unknown, so hasSettingsFor() asks again.
             'contract_definitions' => $settings->get('contract_definitions'),
-        ];
+        ]);
     }
 }

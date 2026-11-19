@@ -88,25 +88,31 @@ it('carries on to the next collo when the track of one collo cannot be saved', f
         4242 => apiShipmentWithColli(4242, '3SMAIN', [apiCollo(4243, '3SCOLLO2'), apiCollo(4244, '3SCOLLO3')]),
     ]);
 
-    $made = 0;
-    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use (&$made, $saved) {
-        if (1 === ++$made) {
-            throw new Exception('constraint violation on this row');
-        }
-
-        $saved->created[] = ['number' => null, 'data' => []];
+    // The first collo's new track is made but refuses to save; the second saves.
+    $made  = 0;
+    $saves = [];
+    $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use (&$made, &$saves, $saved) {
+        $number = ++$made;
+        $key    = array_push($saved->created, ['number' => null, 'data' => []]) - 1;
 
         return recordingTrack([
             'setTrackNumber' => static function (): void {
             },
-            'setData'        => static function ($field, $value) use ($saved): void {
-                $saved->created[array_key_last($saved->created)]['data'][$field] = $value;
+            'setData'        => static function ($field, $value) use ($saved, $key): void {
+                $saved->created[$key]['data'][$field] = $value;
+            },
+            'save'           => static function () use ($number, $saved, $key, &$saves): void {
+                if (1 === $number) {
+                    throw new Exception('constraint violation on this row');
+                }
+
+                $saves[] = $saved->created[$key]['data']['myparcel_consignment_id'] ?? null;
             },
         ]);
     });
 
     $collection->updateMagentoTrack();
 
-    expect($saved->created)->toHaveCount(1)
-        ->and($saved->created[0]['data']['myparcel_consignment_id'])->toBe(4244);
+    expect($saved->created)->toHaveCount(2)
+        ->and($saves)->toBe([4244]);
 });

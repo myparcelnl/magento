@@ -16,6 +16,7 @@ use MyParcelNL\Sdk\Services\Labels\ShipmentLabelsService;
 use MyParcelNL\Sdk\Services\Returns\ReturnShipmentService;
 use MyParcelNL\Sdk\Services\Shipment\ShipmentCreateService;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -184,9 +185,19 @@ class ShipmentExportService
             $rowsByApiKey,
             'create return shipments',
             function (string $apiKey, array $rows) use (&$returns): void {
-                $answer = $this->tagged($apiKey, function (string $key, $client) {
-                    return new ReturnShipmentService($key, $client, $this->httpClient);
-                })->createRelated($rows, true);
+                try {
+                    $answer = $this->tagged($apiKey, function (string $key, $client) {
+                        return new ReturnShipmentService($key, $client, $this->httpClient);
+                    })->createRelated($rows, true);
+                } catch (Throwable $e) {
+                    // The SDK drops the HTTP status here (docs/sdk-v11.md), so a refusal looks like a
+                    // timeout. Either way the returns may exist and be mailed: never ask to just retry.
+                    throw new RuntimeException((string) __(
+                        'It is unknown whether MyParcel created and mailed the return labels of %1 shipment(s): %2. Check them in the MyParcel backoffice before you send them again.',
+                        count($rows),
+                        $e->getMessage()
+                    ), 0, $e);
+                }
 
                 foreach ($answer as $returnId => $parentId) {
                     if (! (int) $parentId) {

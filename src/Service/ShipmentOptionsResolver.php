@@ -327,7 +327,7 @@ class ShipmentOptionsResolver
             ->from(['main_table' => $connection->getTableName('sales_order_item')], ['product_id', 'name'])
             ->columns(['qty' => 'main_table.qty_ordered'])
             ->where('main_table.order_id=?', (int) $this->order->getId())
-            ->order('main_table.entity_id ASC')
+            ->order('main_table.item_id ASC')
             ->limit(1);
 
         return $this->labelProductRows = $conn->fetchAll($select);

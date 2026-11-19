@@ -72,3 +72,17 @@ it('leaves a pickup on the type the precedence resolved, rather than forcing a p
 
     expect($result)->toBe(PackageType::MAILBOX);
 });
+
+it('reads an empty delivery options column as no choice, rather than failing to parse it', function () {
+    $defaultOptions = Mockery::mock(DefaultOptions::class);
+    $defaultOptions->shouldReceive('getCarrierName')->andReturn('postnl');
+
+    $options = createOrderShipmentOptions([
+        'options'        => [],
+        'defaultOptions' => $defaultOptions,
+        'jsonSerializer' => new Magento\Framework\Serialize\Serializer\Json(),
+        'order'          => createOrder(['deliveryOptions' => '']),
+    ]);
+
+    expect(invokePrivateMethod($options, 'storedDeliveryOptions', []))->toBe(['carrier' => 'postnl']);
+});

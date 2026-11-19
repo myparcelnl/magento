@@ -214,7 +214,8 @@ class OrderShipmentOptions
      */
     private function storedDeliveryOptions(): array
     {
-        $stored          = $this->jsonSerializer->unserialize($this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '[]') ?? [];
+        $raw             = (string) $this->order->getData(Config::FIELD_DELIVERY_OPTIONS);
+        $stored          = '' === $raw ? [] : ($this->jsonSerializer->unserialize($raw) ?? []);
         $checkoutCarrier = $stored['carrier'] ?? null;
         $selected        = $this->carrierFromOptions() ?? $this->defaultOptions->getCarrierName();
 

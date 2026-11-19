@@ -58,3 +58,13 @@ it('still lists an order the API refused without any text', function () {
     expect(array_map('strval', array_keys($report->failureReasons())))->toBe(['100000001'])
         ->and($report->failureReasons()['100000001'][0])->not->toBe('');
 });
+
+it('gives the reason for refused orders next to a blamed one, and does not ask to correct the blamed one', function () {
+    // Two chunks: one named order 5, the other was refused for the whole account.
+    $report = new ExportReport();
+    $report->fail('100000005', 'Invalid postal code');
+    $report->failCollateral('100000006', 'your account is not active', true);
+
+    expect($report->failureMessages()[1])
+        ->toBe('Orders that were not exported because MyParcel refused this batch: 1. Reason: your account is not active');
+});

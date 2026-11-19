@@ -71,6 +71,28 @@ it('writes the two grid columns without saving the order', function () {
         ->and($set)->toBe($columns);
 });
 
+it('does not blank a column on the order that the tracks cannot fill', function () {
+    $set   = [];
+    $order = createOrder(['getEntityId' => 7]);
+    $order->shouldReceive('setData')->andReturnUsing(function ($key, $value) use ($order, &$set) {
+        $set[$key] = $value;
+
+        return $order;
+    });
+
+    $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
+    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => 'status_3', 'track_number' => '']);
+    $gridColumns->shouldReceive('writeColumns')->andReturnTrue();
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', Mockery::mock(MagentoOrderCollection::class));
+    setPrivateProperty($observer, 'gridColumns', $gridColumns);
+
+    invokePrivateMethod($observer, 'updateTrackGrid', [createShipment(['getOrder' => $order, 'getTracksCollection' => []]), false]);
+
+    expect($set)->toBe(['track_status' => 'status_3']);
+});
+
 it('marks a PPS export exported rather than reading it off the tracks', function () {
     $order = createOrder(['getEntityId' => 7]);
     $order->shouldReceive('setData')->andReturnSelf();

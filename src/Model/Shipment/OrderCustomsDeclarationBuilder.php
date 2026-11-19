@@ -36,7 +36,9 @@ class OrderCustomsDeclarationBuilder
         foreach ($order->getItems() as $item) {
             $product = $item->getProduct();
 
-            if (! $product) {
+            // As on a label: a child row of a configurable ships as its parent, and a virtual
+            // product does not ship at all.
+            if (! $product || $item->getParentItem() || $item->getIsVirtual()) {
                 continue;
             }
 
