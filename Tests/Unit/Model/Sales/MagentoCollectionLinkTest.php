@@ -52,13 +52,14 @@ function memoisedTrackCollection(array $tracks, ?int &$queries, ?int &$shipmentL
         });
 
     // setNewMagentoTrack() builds one through the object manager and saves it. Every setter has to
-    // answer with the track: newTrackFor() chains six of them.
+    // answer with the track: newTrackFor() chains seven of them.
     $objectManager->shouldReceive('create')
         ->with(Track::class)
         ->andReturnUsing(static function () {
             $track = Mockery::mock(Track::class);
             $track->shouldReceive(
                 'setOrderId',
+                'setParentId',
                 'setShipment',
                 'setCarrierCode',
                 'setTitle',
