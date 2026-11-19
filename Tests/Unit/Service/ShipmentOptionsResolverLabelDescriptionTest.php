@@ -38,7 +38,7 @@ it('runs no query for a template that names no product', function () {
         ->and($select->fetchAlls)->toBe(0);
 });
 
-it('reads one named row of the order, not every column of every item', function () {
+it('reads one named row of the order, first by its item_id key, not every column of every item', function () {
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         null,
         '%product_name%',
@@ -49,7 +49,7 @@ it('reads one named row of the order, not every column of every item', function 
 
     expect($select->from)->toBe(['product_id', 'name'])
         ->and($select->limit)->toBe(1)
-        ->and($select->order)->toBe('main_table.entity_id ASC');
+        ->and($select->order)->toBe('main_table.item_id ASC');
 });
 
 it('reads the row once, however often the description is asked for', function () {

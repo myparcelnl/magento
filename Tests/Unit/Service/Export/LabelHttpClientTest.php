@@ -69,10 +69,8 @@ it('restores an unseekable body instead of losing it', function () {
     mockLoggerFacade()->shouldReceive('warning')->byDefault();
 
     // A streamed response cannot be rewound, so the decorator has to put the bytes back itself.
-    $body     = '{"message":"nope"}';
-    $unseekable = Utils::streamFor(Utils::tryFopen('php://temp', 'r+'));
-    $unseekable->write($body);
-    $unseekable->rewind();
+    $body       = '{"message":"nope"}';
+    $unseekable = new GuzzleHttp\Psr7\NoSeekStream(Utils::streamFor($body));
 
     $response = loggingClientOver(new Response(422, [], $unseekable))->sendRequest(labelRequest());
 

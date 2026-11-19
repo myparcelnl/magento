@@ -225,10 +225,11 @@ class NewShipment implements ObserverInterface
 
         $order = $shipment->getOrder();
 
-        // Set as well as written: Magento saves this order again after the observer, and without
-        // these two the save would put the pre-observer values back over the column write.
-        $order->setData('track_status', $columns['track_status'])
-              ->setData('track_number', $columns['track_number']);
+        // Keep this instance in step with the column write, as Magento saves it again after this
+        // observer. An empty value is left out, as writeColumns() never blanks a column either.
+        foreach (array_filter($columns) as $column => $value) {
+            $order->setData($column, $value);
+        }
 
         $this->gridColumns->writeColumns((int) $order->getEntityId(), $columns);
     }

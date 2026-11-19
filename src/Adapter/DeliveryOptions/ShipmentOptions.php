@@ -103,9 +103,12 @@ class ShipmentOptions
         return null === $value ? null : (int) $value;
     }
 
+    /** Null is inherit. A stored number comes back as a string, as the return type promises. */
     public function getLabelDescription(): ?string
     {
-        return $this->values[self::LABEL_DESCRIPTION];
+        $value = $this->values[self::LABEL_DESCRIPTION];
+
+        return null === $value ? null : (string) $value;
     }
 
     public function toArray(): array

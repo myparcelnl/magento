@@ -471,7 +471,6 @@ No MyParcel shipments were found to make a return label for.,Non è stata trovat
 "MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel non ha confermato questi ordini, quindi non si sa se MyParcel li ha creati: %1. Controllali nel backoffice MyParcel prima di esportarli di nuovo."
 "Not every collo of this order was exported: %1","Non tutti i colli di questo ordine sono stati esportati: %1"
 "It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Non si sa se MyParcel ha creato tutti i colli di questo ordine: %1. Controlla l'ordine nel backoffice MyParcel prima di esportarlo di nuovo."
-"Other orders in this batch that were not exported: %1. Correct the orders above and run the action again.","Altri ordini di questo lotto che non sono stati esportati: %1. Correggi gli ordini sopra ed esegui di nuovo l'azione."
 "Orders that were not exported because MyParcel refused this batch: %1. Reason: %2","Ordini non esportati perché MyParcel ha rifiutato questo lotto: %1. Motivo: %2"
 "Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2","Ordini per cui MyParcel non era raggiungibile: %1. Non si sa se le spedizioni sono state create. Controllali nel backoffice MyParcel prima di esportarli di nuovo. Motivo: %2"
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel ha creato questi ordini, ma non è stato possibile contrassegnarli come esportati: %1. Non esportarli di nuovo. Controlla il log."
@@ -502,3 +501,5 @@ this order is a pickup but carries no pickup location,"questo ordine è un ritir
 "this order has no billing address, so it cannot be exported","questo ordine non ha un indirizzo di fatturazione, quindi non può essere esportato"
 "this order has no shipping address, so it cannot be exported","questo ordine non ha un indirizzo di spedizione, quindi non può essere esportato"
 "customs item %1: %2","articolo doganale %1: %2"
+"It is unknown whether MyParcel created and mailed the return labels of %1 shipment(s): %2. Check them in the MyParcel backoffice before you send them again.","Non è noto se MyParcel abbia creato e inviato per e-mail le etichette di reso di %1 spedizione/i: %2. Controllale nel backoffice MyParcel prima di inviarle di nuovo."
+"%1: %2 of %3 order notes were not exported to MyParcel.","%1: %2 note d'ordine su %3 non sono state esportate verso MyParcel."

@@ -161,15 +161,23 @@ function postShipmentsRequestIn(array $args)
 }
 
 /** Answers every create by echoing each request's own references back, in reverse order. */
-function makeShipmentApiSpy(array &$calls, bool $failing = false): ShipmentApi
+/**
+ * @param bool|int      $failing true fails every call; a number fails that call (1-based) only
+ * @param callable|null $onCall  receives the call number before the call is answered
+ */
+function makeShipmentApiSpy(array &$calls, $failing = false, ?callable $onCall = null): ShipmentApi
 {
     $api = Mockery::mock(ShipmentApi::class);
     $api->shouldReceive('postShipments')->andReturnUsing(
-        function (...$args) use (&$calls, $failing) {
+        function (...$args) use (&$calls, $failing, $onCall) {
             $shipments = postShipmentsRequestIn($args)->getData()->getShipments();
             $calls[]   = postedReferences($args);
 
-            if ($failing) {
+            if ($onCall) {
+                $onCall(count($calls));
+            }
+
+            if (true === $failing || count($calls) === $failing) {
                 throw new RuntimeException('the API refused this chunk');
             }
 

@@ -113,7 +113,7 @@ it('retries once only, and reports every order that still did not ship', functio
         ->and($report->collateral())->toBe(['000000117'])
         ->and($report->failureMessages())->toHaveCount(3)
         ->and($report->failureMessages()[2])
-        ->toBe('Other orders in this batch that were not exported: 1. Correct the orders above and run the action again.');
+        ->toBe('Orders that were not exported because MyParcel refused this batch: 1. Reason: Verzending validatiefout');
 });
 
 it('does not retry when the response blames nobody', function () {
