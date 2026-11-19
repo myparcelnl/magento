@@ -51,6 +51,22 @@ class LegacyInsuranceTiers
         ],
     ];
 
+    /**
+     * The stored custom amount at this path, as an int, or 0 when none is stored.
+     *
+     * @param array<int, array{path: string, value: string|null}> $rows core_config_data rows
+     */
+    public static function customAmount(array $rows, string $path): int
+    {
+        foreach ($rows as $row) {
+            if ($row['path'] === $path) {
+                return (int) $row['value'];
+            }
+        }
+
+        return 0;
+    }
+
     /** @return int[] ascending; empty when the carrier offered no insurance in that zone */
     public static function forCarrierAndZone(string $carrier, string $zone): array
     {

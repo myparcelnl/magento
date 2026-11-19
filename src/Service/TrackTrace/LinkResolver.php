@@ -67,26 +67,18 @@ class LinkResolver
      */
     public function forTrack(Track $track): string
     {
-        $stored = (string) $track->getData('myparcel_tracktrace_url');
+        // Without the order first: a usable stored link needs no address, so no query.
+        $stored = $this->urlFor(['myparcel_tracktrace_url' => (string) $track->getData('myparcel_tracktrace_url')]);
 
-        // Through the same allow-list the grid applies: this column holds whatever the api sent,
-        // and the customer email is the one reader that does not go through html(). A value that
-        // fails it is treated as absent, so the fallback below answers rather than nothing at all.
-        if ('' !== $stored && self::isLinkable($stored)) {
+        if ('' !== $stored) {
             return $stored;
         }
 
         // Read off the order rather than off its track rows: the track in hand may not be stored
         // yet, and rowsFor() would in any case have filtered out every carrier but ours.
-        $row = $this->orderContext((int) $track->getOrderId());
+        $order = $this->orderContext((int) $track->getOrderId());
 
-        if (! $row) {
-            return '';
-        }
-
-        $row['track_number'] = (string) $track->getNumber();
-
-        return $this->urlFor($row);
+        return $order ? $this->urlFor(['track_number' => (string) $track->getNumber()] + $order) : '';
     }
 
     /** Render the track and trace links of one order. Do not escape the result, see html(). */
@@ -228,6 +220,8 @@ class LinkResolver
     {
         $stored = (string) ($row['myparcel_tracktrace_url'] ?? '');
 
+        // The column holds whatever the API sent, and the customer email does not go through
+        // html(), so a value that fails the allow-list counts as absent.
         if ('' !== $stored && self::isLinkable($stored)) {
             return $stored;
         }

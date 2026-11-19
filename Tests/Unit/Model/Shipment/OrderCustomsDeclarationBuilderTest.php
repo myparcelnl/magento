@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 use Magento\Framework\DataObject;
-use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
+use MyParcelNL\Magento\Model\Shipment\OrderCustomsDeclarationBuilder;
+use MyParcelNL\Magento\Service\Weight;
 
 /** The PPS customs path: each line at product weight and at the price paid in the order's currency. */
 function ppsCustomsItems(array $productData, array $config = [], array $itemData = []): array
@@ -15,14 +16,10 @@ function ppsCustomsItems(array $productData, array $config = [], array $itemData
         'getOrderCurrency' => new DataObject(['code' => 'EUR']),
     ]);
 
-    customsObjectManager(
-        [7 => '6109.10'],
-        [7 => $productData['country_of_manufacture'] ?? null],
-        createConfig(['print/weight_indication' => 'gram'] + $config),
-        true
-    );
+    $config        = createConfig(['print/weight_indication' => 'gram'] + $config);
+    $objectManager = customsObjectManager([7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null], $config);
 
-    return (new CustomsDeclarationFromOrder($order))->createCustomsDeclaration()->items;
+    return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 }
 
 it('takes the country of origin from the product when it has one', function () {
@@ -43,4 +40,10 @@ it('declares weight and the price paid at line level, multiplied by the quantity
 
     expect($items[0]->getWeight())->toBe(300)
         ->and($items[0]->getItemValue()['amount'])->toBe(3000);
+});
+
+it('declares at least one piece for a fractional quantity, which the API would refuse as zero', function () {
+    $items = ppsCustomsItems(['country_of_manufacture' => 'CN'], [], ['qty_ordered' => 0.5, 'price' => 10.0]);
+
+    expect($items[0]->getAmount())->toBe(1);
 });

@@ -22,6 +22,15 @@ it('rounds an amount above the largest tier down to it', function () {
     expect(LegacyInsuranceTiers::snap([100, 250, 500], 9000))->toBe(500);
 });
 
+it('reads a stored custom amount as an int, as the database answers a string', function () {
+    $rows = [
+        ['path' => 'myparcelnl_magento_postnl_settings/default_options/insurance_custom_amount', 'value' => '300'],
+    ];
+
+    expect(LegacyInsuranceTiers::customAmount($rows, 'myparcelnl_magento_postnl_settings/default_options/insurance_custom_amount'))->toBe(300)
+        ->and(LegacyInsuranceTiers::customAmount($rows, 'other/path'))->toBe(0);
+});
+
 it('keeps zero as zero', function () {
     expect(LegacyInsuranceTiers::snap([100, 250], 0))->toBe(0);
 });

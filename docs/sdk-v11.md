@@ -128,7 +128,8 @@ Three coexist, and each mistake is a factor of 100 or 10,000 on a merchant's ins
 | Cents | **Core API**: capabilities, contract definitions, shipment create | `Tests/Fixtures/capabilities-acceptance-v2.json` answers `max: 500000` for a €5000 bound |
 | Integer-micro (1 EUR = 1 000 000) | The module's **own** REST v1 delivery-options response | `docs/openapi/delivery-options.yaml`, which records the divergence from the Order API's Money object as deliberate |
 
-Conversion between the first two happens in one place, `Model\Shipment\Capabilities\InsuranceRange`.
+Between the first two, insurance amounts convert in one place, `Model\Shipment\Capabilities\InsuranceRange`.
+Prices (customs values, order lines) convert in `Service\DeliveryCosts::getPriceInCents()`.
 The third is `Model\Rest\Transformer\ShipmentOptionsTransformer`'s alone.
 
 ## SDK defects and their workarounds
