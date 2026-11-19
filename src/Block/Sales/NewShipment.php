@@ -236,7 +236,7 @@ class NewShipment extends AbstractItems
             // without capabilities, offer the types of PACKAGE_TYPE_HUMAN_MAP: hiding everything is
             // worse, and pallet and envelope do not belong on this form
             return array_map(
-                [PackageType::class, 'nameFromId'],
+                [PackageType::class, 'nameFromIdOrNull'],
                 array_keys(NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP)
             );
         }

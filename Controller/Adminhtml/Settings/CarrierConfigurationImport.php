@@ -7,8 +7,8 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
@@ -17,6 +17,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
@@ -39,14 +40,10 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
         ScopeInterface::SCOPE_STORES,
     ];
 
-    private Pool                  $pool;
-    private ScopeConfigInterface  $config;
-    private StoreManagerInterface $storeManager;
-
-    /**
-     * @var mixed
-     */
-    private                            $typeListInterface;
+    private ScopeConfigInterface      $config;
+    private StoreManagerInterface     $storeManager;
+    private ReinitableConfigInterface $appConfig;
+    private TypeListInterface         $typeListInterface;
     private Importer                   $importer;
     private AccountSettingsMaintenance $accountSettingsMaintenance;
 
@@ -55,7 +52,7 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
         ScopeConfigInterface       $config,
         JsonFactory                $resultFactory,
         TypeListInterface          $typeListInterface,
-        Pool                       $pool,
+        ReinitableConfigInterface  $appConfig,
         Importer                   $importer,
         AccountSettingsMaintenance $accountSettingsMaintenance,
         StoreManagerInterface      $storeManager
@@ -66,7 +63,7 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
         $this->config                     = $config;
         $this->resultFactory              = $resultFactory;
         $this->typeListInterface          = $typeListInterface;
-        $this->pool                       = $pool;
+        $this->appConfig                  = $appConfig;
         $this->importer                   = $importer;
         $this->accountSettingsMaintenance = $accountSettingsMaintenance;
         $this->storeManager               = $storeManager;
@@ -94,8 +91,8 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
             return $this->failure((string) __('An unexpected error occurred. Please check the log.'));
         }
 
-        $this->clearCache();
-        // After the flush, because it reads config.
+        $this->reloadConfig();
+        // After the reload, because it reads config.
         $this->accountSettingsMaintenance->reconcile();
 
         return $this->resultFactory->create()
@@ -165,15 +162,12 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
         return $this->resultFactory->create()->setData(['success' => false, 'message' => $message]);
     }
 
-    private function clearCache(): void
+    /** Reload what the import wrote, as ConfigChange::reinitConfig() does after a settings save. */
+    private function reloadConfig(): void
     {
-        $cacheFrontendPool = $this->pool;
-        $this->typeListInterface->cleanType('config');
-
-        foreach ($cacheFrontendPool as $cacheFrontend) {
-            $cacheFrontend->getBackend()
-                          ->clean()
-            ;
-        }
+        $this->appConfig->reinit();
+        // The import replaces the account's contract, which the cached capabilities were read under.
+        $this->typeListInterface->cleanType(CapabilitiesCache::TYPE_IDENTIFIER);
+        $this->typeListInterface->invalidate(['block_html', 'full_page']);
     }
 }

@@ -480,7 +480,6 @@ No MyParcel shipments were found to make a return label for.,Er zijn geen MyParc
 "MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel heeft deze orders niet bevestigd, dus het is onbekend of MyParcel ze heeft aangemaakt: %1. Controleer ze in de MyParcel backoffice voordat je ze opnieuw exporteert."
 "Not every collo of this order was exported: %1","Niet elk collo van deze order is geëxporteerd: %1"
 "It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Het is onbekend of MyParcel elk collo van deze order heeft aangemaakt: %1. Controleer de order in de MyParcel backoffice voordat je hem opnieuw exporteert."
-"Other orders in this batch that were not exported: %1. Correct the orders above and run the action again.","Andere orders in deze batch die niet zijn geëxporteerd: %1. Corrigeer de orders hierboven en voer de actie opnieuw uit."
 "Orders that were not exported because MyParcel refused this batch: %1. Reason: %2","Orders die niet zijn geëxporteerd omdat MyParcel deze batch heeft geweigerd: %1. Reden: %2"
 "Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2","Orders waarvoor MyParcel niet bereikbaar was: %1. Het is onbekend of de zendingen zijn aangemaakt. Controleer ze in de MyParcel backoffice voordat je ze opnieuw exporteert. Reden: %2"
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel heeft deze orders aangemaakt, maar ze konden niet als geëxporteerd worden gemarkeerd: %1. Exporteer ze niet opnieuw. Controleer het log."
@@ -511,3 +510,5 @@ this order is a pickup but carries no pickup location,"deze bestelling wordt opg
 "this order has no billing address, so it cannot be exported","deze bestelling heeft geen factuuradres en kan daarom niet worden geëxporteerd"
 "this order has no shipping address, so it cannot be exported","deze bestelling heeft geen verzendadres en kan daarom niet worden geëxporteerd"
 "customs item %1: %2","douane-artikel %1: %2"
+"It is unknown whether MyParcel created and mailed the return labels of %1 shipment(s): %2. Check them in the MyParcel backoffice before you send them again.","Het is onbekend of MyParcel de retourlabels van %1 zending(en) heeft aangemaakt en gemaild: %2. Controleer ze in de MyParcel backoffice voordat je ze opnieuw verstuurt."
+"%1: %2 of %3 order notes were not exported to MyParcel.","%1: %2 van %3 ordernotities zijn niet naar MyParcel geëxporteerd."

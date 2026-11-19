@@ -143,6 +143,7 @@ Each workaround names what to delete once the fix lands.
 | 3 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 4 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
 | 5 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 6 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
 
 One generation trap worth knowing: `ShipmentDefsShipment::getParentId()` returns a property-less
 stub, so colli are paired by nesting, never by id.

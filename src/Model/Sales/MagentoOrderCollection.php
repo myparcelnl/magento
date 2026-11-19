@@ -201,7 +201,7 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         try {
-            $this->saveOrderNotes($savedOrders);
+            $this->saveOrderNotes($sent, $savedOrders);
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
@@ -233,23 +233,30 @@ class MagentoOrderCollection extends MagentoCollection
         return $grouped;
     }
 
-    private function saveOrderNotes(OrderCollection $savedOrders): void
+    /**
+     * Send each order's status-history comments as order notes. The SDK swallows a failed note, so
+     * the notes it hands back are counted against the notes sent.
+     *
+     * @param Order[] $magentoOrders the orders this chunk carried
+     */
+    private function saveOrderNotes(array $magentoOrders, OrderCollection $savedOrders): void
     {
-        $incrementIds = [];
+        $confirmed = [];
 
-        $savedOrders->each(function (FulfilmentOrder $order) use (&$incrementIds) {
-            $incrementIds[] = (string) $order->getExternalIdentifier();
+        $savedOrders->each(function (FulfilmentOrder $order) use (&$confirmed) {
+            $confirmed[(string) $order->getExternalIdentifier()] = true;
         });
 
-        $commentsByIncrementId = $this->orderCommentsByIncrementId($incrementIds);
+        $commentsByIncrementId = $this->orderComments(array_filter(
+            $magentoOrders,
+            static fn($magentoOrder): bool => isset($confirmed[(string) $magentoOrder->getIncrementId()])
+        ));
 
         $savedOrders->each(function (FulfilmentOrder $order) use ($commentsByIncrementId) {
+            $incrementId = (string) $order->getExternalIdentifier();
+            $notes       = (new OrderNotesCollection())->setUserAgents($this->userAgent->map());
 
-            // Only this one reaches the wire.
-            $notes    = (new OrderNotesCollection())->setUserAgents($this->userAgent->map());
-            $comments = $commentsByIncrementId[(string) $order->getExternalIdentifier()] ?? [];
-
-            foreach ($comments as $comment) {
+            foreach ($commentsByIncrementId[$incrementId] ?? [] as $comment) {
                 $note = new OrderNote([
                     'orderUuid' => $order->getUuid(),
                     'note'      => $comment,
@@ -270,30 +277,35 @@ class MagentoOrderCollection extends MagentoCollection
                 }
             }
 
-            $notes->save($order->getApiKey());
+            if ($notes->isEmpty()) {
+                return;
+            }
+
+            $saved = $notes->save($order->getApiKey())->count();
+
+            if ($saved < $notes->count()) {
+                $this->messageManager->addWarningMessage((string) __(
+                    '%1: %2 of %3 order notes were not exported to MyParcel.',
+                    $incrementId,
+                    $notes->count() - $saved,
+                    $notes->count()
+                ));
+            }
         });
     }
 
     /**
-     * Every order's status-history comments, for the whole batch in two queries.
+     * Every order's status-history comments, newest first, in one query for the whole chunk.
      *
-     * Newest first, which is the order getStatusHistoryCollection() returns them in.
+     * @param Order[] $magentoOrders
      *
-     * @param  string[] $incrementIds
      * @return array<string,string[]> increment id => comments
      */
-    private function orderCommentsByIncrementId(array $incrementIds): array
+    private function orderComments(array $magentoOrders): array
     {
-        if (! $incrementIds) {
-            return [];
-        }
-
-        $orders = $this->objectManager->create(self::PATH_MODEL_ORDER_COLLECTION);
-        $orders->addFieldToFilter('increment_id', ['in' => $incrementIds]);
-
         $incrementIdByEntityId = [];
 
-        foreach ($orders as $magentoOrder) {
+        foreach ($magentoOrders as $magentoOrder) {
             $incrementIdByEntityId[(int) $magentoOrder->getEntityId()] = (string) $magentoOrder->getIncrementId();
         }
 

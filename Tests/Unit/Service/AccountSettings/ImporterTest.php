@@ -107,7 +107,7 @@ it('keeps a mixed-carrier answer as one list, in the order it arrived', function
         ->and(array_column($definitions, 'carrier'))->toBe(['POSTNL', 'DHL_FOR_YOU']);
 });
 
-it('degrades to nothing when the call is refused, rather than failing the import', function () {
+it('answers unknown when the call is refused, rather than failing the import', function () {
     // One line per failure, with the exception.
     $logger = Mockery::mock(LoggerInterface::class);
     $logger->shouldReceive('warning')->with(Mockery::type('string'), Mockery::on(fn ($context) => [] !== $context))->once();
@@ -118,7 +118,31 @@ it('degrades to nothing when the call is refused, rather than failing the import
         ['live-key']
     );
 
-    expect($definitions)->toBe([]);
+    expect($definitions)->toBeNull();
+});
+
+it('keeps the stored contract definitions when a new fetch failed', function () {
+    $row = json_encode(['contract_definitions' => [contractDefinitionItem()]]);
+
+    $stored = invokePrivateMethod(
+        importerFor([settingsPathFor('live-key') => $row]),
+        'storedContractDefinitions',
+        ['live-key']
+    );
+
+    expect($stored)->toBe([contractDefinitionItem()]);
+});
+
+it('leaves contract definitions out when none are known, so the next save imports them again', function () {
+    $settings = new Collection([
+        'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
+        'account'              => new Account(['id' => 7, 'platform_id' => 1, 'shops' => [], 'general_settings' => []]),
+        'contract_definitions' => null,
+    ]);
+
+    $row = invokePrivateMethod(importerFor([]), 'createArray', [$settings]);
+
+    expect($row)->not->toHaveKey('contract_definitions');
 });
 
 it('keeps insurance bounds verbatim on the way into storage', function () {

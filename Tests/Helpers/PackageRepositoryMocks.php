@@ -30,7 +30,7 @@ function makePackageRepository(): PackageRepository
  *
  * Pass null for an item whose product was deleted, which the repository has to survive.
  */
-function quoteItemFor(?int $productId = 1): object
+function quoteItemFor(?int $productId = 1, float $qty = 1.0, float $weight = 0.0): object
 {
     $catalogProduct = null;
 
@@ -41,6 +41,8 @@ function quoteItemFor(?int $productId = 1): object
 
     $item = Mockery::mock();
     $item->shouldReceive('getProduct')->andReturn($catalogProduct);
+    $item->shouldReceive('getQty')->andReturn($qty);
+    $item->shouldReceive('getWeight')->andReturn($weight);
 
     return $item;
 }

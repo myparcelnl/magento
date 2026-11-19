@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\ResourceModel\Order\Status\History\Collection as OrderStatusHistoryCollection;
-use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
@@ -42,15 +41,11 @@ function fakeRows(array $rows): object
     };
 }
 
-function commentsFor(array $incrementIds, array $orders, array $history): array
+function commentsFor(array $orders, array $history): array
 {
-    $orderCollection   = fakeRows($orders);
     $historyCollection = fakeRows($history);
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('create')
-        ->with(MagentoCollection::PATH_MODEL_ORDER_COLLECTION)
-        ->andReturn($orderCollection);
     $objectManager->shouldReceive('create')
         ->with(OrderStatusHistoryCollection::class)
         ->andReturn($historyCollection);
@@ -58,16 +53,12 @@ function commentsFor(array $incrementIds, array $orders, array $history): array
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
     setPrivateProperty($collection, 'objectManager', $objectManager);
 
-    return [
-        invokePrivateMethod($collection, 'orderCommentsByIncrementId', [$incrementIds]),
-        $orderCollection,
-        $historyCollection,
-    ];
+    return [invokePrivateMethod($collection, 'orderComments', [$orders]), $historyCollection];
 }
 
-it('groups every order\'s comments in two queries, not two per order', function () {
-    [$comments, $orders, $history] = commentsFor(
-        ['100000001', '100000002'],
+it('groups every order\'s comments in one query, from the orders the chunk already holds', function () {
+    // No order lookup by increment id: two stores can share one, and the chunk has the orders.
+    [$comments, $history] = commentsFor(
         [
             new Magento\Framework\DataObject(['entity_id' => 11, 'increment_id' => '100000001']),
             new Magento\Framework\DataObject(['entity_id' => 12, 'increment_id' => '100000002']),
@@ -83,13 +74,11 @@ it('groups every order\'s comments in two queries, not two per order', function 
         '100000001' => ['first', 'third'],
         '100000002' => ['second'],
     ])
-        ->and($orders->filters)->toBe(['increment_id' => ['in' => ['100000001', '100000002']]])
         ->and($history->filters)->toBe(['parent_id' => ['in' => [11, 12]]]);
 });
 
 it('skips a history row that carries no comment', function () {
     [$comments] = commentsFor(
-        ['100000001'],
         [new Magento\Framework\DataObject(['entity_id' => 11, 'increment_id' => '100000001'])],
         [
             new Magento\Framework\DataObject(['parent_id' => 11, 'comment' => null]),
@@ -100,12 +89,12 @@ it('skips a history row that carries no comment', function () {
     expect($comments)->toBe(['100000001' => ['kept']]);
 });
 
-it('asks nothing at all when the batch is empty', function () {
+it('asks nothing at all when the chunk is empty', function () {
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->never();
 
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
     setPrivateProperty($collection, 'objectManager', $objectManager);
 
-    expect(invokePrivateMethod($collection, 'orderCommentsByIncrementId', [[]]))->toBe([]);
+    expect(invokePrivateMethod($collection, 'orderComments', [[]]))->toBe([]);
 });

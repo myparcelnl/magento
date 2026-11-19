@@ -66,8 +66,14 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         }
 
         if ($quote->hasData(Config::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {
-            $jsonDeliveryOptions = $quote->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '';
-            $deliveryOptions     = json_decode($jsonDeliveryOptions, true) ?? [];
+            $jsonDeliveryOptions = (string) $quote->getData(Config::FIELD_DELIVERY_OPTIONS);
+
+            // An empty column is no choice; copying it would give the order a value no reader can parse.
+            if ('' === $jsonDeliveryOptions) {
+                return $this;
+            }
+
+            $deliveryOptions = json_decode($jsonDeliveryOptions, true) ?? [];
 
             $order->setData(Config::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 

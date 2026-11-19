@@ -11,18 +11,14 @@ it('maps all seven package types and delivery types to their id and back', funct
 
     foreach (PackageType::NAMES_IDS_MAP as $name => $id) {
         expect(PackageType::toIdOrNull($name))->toBe($id)
-            ->and(PackageType::nameFromId($id))->toBe($name);
+            ->and(PackageType::nameFromIdOrNull($id))->toBe($name);
     }
 
     foreach (DeliveryType::NAMES_IDS_MAP as $name => $id) {
         expect(DeliveryType::toIdOrNull($name))->toBe($id)
-            ->and(DeliveryType::nameFromId($id))->toBe($name);
+            ->and(DeliveryType::nameFromIdOrNull($id))->toBe($name);
     }
 });
-
-it('throws on an unknown package type id', function () {
-    PackageType::nameFromId(99);
-})->throws(InvalidArgumentException::class, "Unknown package type id '99'");
 
 it('answers null for a name or id it does not know', function () {
     expect(PackageType::toIdOrNull('not-a-real-type'))->toBeNull()

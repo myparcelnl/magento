@@ -135,12 +135,6 @@ class ExportReport
         // One reason per failed chunk, so a batch over several chunks can give more than one.
         $reason = implode(' ', array_unique(array_filter(array_column($this->collateral, 'reason'))));
 
-        if ($this->collateralRefused && $this->blamed) {
-            $messages[] = (string) __('Other orders in this batch that were not exported: %1. Correct the orders above and run the action again.', $count);
-
-            return $messages;
-        }
-
         if ($this->collateralRefused) {
             $messages[] = (string) __('Orders that were not exported because MyParcel refused this batch: %1. Reason: %2', $count, $reason);
 
