@@ -70,7 +70,15 @@ function createOrderItem(array $data = [], array $productData = []): DataObject
         'weight' => 100.0,
     ], $productData));
 
-    return new DataObject(array_merge([
+    // isDummy() is Magento's own rule on a real order item; here the test states the outcome as is_dummy.
+    $item = new class extends DataObject {
+        public function isDummy($shipment = false): bool
+        {
+            return (bool) $this->getData('is_dummy');
+        }
+    };
+
+    return $item->setData(array_merge([
         'item_id'     => 1,
         'product_id'  => '1',
         'name'        => 'Test product',

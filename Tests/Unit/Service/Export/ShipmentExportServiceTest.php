@@ -95,29 +95,28 @@ it('honours a configured chunk size inside the range', function () {
 });
 
 it('persists each chunk before issuing the next, and keeps earlier chunks when a later one fails', function () {
-    $built = [
-        builtShipmentFor('key', '100000001'),
-        builtShipmentFor('key', '100000002'),
-        builtShipmentFor('key', '100000003'),
+    $tracks = [exportTrack(null, 1, $saves1), exportTrack(null, 2, $saves2), exportTrack(null, 3, $saves3)];
+    $built  = [
+        builtShipmentFor('key', '100000001', null, $tracks[0]),
+        builtShipmentFor('key', '100000002', null, $tracks[1]),
+        builtShipmentFor('key', '100000003', null, $tracks[2]),
     ];
 
-    $idsAtSecondCall = null;
-    $calls           = [];
-    $spy             = makeShipmentApiSpy($calls, 2, static function (int $call) use ($built, &$idsAtSecondCall): void {
+    $savesAtSecondCall = null;
+    $calls             = [];
+    $spy               = makeShipmentApiSpy($calls, 2, static function (int $call) use (&$savesAtSecondCall, &$saves1, &$saves2): void {
         if (2 === $call) {
-            $idsAtSecondCall = [
-                $built[0]->getTrack()->getData('myparcel_consignment_id'),
-                $built[1]->getTrack()->getData('myparcel_consignment_id'),
-            ];
+            $savesAtSecondCall = [$saves1, $saves2];
         }
     });
 
     $report = makeExportService(['key' => $spy], 2)->createConcepts($built);
 
-    expect($idsAtSecondCall)->each->not->toBeNull()
-        ->and($built[0]->getTrack()->getData('myparcel_consignment_id'))->toBe($idsAtSecondCall[0])
-        ->and($built[1]->getTrack()->getData('myparcel_consignment_id'))->toBe($idsAtSecondCall[1])
-        ->and($built[2]->getTrack()->getData('myparcel_consignment_id'))->toBeNull()
+    expect($savesAtSecondCall)->toBe([1, 1])
+        ->and($tracks[0]->getData('myparcel_consignment_id'))->not->toBeNull()
+        ->and($tracks[1]->getData('myparcel_consignment_id'))->not->toBeNull()
+        ->and($tracks[2]->getData('myparcel_consignment_id'))->toBeNull()
+        ->and($saves3)->toBe(0)
         ->and(array_map('strval', array_keys($report->succeeded())))->toEqualCanonicalizing(['100000001', '100000002'])
         ->and(array_map('strval', $report->collateral()))->toBe(['100000003']);
 });
