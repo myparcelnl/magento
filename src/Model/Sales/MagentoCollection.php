@@ -66,7 +66,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     public const ERROR_ORDER_HAS_NO_SOURCE         = 'Creating shipments via bulk actions is not possible for orders without a source. Go to the details of the order and process the shipment manually.';
     public const DEFAULT_ERROR_ORDER_HAS_NO_SOURCE = 'Source item not found by source code';
 
-    private const PATH_ORDER_TRACK            = '\Magento\Sales\Model\Order\Shipment\Track';
     private const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
     private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
@@ -78,7 +77,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected SourceItem             $sourceItem;
     protected TrackSender            $trackSender;
     protected ObjectManagerInterface $objectManager;
-    protected Track                  $modelTrack;
     protected OrderGridColumns       $gridColumns;
     protected ShipmentApiProvider    $apiProvider;
     protected UserAgent              $userAgent;
@@ -128,7 +126,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->request        = $request;
         $this->trackSender    = $objectManager->get(TrackSender::class);
         $this->config         = $objectManager->get(Config::class);
-        $this->modelTrack     = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->exportService  = $objectManager->get(ShipmentExportService::class);
         $this->labelPositions = $objectManager->get(LabelPositions::class);
@@ -663,7 +660,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             try {
                 $this->builtShipments[] = $this->buildShipment($track, $index + 2);
             } catch (Throwable $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addErrorMessage(sprintf('%s: %s', $built->getIncrementId(), $e->getMessage()));
 
                 return;
             }

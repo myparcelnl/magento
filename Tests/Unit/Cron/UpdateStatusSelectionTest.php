@@ -163,7 +163,7 @@ function runCronInMode(string $exportMode): object
     $objectManager->shouldReceive('get')
         ->with(MyParcelNL\Magento\Service\Export\ShipmentApiProvider::class)
         ->andReturn(Mockery::mock(MyParcelNL\Magento\Service\Export\ShipmentApiProvider::class));
-    $objectManager->shouldReceive('get')
+    $objectManager->shouldReceive('create')
         ->with(UpdateStatus::PATH_MODEL_ORDER_TRACK)
         ->andReturn($fluent(
             Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection::class,

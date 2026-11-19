@@ -35,8 +35,8 @@ it('fetches once and serves the cache after that', function () {
     $r       = makeCapabilitiesRepository([capabilitiesOk()]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $first  = $r['repository']->forStore(1, $request);
-    $second = $r['repository']->forStore(1, $request);
+    $first  = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $second = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     expect($first->carriers())->toBe([Carrier::POSTNL])
         ->and($second->carriers())->toBe([Carrier::POSTNL])
@@ -48,9 +48,9 @@ it('misses the cache when any request field changes', function () {
 
     $r = makeCapabilitiesRepository([capabilitiesOk(), capabilitiesOk(), capabilitiesOk()]);
 
-    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
-    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('BE'));
-    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL')
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('BE'));
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL')
         ->withPackageType(PackageType::toV2Name(PackageType::MAILBOX_NAME)));
 
     expect($r['history'])->toHaveCount(3)
@@ -77,7 +77,7 @@ it('never writes the api key anywhere, in the cache id or the tags', function ()
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
-    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     $written = json_encode([array_keys($r['store']->entries), $r['store']->savedTags]);
 
@@ -95,7 +95,7 @@ it('logs a failure with a fingerprint prefix, never the key', function () {
 
     $r = makeCapabilitiesRepository([new GuzzleResponse(500, [], '')]);
 
-    expect($r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue();
+    expect($r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue();
 });
 
 it('fails open on a 500, a timeout and an undecodable body', function () {
@@ -109,7 +109,7 @@ it('fails open on a 500, a timeout and an undecodable body', function () {
 
     foreach ($faults as $index => $fault) {
         $r   = makeCapabilitiesRepository([$fault]);
-        $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+        $set = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
         expect($set->isPermissive())->toBeTrue()
             ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::AGE_CHECK))->toBeTrue();
@@ -122,13 +122,13 @@ it('serves the cached answer when a later refresh would fail', function () {
     $r       = makeCapabilitiesRepository([capabilitiesOk(), new GuzzleResponse(500, [], '')]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $r['repository']->forStore(1, $request);
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     // A second Repository over the same cache: no memo, so it must come from the entry.
     $again = makeCapabilitiesRepository([new GuzzleResponse(500, [], '')]);
     $again['store']->entries = $r['store']->entries;
 
-    $set = $again['repository']->forStore(1, $request);
+    $set = $again['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     expect($set->isPermissive())->toBeFalse()
         ->and($set->carriers())->toBe([Carrier::POSTNL])
@@ -139,20 +139,9 @@ it('writes the entry with no expiry, which is what makes stale-serving work', fu
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
-    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     expect(array_values($r['store']->savedTags)[0]['lifeTime'])->toBeNull();
-});
-
-it('fails open for a store with no api key rather than stopping the page', function () {
-    $logger = mockLoggerFacade();
-    $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/No MyParcel API key for store 7/'));
-
-    $r   = makeCapabilitiesRepository([], '');
-    $set = $r['repository']->forStore(7, CapabilitiesRequest::forCountry('NL'));
-
-    expect($set->isPermissive())->toBeTrue()
-        ->and($r['history'])->toHaveCount(0);
 });
 
 it('logs each kind of unrecognised value once per fetch, and no option, which the SDK leaves out', function () {
@@ -167,7 +156,7 @@ it('logs each kind of unrecognised value once per fetch, and no option, which th
         ]),
     ])]);
 
-    $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+    $set = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     // Logged, and still usable: the recognised half of the response survives the unknown half.
     expect($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME]);
@@ -181,7 +170,7 @@ it('remembers a failed request briefly, so a reload does not repeat the burst', 
     $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $r['repository']->forStore(1, $request);
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     [, $failurePrefix] = capabilitiesCacheIdPrefixes();
 
@@ -202,13 +191,13 @@ it('does not call again while a failure is remembered', function () {
     $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $r['repository']->forStore(1, $request);
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     // A fresh Repository over the same cache: no memo, so only the failure entry can stop the call.
     $again = makeCapabilitiesRepository([]);
     $again['store']->entries = $r['store']->entries;
 
-    expect($again['repository']->forStore(1, $request)->isPermissive())->toBeTrue()
+    expect($again['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request)->isPermissive())->toBeTrue()
         ->and($again['history'])->toHaveCount(0);
 });
 
@@ -220,7 +209,7 @@ it('prefers a previous good answer over a recent failure', function () {
 
     // A store holding both a success and a failure entry for the same request.
     $ok = makeCapabilitiesRepository([capabilitiesOk()]);
-    $ok['repository']->forStore(1, $request);
+    $ok['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     // The double stores ids exactly as the Repository passes them, so lower case and unprefixed by
     // Magento. Add a failure marker beside the success entry for the same request.
@@ -235,7 +224,7 @@ it('prefers a previous good answer over a recent failure', function () {
     $both = makeCapabilitiesRepository([]);
     $both['store']->entries = $entries;
 
-    $set = $both['repository']->forStore(1, $request);
+    $set = $both['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     expect($set->isPermissive())->toBeFalse()
         ->and($set->carriers())->toBe([Carrier::POSTNL])
@@ -250,7 +239,7 @@ it('does not call out for a request another request is already fetching', functi
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
     $r['store']->lockHeld = true;
 
-    $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+    $set = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     expect($r['history'])->toHaveCount(0)
         ->and($set->isPermissive())->toBeTrue();
@@ -261,7 +250,7 @@ it('releases the fetch lock once it has the answer', function () {
 
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     expect($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
 });
@@ -274,7 +263,7 @@ it('fails open when the cache or the lock backend throws', function (string $cal
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
     $r['store']->throwOn = $call;
 
-    expect($r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
+    expect($r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
         // Releases the lock it took, and only that one.
         ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
 })->with(['load', 'lock', 'save']);

@@ -32,11 +32,11 @@ it('caches an answer with values the SDK does not know, and reads it back', func
     $r       = makeCapabilitiesRepository([new GuzzleResponse(200, [], capabilitiesBody(unknownValuesResults()))]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $fresh = $r['repository']->forStore(1, $request);
+    $fresh = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     // Drop the per-request memo, so the second read comes from the cache entry.
     setPrivateProperty($r['repository'], 'memo', []);
-    $cached = $r['repository']->forStore(1, $request);
+    $cached = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     $cacheEntries = array_values(array_filter($r['store']->entries, static function (string $entry): bool {
         return '1' !== $entry;

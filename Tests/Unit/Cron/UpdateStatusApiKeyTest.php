@@ -109,9 +109,6 @@ function runPpsCron(
         ->with(MyParcelNL\Magento\Cron\UpdateStatus::PATH_MODEL_ORDER_TRACK)
         ->andReturn($trackCollection);
     $objectManager->shouldReceive('get')
-        ->with(MyParcelNL\Magento\Cron\UpdateStatus::PATH_MODEL_ORDER_TRACK)
-        ->andReturn($trackCollection);
-    $objectManager->shouldReceive('get')
         ->with(ShipmentApiProvider::class)
         ->andReturn(new ShipmentApiProvider(updateStatusConfig(), createUserAgent()));
 

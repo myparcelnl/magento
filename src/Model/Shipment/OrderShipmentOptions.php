@@ -27,10 +27,8 @@ use RuntimeException;
 /**
  * What one Magento order is to be shipped as: carrier, package type and the v11 ShipmentOptions.
  *
- * Both export paths ask an order the same questions (ShipmentBuilder for a label,
- * FulfilmentOrderBuilder for a PPS order), so the answers are given once here. Each builder keeps
- * only what its own API shape needs: a recipient array against a Recipient, a RefShipmentPickup
- * against a PickupLocation, shipment item weights against order item weights.
+ * ShipmentBuilder (label) and FulfilmentOrderBuilder (PPS) ask an order the same questions, so the
+ * answers live here. Each builder keeps only what its own API shape needs.
  *
  * Generated-model trap: setLabelDescription() throws above its limit.
  */

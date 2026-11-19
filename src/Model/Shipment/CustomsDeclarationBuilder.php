@@ -16,9 +16,6 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentTyp
 /**
  * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. One instance serves a whole batch.
  *
- * Deliberately separate from Helper\CustomsDeclarationFromOrder, which serves the Order v1
- * fulfilment path, a different API.
- *
  * Descriptions are truncated before they are set, because setDescription() throws above its limit.
  */
 class CustomsDeclarationBuilder
@@ -57,7 +54,8 @@ class CustomsDeclarationBuilder
                 $item->getSku(),
                 (int) $item->getQty(),
                 (float) $item->getWeight(),
-                (float) $item->getPrice(),
+                // The Core API takes EUR only, so the base price; the order may be in another currency.
+                (float) $item->getOrderItem()->getBasePrice(),
                 (string) ($classifications[$productId] ?? ''),
                 (string) ($countries[$productId] ?? '')
             );

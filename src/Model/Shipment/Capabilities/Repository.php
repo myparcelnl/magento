@@ -7,7 +7,6 @@ namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use Throwable;
@@ -35,7 +34,6 @@ class Repository
 
     private Client              $client;
     private CapabilitiesCache   $cache;
-    private Config              $config;
     private Fingerprint         $fingerprint;
     private LockManagerInterface $lockManager;
 
@@ -45,37 +43,14 @@ class Repository
     public function __construct(
         Client               $client,
         CapabilitiesCache    $cache,
-        Config               $config,
         Fingerprint          $fingerprint,
         LockManagerInterface $lockManager
     )
     {
         $this->client      = $client;
         $this->cache       = $cache;
-        $this->config      = $config;
         $this->fingerprint = $fingerprint;
         $this->lockManager = $lockManager;
-    }
-
-    /**
-     * Get the capabilities for the API key of this store and this request.
-     *
-     * @param int|null $storeId resolves the API key at that store's scope; never an ambient store
-     */
-    public function forStore(?int $storeId, CapabilitiesRequest $request): CapabilitySet
-    {
-        $apiKey = (string) $this->config->getGeneralConfig('api/key', $storeId);
-
-        if ('' === $apiKey) {
-            Logger::warning(sprintf(
-                'No MyParcel API key for store %s; capabilities unavailable, offering everything.',
-                null === $storeId ? 'default' : (string) $storeId
-            ));
-
-            return CapabilitySet::permissive();
-        }
-
-        return $this->forApiKey($apiKey, $request);
     }
 
     /**
