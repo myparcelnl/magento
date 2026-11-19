@@ -99,9 +99,11 @@ function storedDeliveryOptions(?array $stored): DeliveryOptions
 /**
  * Resolver wired to a connection that records the select getLabelDescription() builds.
  *
+ * @param array[]|null $shipmentItems the Magento shipment's items in memory, or null for the PPS path
+ *
  * @return array{resolver: ShipmentOptionsResolver, select: object}
  */
-function createLabelDescriptionResolver(?int $shipmentId, string $template, array $rows = []): array
+function createLabelDescriptionResolver(?array $shipmentItems, string $template, array $rows = []): array
 {
     $recorder = new class {
         public string $table     = '';
@@ -168,7 +170,9 @@ function createLabelDescriptionResolver(?int $shipmentId, string $template, arra
         $objectManager,
         Carrier::POSTNL,
         [],
-        $shipmentId
+        null === $shipmentItems ? null : createShipment([
+            'getAllItems' => array_map('createShipmentItem', $shipmentItems),
+        ])
     );
 
     return ['resolver' => $resolver, 'select' => $recorder];

@@ -10,8 +10,8 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 /**
  * The insurance option's bounds, in whole euros.
  *
- * The API answers in **cents**, the module stores **euros**. This is the only place that converts:
- * a missing division by 100 insures a parcel for a hundredth of the amount, and nothing throws.
+ * The API answers in **cents**, the module stores **euros**. This is the only place that converts an
+ * insurance amount: a missing division by 100 insures a parcel for a hundredth, and nothing throws.
  * A missing min reads as 0. The API refuses an uninsured shipment that the contract requires.
  */
 class InsuranceRange

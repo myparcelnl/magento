@@ -942,18 +942,6 @@ class UpgradeData implements UpgradeDataInterface
                 return $insuranceFromPriceArray;
             };
 
-            $getCustomAmountFunction = static function ($rows, $path) {
-                $insuranceCustomAmount = 0;
-                foreach ($rows as $row) {
-                    if ($row['path'] === $path) {
-                        $insuranceCustomAmount = $row['value'];
-                        break;
-                    }
-                }
-
-                return $insuranceCustomAmount;
-            };
-
             // The tiers and the rounding rule are frozen in LegacyInsuranceTiers: an upgrade runs
             // offline and must keep producing the same rows.
             foreach ($carriers as $carrier) {
@@ -988,7 +976,7 @@ class UpgradeData implements UpgradeDataInterface
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows);
                             }
                             if ($row['path'] === $basePath . 'insurance_custom_active' && $row['value'] === '1') {
-                                $insuranceLocalAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_custom_amount');
+                                $insuranceLocalAmount = LegacyInsuranceTiers::customAmount($rows, $basePath . 'insurance_custom_amount');
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows);
                             }
                         }
@@ -1003,7 +991,7 @@ class UpgradeData implements UpgradeDataInterface
                         $insuranceBelgiumAmount = 0;
                         foreach ($rows as $row) {
                             if ($row['path'] === $basePath . 'insurance_belgium_custom_active' && $row['value'] === '1') {
-                                $insuranceBelgiumAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_belgium_custom_amount');
+                                $insuranceBelgiumAmount = LegacyInsuranceTiers::customAmount($rows, $basePath . 'insurance_belgium_custom_amount');
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows);
                             }
                         }

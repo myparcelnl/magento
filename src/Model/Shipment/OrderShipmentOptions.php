@@ -10,6 +10,7 @@ use LogicException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
@@ -18,10 +19,10 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
+use MyParcelNL\Magento\Service\Text;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesPriceEuro;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
-use MyParcelNL\Sdk\Support\Str;
 use RuntimeException;
 
 /**
@@ -49,15 +50,15 @@ class OrderShipmentOptions
     private ?DeliveryOptions $deliveryOptions = null;
     private ?ResolvedOptions $resolved        = null;
 
-    /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
-    private ?int $shipmentId;
+    /** Null on the PPS path: a fulfilment order has no Magento shipment. */
+    private ?Shipment $shipment;
 
     public function __construct(
         ObjectManagerInterface $objectManager,
         Order                  $order,
         array                  $options,
         DefaultOptions         $defaultOptions,
-        ?int                   $shipmentId = null
+        ?Shipment              $shipment = null
     )
     {
         $this->objectManager  = $objectManager;
@@ -65,7 +66,7 @@ class OrderShipmentOptions
         $this->order          = $order;
         $this->options        = $options;
         $this->defaultOptions = $defaultOptions;
-        $this->shipmentId     = $shipmentId;
+        $this->shipment       = $shipment;
     }
 
     /** @throws RuntimeException when the order cannot be exported as stored */
@@ -101,7 +102,7 @@ class OrderShipmentOptions
             $this->objectManager,
             $this->carrierName(),
             $this->options,
-            $this->shipmentId,
+            $this->shipment,
             $this->effectivePackageTypeName()
         ))->resolve());
     }
@@ -170,7 +171,7 @@ class OrderShipmentOptions
         $options = (new SdkShipmentOptions())
             ->setPackageType($packageType)
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
-            ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
+            ->setLabelDescription(Text::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
             ->setSameDayDelivery($this->flag($resolved->option(ShipmentOption::SAME_DAY_DELIVERY)));
 
         foreach (ShipmentOption::having('toggle') as $option) {

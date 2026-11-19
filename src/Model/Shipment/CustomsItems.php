@@ -9,8 +9,8 @@ use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\ProductAttributes;
+use MyParcelNL\Magento\Service\Text;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Sdk\Support\Str;
 
 /**
  * The customs facts both export paths share: HS codes, countries of origin, and the line arithmetic.
@@ -96,7 +96,7 @@ class CustomsItems
 
     public function description(string $name): string
     {
-        return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
+        return Text::limit($name, self::MAX_DESCRIPTION_LENGTH);
     }
 
     /** The HS code as digits only, cut to its parent code at MAX_CLASSIFICATION_LENGTH digits. */
@@ -105,11 +105,7 @@ class CustomsItems
         return substr((string) preg_replace('/\D/', '', $classification), 0, self::MAX_CLASSIFICATION_LENGTH);
     }
 
-    /**
-     * Weight and value are line-level while amount carries the count, so both multiply by quantity.
-     *
-     * @param float $quantity a float: a fulfilment order ships qtyShipped, which can be fractional
-     */
+    /** Weight and value are line-level while amount carries the count, so both multiply by quantity. */
     public function lineWeightInGrams(float $unitWeight, float $quantity): int
     {
         // A zero-gram customs item is refused by the API, so an item with no weight set counts as 1.
