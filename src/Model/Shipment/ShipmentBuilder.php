@@ -130,6 +130,8 @@ class ShipmentBuilder
     /**
      * What a MyParcel track row looks like before it has a barcode. Static because the grid path
      * builds one without an order in hand; MagentoCollection::setNewMagentoTrack() saves it.
+     *
+     * Sets parent_id itself: TrackRepository::save() checks it before the resource model would.
      */
     public static function newTrackFor(ObjectManagerInterface $objectManager, MagentoShipment $magentoShipment): Track
     {
@@ -138,6 +140,7 @@ class ShipmentBuilder
 
         return $track
             ->setOrderId($magentoShipment->getOrderId())
+            ->setParentId($magentoShipment->getId())
             ->setShipment($magentoShipment)
             ->setCarrierCode(MagentoCarrier::CODE)
             ->setTitle(Config::MYPARCEL_TRACK_TITLE)
