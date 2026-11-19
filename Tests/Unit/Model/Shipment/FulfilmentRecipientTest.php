@@ -75,17 +75,18 @@ it('keeps the full street verbatim for a destination with no split rule', functi
 
 it('takes the person from the shipping address, so a gift order carries the recipient\'s name', function () {
     $recipient = recipientForAddress(
-        [
-            'getCountryId'  => 'US',
-            'street'        => '742 Evergreen Terrace',
-            'getFirstname'  => 'Jan',
-            'getMiddlename' => 'de',
-            'getLastname'   => 'Vries',
-        ],
-        ['getBillingAddress' => createAddress(['getFirstname' => 'Piet', 'getLastname' => 'Koper'])]
+        ['getCountryId' => 'US', 'street' => '742 Evergreen Terrace', 'getName' => 'Dr. Jan de Vries'],
+        ['getBillingAddress' => createAddress(['getName' => 'Piet Koper'])]
     );
 
-    expect($recipient->getPerson())->toBe('Jan de Vries');
+    // The full name, prefix included, as the label path sends it.
+    expect($recipient->getPerson())->toBe('Dr. Jan de Vries');
+});
+
+it('sends the postal code without spaces, as the label path does', function () {
+    $recipient = recipientForAddress(['getCountryId' => 'NL', 'getPostcode' => '1234 AB']);
+
+    expect($recipient->getPostalCode())->toBe('1234AB');
 });
 
 it('splits a Belgian address by the carrier\'s own country, not always by PostNL', function () {

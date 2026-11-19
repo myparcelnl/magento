@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
@@ -54,8 +55,8 @@ class ShipmentOptionsResolver
 
     private ?string $cc;
 
-    /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
-    private ?int $shipmentId;
+    /** Null on the PPS path: a fulfilment order has no Magento shipment. */
+    private ?Shipment $shipment;
 
     /**
      * The type the shipment will actually carry, which is not always the one the checkout stored:
@@ -73,7 +74,7 @@ class ShipmentOptionsResolver
         ObjectManagerInterface $objectManager,
         string                 $carrier,
         array                  $options = [],
-        ?int                   $shipmentId = null,
+        ?Shipment              $shipment = null,
         ?string                $packageType = null
     )
     {
@@ -85,7 +86,7 @@ class ShipmentOptionsResolver
         $this->carrier        = $carrier;
         $this->options        = $options;
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
-        $this->shipmentId     = $shipmentId;
+        $this->shipment       = $shipment;
         $this->packageType    = $packageType;
     }
 
@@ -299,13 +300,9 @@ class ShipmentOptionsResolver
     }
 
     /**
-     * The row %product_id%, %product_name% and %product_qty% read from.
-     *
-     * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. A fulfilment
-     * order has no shipment yet, so that path reads the order's own items instead.
-     *
-     * Ordered and limited: only the first row is ever read, and without an order which row that is
-     * would be the database's choice.
+     * The row %product_id%, %product_name% and %product_qty% read from: the shipment's first item,
+     * from memory because the New Shipment form builds the label before the shipment is saved. The
+     * PPS path has no shipment and reads the order's first item.
      */
     private function labelProductRows(): array
     {
@@ -313,23 +310,27 @@ class ShipmentOptionsResolver
             return $this->labelProductRows;
         }
 
+        if (null !== $this->shipment) {
+            $item = $this->shipment->getAllItems()[0] ?? null;
+
+            return $this->labelProductRows = null === $item ? [] : [[
+                'product_id' => $item->getProductId(),
+                'name'       => $item->getName(),
+                'qty'        => $item->getQty(),
+            ]];
+        }
+
         /** @var ResourceConnection $connection */
         $connection = $this->objectManager->get(ResourceConnection::class);
         $conn       = $connection->getConnection();
+        $select     = $conn->select()
+            ->from(['main_table' => $connection->getTableName('sales_order_item')], ['product_id', 'name'])
+            ->columns(['qty' => 'main_table.qty_ordered'])
+            ->where('main_table.order_id=?', (int) $this->order->getId())
+            ->order('main_table.entity_id ASC')
+            ->limit(1);
 
-        $select = null === $this->shipmentId
-            ? $conn->select()
-                   ->from(['main_table' => $connection->getTableName('sales_order_item')], ['product_id', 'name'])
-                   ->columns(['qty' => 'main_table.qty_ordered'])
-                   ->where('main_table.order_id=?', (int) $this->order->getId())
-            : $conn->select()
-                   ->from(
-                       ['main_table' => $connection->getTableName('sales_shipment_item')],
-                       ['product_id', 'name', 'qty']
-                   )
-                   ->where('main_table.parent_id=?', $this->shipmentId);
-
-        return $this->labelProductRows = $conn->fetchAll($select->order('main_table.entity_id ASC')->limit(1));
+        return $this->labelProductRows = $conn->fetchAll($select);
     }
 
     /** The option as chosen, or else what DefaultOptions::hasOptionSet() says. */

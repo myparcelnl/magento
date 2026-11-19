@@ -117,6 +117,15 @@ it('adds each shipment item to the consignment exactly once', function () {
     expect($items)->toHaveCount(1);
 });
 
+it('counts characters, not display width, so a decomposed name is not refused', function () {
+    // 'e' plus a combining accent is two characters of width one: 48 of them are 96 characters.
+    $item = createShipmentItem(['name' => str_repeat("e\u{0301}", 48), 'product_id' => 99]);
+
+    [, $items] = buildCustomsFor([$item]);
+
+    expect(mb_strlen($items[0]->getDescription()))->toBeLessThanOrEqual(50);
+});
+
 it('truncates a description the API would refuse rather than throwing', function () {
     // The generated setter throws above 50 characters. The ellipsis is inside the 50, not added to it.
     $item = createShipmentItem([

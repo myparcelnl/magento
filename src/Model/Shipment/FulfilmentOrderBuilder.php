@@ -13,7 +13,6 @@ use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
@@ -81,7 +80,7 @@ class FulfilmentOrderBuilder
 
         if (CountryCode::isRow((string) $shippingRecipient->getCc())) {
             $order->setCustomsDeclaration(
-                (new CustomsDeclarationFromOrder($magentoOrder))->createCustomsDeclaration()
+                $this->objectManager->get(OrderCustomsDeclarationBuilder::class)->build($magentoOrder)
             );
         }
 
@@ -126,9 +125,9 @@ class FulfilmentOrderBuilder
             ->setCity($address->getCity())
             ->setCompany($address->getCompany())
             ->setEmail($address->getEmail())
-            ->setPerson($this->personOf($address))
+            ->setPerson(RecipientFields::person($address))
             ->setPhone($address->getTelephone())
-            ->setPostalCode($address->getPostcode());
+            ->setPostalCode(RecipientFields::postalCode($address));
     }
 
     /**
@@ -157,17 +156,6 @@ class FulfilmentOrderBuilder
                     ->setNumber((string) $streetParts->getNumber())
                     ->setNumberSuffix((string) $streetParts->getNumberSuffix())
                     ->setBoxNumber((string) $streetParts->getBoxNumber());
-    }
-
-    /** @param \Magento\Sales\Model\Order\Address $address */
-    private function personOf($address): string
-    {
-        // Filtered, not interpolated, so an empty middle name gives no double space.
-        return implode(' ', array_filter([
-            $address->getFirstname(),
-            $address->getMiddlename(),
-            $address->getLastname(),
-        ], static fn($part): bool => '' !== trim((string) $part)));
     }
 
     /** @throws RuntimeException when the options say pickup but carry no location */

@@ -127,8 +127,8 @@ class ShipmentOption
     public const LIMIT_DELIVERY_TYPE = [self::RECEIPT_CODE => [DeliveryType::STANDARD_NAME]];
 
     /**
-     * Whether the option may be set alongside this delivery type. An unknown delivery type counts
-     * as standard, so an order stored without one keeps working.
+     * Whether the option may be set alongside this delivery type. A missing delivery type counts as
+     * standard, so an order stored without one keeps working; an unknown one allows no limited option.
      */
     public static function allowedForDeliveryType(string $option, ?string $deliveryType): bool
     {

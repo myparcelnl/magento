@@ -1,55 +1,39 @@
 <?php
 
-namespace MyParcelNL\Magento\Helper;
+declare(strict_types=1);
 
-use Exception;
-use Magento\Framework\App\ObjectManager;
+namespace MyParcelNL\Magento\Model\Shipment;
+
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Shipment\CustomsItems;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 
 /**
- * Builds the Order v1 customs declaration for the PPS fulfilment path.
- *
- * Declares the shipped quantity of each line, or the ordered quantity before a shipment, at product
- * weight and at the price paid in the order's currency. Both export paths share CustomsItems.
+ * Builds the customs declaration of a PPS order: each order line at product weight and at the price
+ * paid, in the order's currency. The label path's counterpart is CustomsDeclarationBuilder.
  */
-class CustomsDeclarationFromOrder
+class OrderCustomsDeclarationBuilder
 {
     private const CURRENCY_EURO = 'EUR';
 
-    /** @var Order */
-    private $order;
-
     private CustomsItems $items;
 
-    public function __construct(Order $order)
+    public function __construct(ObjectManagerInterface $objectManager, Config $config, Weight $weight)
     {
-        $objectManager = ObjectManager::getInstance();
-        $this->order   = $order;
-        $this->items   = new CustomsItems(
-            $objectManager,
-            $objectManager->get(Config::class),
-            $objectManager->get(Weight::class)
-        );
+        $this->items = new CustomsItems($objectManager, $config, $weight);
     }
 
-    /**
-     * @throws MissingFieldException
-     * @throws Exception
-     */
-    public function createCustomsDeclaration(): CustomsDeclaration
+    public function build(Order $order): CustomsDeclaration
     {
         $customsDeclaration = new CustomsDeclaration();
         $totalWeight        = 0;
         $lines              = [];
 
-        foreach ($this->order->getItems() as $item) {
+        foreach ($order->getItems() as $item) {
             $product = $item->getProduct();
 
             if (! $product) {
@@ -58,7 +42,8 @@ class CustomsDeclarationFromOrder
 
             $lines[] = [
                 'product' => $product,
-                'amount'  => (int) ($item->getQtyShipped() ?: $item->getQtyOrdered()),
+                // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
+                'amount'  => max(1, (int) ($item->getQtyShipped() ?: $item->getQtyOrdered())),
                 'price'   => (float) $item->getPrice(),
             ];
         }
@@ -66,15 +51,13 @@ class CustomsDeclarationFromOrder
         $productIds      = array_map(static fn(array $line): int => (int) $line['product']->getId(), $lines);
         $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
         $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
-        $currency        = $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO;
+        $currency        = $order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO;
 
         foreach ($lines as $line) {
             $product   = $line['product'];
             $productId = (int) $product->getId();
             $amount    = $line['amount'];
 
-            // Computed once and reused for the declaration total, which is the sum of the line
-            // weights and must agree with them.
             $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
             $totalWeight += $lineWeight;
 
@@ -84,12 +67,9 @@ class CustomsDeclarationFromOrder
                     ->setAmount($amount)
                     ->setWeight($lineWeight)
                     ->setItemValueArray([
-                                            'amount'   => $this->items->lineValueInCents(
-                                                $line['price'],
-                                                $amount
-                                            ),
-                                            'currency' => $currency,
-                                        ])
+                        'amount'   => $this->items->lineValueInCents($line['price'], $amount),
+                        'currency' => $currency,
+                    ])
                     ->setCountry((string) ($countries[$productId] ?? ''))
                     ->setClassification($this->items->classification((string) ($classifications[$productId] ?? '')))
             );
@@ -97,9 +77,8 @@ class CustomsDeclarationFromOrder
 
         $customsDeclaration
             ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
-            ->setInvoice($this->order->getIncrementId())
-            ->setWeight($totalWeight)
-        ;
+            ->setInvoice((string) $order->getIncrementId())
+            ->setWeight($totalWeight);
 
         return $customsDeclaration;
     }

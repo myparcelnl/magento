@@ -56,16 +56,16 @@ class ShipmentBuilder
      *
      * Keyed on the options too: the New Shipment form can hand a different set for one shipment.
      */
-    private function shipmentOptionsFor(Order $order, array $options, ?int $shipmentId): OrderShipmentOptions
+    private function shipmentOptionsFor(MagentoShipment $magentoShipment, array $options): OrderShipmentOptions
     {
-        $key = ($shipmentId ?? 'new') . '|' . json_encode($options);
+        $key = spl_object_id($magentoShipment) . '|' . json_encode($options);
 
         return $this->shipmentOptions[$key] ?? $this->shipmentOptions[$key] = new OrderShipmentOptions(
             $this->objectManager,
-            $order,
+            $magentoShipment->getOrder(),
             $options,
             $this->defaultOptions,
-            $shipmentId
+            $magentoShipment
         );
     }
 
@@ -88,7 +88,7 @@ class ShipmentBuilder
 
         // the observer builds on save_before, when the shipment has no id yet
         $shipmentId      = $magentoShipment->getEntityId() ? (int) $magentoShipment->getEntityId() : null;
-        $shipmentOptions = $this->shipmentOptionsFor($order, $options, $shipmentId);
+        $shipmentOptions = $this->shipmentOptionsFor($magentoShipment, $options);
         $deliveryOptions = $shipmentOptions->deliveryOptions();
         $packageType     = $shipmentOptions->packageType();
         $weight          = $this->weightInGrams($magentoTrack, $options, $packageType);
@@ -157,13 +157,13 @@ class ShipmentBuilder
 
         return array_filter([
             'cc'            => (string) $address->getCountryId(),
-            'postal_code'   => preg_replace('/\s+/', '', (string) $address->getPostcode()),
+            'postal_code'   => RecipientFields::postalCode($address),
             'city'          => (string) $address->getCity(),
             'street'        => $street->getStreet(),
             'number'        => (string) $street->getNumber(),
             'number_suffix' => (string) $street->getNumberSuffix(),
             'box_number'    => (string) $street->getBoxNumber(),
-            'person'        => (string) $address->getName(),
+            'person'        => RecipientFields::person($address),
             'company'       => (string) $address->getCompany(),
             'email'         => (string) $address->getEmail(),
             'phone'         => (string) $address->getTelephone(),
