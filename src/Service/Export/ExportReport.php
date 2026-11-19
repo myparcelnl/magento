@@ -107,12 +107,6 @@ class ExportReport
         return array_keys($this->collateral);
     }
 
-    /** Check whether an order did not ship, blamed or not. */
-    public function hasFailures(): bool
-    {
-        return [] !== $this->blamed || [] !== $this->collateral;
-    }
-
     /**
      * Get one line per blamed order, then at most one line for the collateral, without increment ids.
      *
@@ -143,7 +137,7 @@ class ExportReport
 
         // Never "not exported" here: the call may have been processed, and re-running would then
         // create a second billable shipment for every one of these orders.
-        $messages[] = (string) __('Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2', $count, $reason);
+        $messages[] = (string) __('Orders that MyParcel did not confirm: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2', $count, $reason);
 
         return $messages;
     }

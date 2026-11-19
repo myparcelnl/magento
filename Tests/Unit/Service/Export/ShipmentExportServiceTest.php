@@ -136,10 +136,9 @@ it('reports an unattributable chunk rejection once, not once per order', functio
     //
     // The spy fails with a plain RuntimeException, which is not a 422, so the wording is the
     // cautious one. Nothing here knows whether the call was processed.
-    expect($report->hasFailures())->toBeTrue()
-        ->and(array_map('strval', $report->collateral()))->toBe(['100000001', '100000002'])
+    expect(array_map('strval', $report->collateral()))->toBe(['100000001', '100000002'])
         ->and($report->failureMessages())->toBe([
-            'Orders for which MyParcel could not be reached: 2. It is unknown whether they shipped.'
+            'Orders that MyParcel did not confirm: 2. It is unknown whether they shipped.'
             . ' Check them in the MyParcel backoffice before you export them again. Reason:'
             . ' the API refused this chunk',
         ]);
@@ -263,7 +262,7 @@ it('keeps a failure visible when a sibling collo of the same order succeeded', f
     $report = makeExportService(['key' => $api])->createConcepts([$colloOne, $colloTwo]);
 
     expect($report->succeeded())->toHaveKey('100000001')
-        ->and($report->hasFailures())->toBeTrue()
+        ->and($report->failureMessages())->not->toBeEmpty()
         ->and(implode('; ', $report->failureReasons()['100000001']))->toContain('did not return a shipment');
 });
 

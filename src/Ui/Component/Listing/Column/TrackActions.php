@@ -102,7 +102,7 @@ class TrackActions extends Column
                         $exportLabel,
                         $entityId,
                         ['mypa_request_type' => 'concept'],
-                        ! $orderManagementActivated
+                        false
                     );
                 } else {
                     foreach ($downloads as $name => [$label, $packageType]) {
@@ -110,7 +110,7 @@ class TrackActions extends Column
                             $label,
                             $entityId,
                             ['mypa_package_type' => $packageType, 'mypa_request_type' => 'download'],
-                            $orderManagementActivated
+                            false
                         );
                     }
 
@@ -118,13 +118,13 @@ class TrackActions extends Column
                         $newConceptLabel,
                         $entityId,
                         ['mypa_request_type' => 'concept'],
-                        $orderManagementActivated
+                        false
                     );
 
                     $actions['action-ship_direct'] = [
                         'href'   => $this->urlBuilder->getUrl('adminhtml/order_shipment/start', ['order_id' => $entityId]),
                         'label'  => $shipmentLabel,
-                        'hidden' => $orderManagementActivated,
+                        'hidden' => false,
                     ];
                 }
             } else {

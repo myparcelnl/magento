@@ -38,7 +38,7 @@ class CapabilitiesLookup
      * Get the capabilities for this store and request. Without a package type, use the answer only
      * for the carriers and their package types. An empty country gets the permissive set.
      *
-     * @param int|null $storeId resolves the API key at that store's scope; never an ambient store
+     * @param int|null $storeId resolves the API key at that store's scope; null means the current store
      */
     public function forRequest(
         ?int    $storeId,
@@ -59,7 +59,7 @@ class CapabilitiesLookup
         if (! isset($this->answers[$memoKey])) {
             Logger::warning(sprintf(
                 'No MyParcel API key for store %s; capabilities unavailable, offering everything.',
-                null === $storeId ? 'default' : (string) $storeId
+                null === $storeId ? 'current' : (string) $storeId
             ));
 
             $this->answers[$memoKey] = CapabilitySet::permissive();

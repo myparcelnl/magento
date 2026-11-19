@@ -12,7 +12,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\ExportResponse;
 
 /**
- * Creates a return label for each selected order and mails it to the consumer.
+ * Creates a return label for each exported MyParcel shipment of the selected orders and mails it to the consumer.
  *
  * It answers the grid's JSON instead of redirecting, so its messages travel with the answer.
  *

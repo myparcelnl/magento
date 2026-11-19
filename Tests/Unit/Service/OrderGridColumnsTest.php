@@ -14,8 +14,7 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 /**
  * The two grid columns for a page of orders: one tracks query, one read of the current values, a
  * column-level write for every order whose values changed, and Magento's own grid refresh for each
- * of those. The full $order->save() this replaces wrote every column of a possibly stale order and
- * re-synced the grid once per shipment.
+ * of those.
  *
  * @param array<int,array<string,mixed>> $tracks  sales_shipment_track rows, as fetchAll() returns them
  * @param array<int,array<string,mixed>> $current sales_order rows: entity_id, track_status, track_number
@@ -118,7 +117,7 @@ it('refreshes the grid row of each written order when async indexing is off', fu
 
 it('leaves the grid to the scheduled sync when async indexing is on, and stamps updated_at', function () {
     // Magento's own observer skips the synchronous refresh in this mode; refreshBySchedule() then
-    // picks the row up by updated_at, which a full order save used to bump as a side effect.
+    // picks the row up by updated_at, so the column write must stamp it.
     [$columns, $did] = gridColumnsWriter([trackRowFor(7, '3SA')], [orderRow(7)], true);
 
     $columns->writeFor([7]);
@@ -228,10 +227,7 @@ it('leaves a stored track number alone when the caller has none to offer', funct
         ->and($did->updates[0]['bind'])->not->toHaveKey('track_number');
 });
 
-/**
- * The grid's own track query was the one place the MyParcel restriction was never applied, so a
- * manual track of another carrier reached sales_order.track_number.
- */
+/** A manual track of another carrier must not reach sales_order.track_number. */
 it('asks only for myparcel tracks', function () {
     [$columns, $did] = gridColumnsWriter([trackRowFor(7, '3SA')], [orderRow(7)]);
 

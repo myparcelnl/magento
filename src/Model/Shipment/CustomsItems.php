@@ -108,8 +108,8 @@ class CustomsItems
     /** Weight and value are line-level while amount carries the count, so both multiply by quantity. */
     public function lineWeightInGrams(float $unitWeight, float $quantity): int
     {
-        // A zero-gram customs item is refused by the API, so an item with no weight set counts as 1.
-        return $this->weight->convertToGrams($unitWeight * $quantity) ?: 1;
+        // The API refuses a zero-gram customs item; convertToGrams() gives a weightless line Weight::DEFAULT_WEIGHT.
+        return $this->weight->convertToGrams($unitWeight * $quantity);
     }
 
     /** Cents are multiplied rather than euros, so one rounding happens instead of one per line. */

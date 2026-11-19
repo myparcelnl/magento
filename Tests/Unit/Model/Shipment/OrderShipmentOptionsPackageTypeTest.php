@@ -8,19 +8,16 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
-/**
- * Precedence only: the explicit option, then what the checkout stored, then the configured
- * default. Nothing here overrides a stored type, also not for a pickup.
- */
+/** Precedence only: the explicit option, then what the checkout stored, then package. */
 function packageTypeOf(
     array $options,
     array $stored,
     bool  $ageCheck = false,
-    int   $configuredDefault = PackageType::PACKAGE_SMALL
+    int   $fallbackType = PackageType::PACKAGE
 ): int
 {
     $defaultOptions = Mockery::mock(DefaultOptions::class);
-    $defaultOptions->shouldReceive('getPackageType')->andReturn($configuredDefault);
+    $defaultOptions->shouldReceive('getPackageType')->andReturn($fallbackType);
 
     return createOrderShipmentOptions([
         'options'         => $options,
@@ -48,16 +45,16 @@ it('falls through to the checkout delivery option when no option is explicitly c
     expect($result)->toBe(PackageType::DIGITAL_STAMP);
 });
 
-it('falls through to the configured default when nothing is chosen anywhere', function () {
+it('falls through to package when nothing is chosen anywhere', function () {
     $result = packageTypeOf([], []);
 
-    expect($result)->toBe(PackageType::PACKAGE_SMALL);
+    expect($result)->toBe(PackageType::PACKAGE);
 });
 
-it('falls back to the configured default when the explicit option name is unmapped', function () {
+it('falls back to package when the explicit option name is unmapped and nothing is stored', function () {
     $result = packageTypeOf(['package_type' => 'not-a-real-type'], []);
 
-    expect($result)->toBe(PackageType::PACKAGE_SMALL);
+    expect($result)->toBe(PackageType::PACKAGE);
 });
 
 it('keeps the stored package type when an age check applies', function () {

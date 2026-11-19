@@ -7,8 +7,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 /**
  * A product with no myparcel_fit_in_mailbox row must not divide the mailbox percentage by null.
  *
- * makePackageRepository() answers every attribute with an empty string, which ProductAttributes
- * treats as "no row" — so these are the ordinary cases, not contrived ones.
+ * There is no row unless a test calls mockAttributeValueLookup() with a value.
  */
 function repositoryWithNoCarrierSettings()
 {

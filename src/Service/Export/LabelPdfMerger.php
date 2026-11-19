@@ -13,7 +13,7 @@ use Throwable;
 /**
  * Merges the label PDFs of several MyParcel accounts into one document.
  *
- * The SDK's ShipmentLabelsService holds one PDF per account. Pages keep the order of the PDFs
+ * The export service gives one PDF per account and chunk of 100 ids. Pages keep the order of the PDFs
  * handed in, so the pages of one account stay together. Selection order is not possible: an A4
  * sheet carries four labels of one account.
  */

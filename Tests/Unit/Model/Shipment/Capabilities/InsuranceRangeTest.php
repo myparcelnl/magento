@@ -42,30 +42,19 @@ it('rounds inwards so a fractional bound cannot widen the range', function () {
         ->and($range->max())->toBe(2499);
 });
 
-it('answers null when the minimum is present but not money-shaped', function () {
-    // A bare number states no scale. Reading it as zero is what let allows(0) pass a contract that
-    // requires insurance, so the range is discarded exactly as a malformed maximum is.
+it('answers null when the minimum is present but not money-shaped', function ($min) {
+    // Reading such a minimum as zero would let allows(0) pass a contract that requires insurance.
     mockLoggerFacade()->shouldReceive('notice')->never();
 
     expect(insuranceRangeOf([
         'isRequired' => true,
-        'min'        => 8500,
+        'min'        => $min,
         'max'        => ['amount' => 500000],
     ]))->toBeNull();
-});
-
-it('does not let a malformed minimum leave a required contract shippable uninsured', function () {
-    mockLoggerFacade()->shouldReceive('notice')->never();
-
-    $range = insuranceRangeOf([
-        'isRequired' => true,
-        'min'        => ['amount' => 8500],
-        'max'        => ['amount' => 500000],
-    ]);
-
-    expect($range->allows(0))->toBeFalse()
-        ->and($range->lowestAccepted())->toBe(85);
-});
+})->with([
+    'a bare number'        => [8500],
+    'money without amount' => [['currency' => 'EUR']],
+]);
 
 it('treats a missing minimum as zero', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();

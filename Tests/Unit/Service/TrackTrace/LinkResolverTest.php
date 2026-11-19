@@ -80,7 +80,7 @@ it('constructs the belgian host from the store proposition', function () {
         ->toBe('https://sendmyparcel.me/track-trace/3STBJG123456789/2000/BE');
 });
 
-it('reads an order with no country as dutch, as it did before', function () {
+it('reads an order with no country as dutch', function () {
     $links = makeLinkResolver([trackRow(['country_id' => null])]);
 
     expect($links->forOrders([7])[7][0]['url'])
