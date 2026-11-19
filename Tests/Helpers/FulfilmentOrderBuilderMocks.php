@@ -71,10 +71,11 @@ function createOrderItem(array $data = [], array $productData = []): DataObject
     ], $productData));
 
     // isDummy() is Magento's own rule on a real order item; here the test states the outcome as is_dummy.
+    // Only the shipping rule, isDummy(true), answers it, so a call to the price rule fails the test.
     $item = new class extends DataObject {
         public function isDummy($shipment = false): bool
         {
-            return (bool) $this->getData('is_dummy');
+            return $shipment && (bool) $this->getData('is_dummy');
         }
     };
 
