@@ -14,7 +14,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipment;
  * "nothing to do". The report must not say success then.
  *
  * @param array{shipments: array<int,object>, errors: string[], failedApiKeys: string[]} $lookup
- * @param string[]                                              $createReturnsErrors
+ * @param array<int|string,mixed>                                $createReturnsErrors the same for every call, or per key
  * @param array<string,array<int,int>>                          $returns per key, return id => parent id
  * @param array<int,\Magento\Sales\Model\Order\Shipment\Track[]>   $tracks  keyed by Magento shipment id
  * @param int[]                                                 $ids     MyParcel shipment ids of key-a
@@ -53,9 +53,12 @@ function returnMailRun(
     $exportService->shouldReceive('fetchLatestWithErrors')->andReturn($lookup);
     $exportService->shouldReceive('createReturns')->andReturnUsing(
         static function (array $given) use (&$rows, $createReturnsErrors, $returns): array {
-            $rows += $given;
+            $rows  += $given;
+            $errors = array_values($createReturnsErrors) === $createReturnsErrors
+                ? $createReturnsErrors
+                : ($createReturnsErrors[array_key_first($given)] ?? []);
 
-            return ['returns' => array_intersect_key($returns, $given), 'errors' => $createReturnsErrors];
+            return ['returns' => array_intersect_key($returns, $given), 'errors' => $errors];
         }
     );
 
@@ -306,4 +309,20 @@ it('names the orders of an account whose return call failed', function () {
         ->and($run['errors'])->toBe([
             '000000001, 000000002: It is unknown whether MyParcel created and mailed the return labels of 2 shipment(s): timed out.',
         ]);
+});
+
+it('names only the orders of the account that failed, and reports the other account sent', function () {
+    $run = returnMailRun(
+        ['shipments' => [111 => returnMailShipment(), 222 => returnMailShipment(222)], 'errors' => [], 'failedApiKeys' => []],
+        ['key-b' => ['The return shipment was refused']],
+        ['key-a' => [901 => 111]],
+        [5 => [returnMailTrack(111, 5)], 6 => [returnMailTrack(222, 6)]],
+        [],
+        [returnMailMagentoShipment(5, '000000001'), returnMailMagentoShipment(6, '000000002')],
+        ['key-a' => [111], 'key-b' => [222]]
+    );
+
+    expect($run['sent'])->toBeTrue()
+        ->and(array_keys($run['rows']))->toBe(['key-a', 'key-b'])
+        ->and($run['errors'])->toBe(['000000002: The return shipment was refused']);
 });
