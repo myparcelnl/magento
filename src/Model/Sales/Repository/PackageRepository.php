@@ -78,9 +78,9 @@ class PackageRepository extends Package
                 continue;
             }
 
-            // No row means the attribute's own default, which UpgradeData sets to -1. Without this,
-            // null reaches the division below and PHP 8 throws DivisionByZeroError in the checkout.
-            $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox') ?? -1;
+            // No row means 0, so the weight decides, as before SDK v11. A product gets the -1 default
+            // only when it is saved in the admin.
+            $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox') ?? 0;
 
             if (-1 === $mailboxQty) {
                 $this->setMailboxPercentage(101);
