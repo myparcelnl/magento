@@ -280,8 +280,7 @@ class UpdateStatus
      *
      * order_shipments passes through the SDK as a raw array with no model behind it, so each key is
      * read defensively. The shipped check is per entry: a fulfilment order can hold a concept or a
-     * cancelled shipment beside shipped ones, and reading only the first entry is what hid an order
-     * whose second shipment had shipped while its first was still a concept.
+     * cancelled shipment beside shipped ones, in any position.
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
      */
@@ -540,7 +539,7 @@ class UpdateStatus
          * @var Order\Shipment\Track $magentoTrack
          * @var Collection           $trackCollection
          */
-        $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER_TRACK);
+        $trackCollection = $this->objectManager->create(self::PATH_MODEL_ORDER_TRACK);
         $trackCollection
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [1, 2, 3, 4, 5, 6, 8])

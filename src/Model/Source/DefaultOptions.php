@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
@@ -26,6 +27,7 @@ use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use Throwable;
 
@@ -36,6 +38,7 @@ class DefaultOptions
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
     private Config $config;
+    private ObjectManagerInterface $objectManager;
     private        $quote;
     private array  $chosenOptions;
 
@@ -54,9 +57,9 @@ class DefaultOptions
      */
     public function __construct($quote)
     {
-        $objectManager = ObjectManager::getInstance();
-        $this->config  = $objectManager->get(Config::class);
-        $this->quote   = $quote;
+        $this->objectManager = ObjectManager::getInstance();
+        $this->config        = $this->objectManager->get(Config::class);
+        $this->quote         = $quote;
         try {
             $this->chosenOptions = DeliveryOptionsFactory::create(
                 (array) json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 4, JSON_THROW_ON_ERROR)
@@ -89,7 +92,10 @@ class DefaultOptions
             // instance lives, and the New Shipment form asks once per carrier and package type.
             if (! array_key_exists('ageCheck', $this->fromProducts)) {
                 $this->fromProducts['ageCheck'] =
-                    ShipmentOptionsResolver::getAgeCheckFromProduct($this->quote->getItems() ?? []);
+                    ShipmentOptionsResolver::getAgeCheckFromProduct(
+                        $this->quote->getItems() ?? [],
+                        $this->objectManager->get(ProductAttributes::class)
+                    );
             }
 
             if (null !== $this->fromProducts['ageCheck']) {

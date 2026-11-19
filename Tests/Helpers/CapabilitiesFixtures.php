@@ -153,9 +153,9 @@ function failCapabilitiesBackendIfAsked(object $store, string $call): void
  * A Repository over an in-memory cache double, so cache hits and misses are observable.
  *
  * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
- * @return array{repository: CapabilitiesRepository, history: array, store: object, config: Config}
+ * @return array{repository: CapabilitiesRepository, history: array, store: object}
  */
-function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAPABILITIES_TEST_API_KEY): array
+function makeCapabilitiesRepository(array $responses = []): array
 {
     $client = makeCapabilitiesClient($responses);
 
@@ -186,8 +186,6 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
         }
     );
 
-    $config = createConfig(['api/key' => $apiKey]);
-
     // Granted unless a test says otherwise: the lock only keeps concurrent requests off one fetch,
     // and a single-threaded test is never the second holder. Set $store->lockHeld to refuse it.
     $lockManager = Mockery::mock(LockManagerInterface::class);
@@ -204,11 +202,21 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
     });
 
     return [
-        'repository' => new CapabilitiesRepository($client['client'], $cache, $config, new Fingerprint(), $lockManager),
+        'repository' => new CapabilitiesRepository($client['client'], $cache, new Fingerprint(), $lockManager),
         'history'    => &$client['history'],
         'store'      => $store,
-        'config'     => $config,
     ];
+}
+
+/** A real CapabilitiesLookup over $repository, for stores whose API key is $apiKey. */
+function capabilitiesLookupOver(CapabilitiesRepository $repository, string $apiKey = CAPABILITIES_TEST_API_KEY): CapabilitiesLookup
+{
+    $apiProvider = new MyParcelNL\Magento\Service\Export\ShipmentApiProvider(
+        createConfig(['api/key' => $apiKey]),
+        createUserAgent()
+    );
+
+    return new CapabilitiesLookup($repository, $apiProvider);
 }
 
 /**
@@ -310,7 +318,7 @@ function assertFlatInsuranceShape(array $results): void
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
-function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1): CapabilitiesLookup
+function capabilityLookupWith($answers, string $country = 'NL'): CapabilitiesLookup
 {
     if ($answers instanceof CapabilitySet) {
         $answers = array_fill_keys(array_merge([''], array_keys(PackageType::NAMES_IDS_MAP)), $answers);
@@ -319,11 +327,11 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
     $seeded = [];
 
     foreach ($answers as $packageType => $set) {
-        // Same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
+        // Same key as CapabilitiesLookup::forApiKeyRequest() builds: key, country, package type, carrier.
+        $seeded[CAPABILITIES_TEST_API_KEY . '|' . $country . '|' . $packageType . '|'] = $set;
     }
 
-    $lookup = newInstanceWithoutConstructor(CapabilitiesLookup::class);
+    $lookup = capabilitiesLookupOver(newInstanceWithoutConstructor(CapabilitiesRepository::class));
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;

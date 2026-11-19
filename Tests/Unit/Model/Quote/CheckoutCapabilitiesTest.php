@@ -54,7 +54,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'package'          => $package,
         'config'           => $config,
         'quote'            => $quote,
-        'capabilityLookup' => capabilityLookupWith($capabilities, $country, 1),
+        'capabilityLookup' => capabilityLookupWith($capabilities, $country),
     ]);
 
     return ['checkout' => $checkout, 'package' => $package, 'calls' => $calls];

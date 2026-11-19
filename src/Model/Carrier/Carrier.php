@@ -32,13 +32,13 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
@@ -190,26 +190,21 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             return $this->config->getMagentoCarrierConfig('name');
         }
 
-        try {
-            $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
-        } catch (\Throwable $e) {
-            $carrierHuman = $carrierName;
-        }
+        $carrierHuman = ShipmentCarrier::humanFor($carrierName);
 
         $deliveryTypeTitle = DeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
-        ob_start();
-        echo $carrierHuman, ' ', __($deliveryTypeTitle), ', ', __($packageTypeTitle);
+        $parts = [$carrierHuman . ' ' . __($deliveryTypeTitle), (string) __($packageTypeTitle)];
 
         foreach (ShipmentOptions::optionKeys() as $option) {
             // insurance is an amount, not an option that is on or off
             if (ShipmentOption::INSURANCE !== $option && $shipmentOptions->option($option)) {
-                echo ', ', __(ShipmentOption::labelFor($option));
+                $parts[] = (string) __(ShipmentOption::labelFor($option));
             }
         }
 
-        return trim(ob_get_clean());
+        return implode(', ', $parts);
     }
 
     public function processAdditionalValidation(DataObject $request): bool

@@ -90,7 +90,5 @@ it('lists every option that is on in the method title, also one stored as 1', fu
 
     $title = invokePrivateMethod($method, 'getMethodTitle', [Mockery::mock(Quote::class)]);
 
-    expect($title)->toContain('Signature on receipt')
-        ->not->toContain('Only recipient')
-        ->not->toContain('Insurance');
+    expect($title)->toBe('PostNL Standard delivery, Package, Signature on receipt');
 });

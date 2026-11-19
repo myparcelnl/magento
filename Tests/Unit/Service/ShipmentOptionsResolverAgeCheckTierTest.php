@@ -69,35 +69,42 @@ function ageCheckProductTierQuote(array $values, ?array &$loads = null): array
     return $items;
 }
 
+/** The tier's answer, through the shared reader that ageCheckProductTierQuote() registers. */
+function productAgeCheck(array $items): ?bool
+{
+    return ShipmentOptionsResolver::getAgeCheckFromProduct(
+        $items,
+        ObjectManager::getInstance()->get(ProductAttributes::class)
+    );
+}
+
 it('is on when any product says so, even behind one that says no', function () {
     $items = ageCheckProductTierQuote([7 => '0', 9 => '1']);
 
-    expect(ShipmentOptionsResolver::getAgeCheckFromProduct($items))->toBeTrue();
+    expect(productAgeCheck($items))->toBeTrue();
 });
 
 it('is off when every product that speaks says no', function () {
     $items = ageCheckProductTierQuote([7 => '0', 9 => '0']);
 
-    expect(ShipmentOptionsResolver::getAgeCheckFromProduct($items))->toBeFalse();
+    expect(productAgeCheck($items))->toBeFalse();
 });
 
 it('has no opinion when no product carries the attribute', function () {
     // Not false: false is an opinion, and it would stop the carrier default from ever being read.
     $items = ageCheckProductTierQuote([7 => '', 9 => '']);
 
-    expect(ShipmentOptionsResolver::getAgeCheckFromProduct($items))->toBeNull();
+    expect(productAgeCheck($items))->toBeNull();
 });
 
 it('has no opinion about an empty quote', function () {
-    expect(ShipmentOptionsResolver::getAgeCheckFromProduct(ageCheckProductTierQuote([])))->toBeNull();
+    expect(productAgeCheck(ageCheckProductTierQuote([])))->toBeNull();
 });
 
 it('reads the whole quote in one load', function () {
-    // It built a reader per product before, so nothing it memoised survived an iteration and an
-    // N-line quote paid 3N queries on the checkout path.
     $items = ageCheckProductTierQuote([7 => '0', 9 => '0', 11 => '0'], $loads);
 
-    ShipmentOptionsResolver::getAgeCheckFromProduct($items);
+    productAgeCheck($items);
 
     expect($loads)->toHaveCount(1)
         ->and($loads[0])->toBe([7, 9, 11]);
