@@ -50,7 +50,7 @@ it('declares at least one piece for a fractional quantity, which the API would r
 
 it('declares a configurable product once and a virtual product not at all, as a label does', function () {
     $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable'], ['id' => 7, 'name' => 'Shirt']);
-    $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent], ['id' => 7, 'name' => 'Shirt, red']);
+    $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true], ['id' => 7, 'name' => 'Shirt, red']);
     $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true], ['id' => 7, 'name' => 'Gift wrap']);
     $order   = createOrder([
         'getItems'         => [$parent, $child, $virtual],
@@ -64,4 +64,21 @@ it('declares a configurable product once and a virtual product not at all, as a 
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->getDescription())->toBe('Shirt');
+});
+
+it('declares the children of a bundle shipped separately, not the bundle', function () {
+    $bundle = createOrderItem(['item_id' => 1, 'product_type' => 'bundle', 'is_dummy' => true], ['id' => 7, 'name' => 'Gift set']);
+    $mug    = createOrderItem(['item_id' => 2, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Mug']);
+    $plate  = createOrderItem(['item_id' => 3, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Plate']);
+    $order  = createOrder([
+        'getItems'         => [$bundle, $mug, $plate],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    $config        = createConfig(['print/weight_indication' => 'gram']);
+    $objectManager = customsObjectManager([7 => '6109.10'], [7 => 'CN'], $config);
+    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+
+    expect(array_map(static fn ($item) => $item->getDescription(), $items))->toBe(['Mug', 'Plate']);
 });

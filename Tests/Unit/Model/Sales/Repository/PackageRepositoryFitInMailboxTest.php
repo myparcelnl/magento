@@ -19,11 +19,13 @@ function repositoryWithNoCarrierSettings()
     return $repository;
 }
 
-it('treats a missing fit_in_mailbox as -1 rather than dividing by it', function () {
+it('lets the weight decide when a product has no fit_in_mailbox row', function () {
     $repository = repositoryWithNoCarrierSettings();
+    $repository->setMaxMailboxWeight(3.0);
+    $repository->selectPackageType([quoteItemFor(1, 2.0, 1.5)], 'postnl');
 
-    expect($repository->selectPackageType([quoteItemFor(1, 2.0, 1.5)], 'postnl'))
-        ->toBe(PackageType::PACKAGE_NAME);
+    // 3.0 / 1.5 = 2 items fit, and the order has 2.
+    expect($repository->getMailboxPercentage())->toBe(100.0);
 });
 
 it('survives a quote item whose catalogue product is gone', function () {
@@ -35,6 +37,7 @@ it('survives a quote item whose catalogue product is gone', function () {
 
 it('still rules out a mailbox when fit_in_mailbox is explicitly -1', function () {
     $repository = repositoryWithNoCarrierSettings();
+    mockAttributeValueLookup('-1');
     $repository->selectPackageType([quoteItemFor(1, 1.0, 1.0)], 'postnl');
 
     expect($repository->getMailboxPercentage())->toBe(101.0);

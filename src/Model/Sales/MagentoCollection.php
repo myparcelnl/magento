@@ -446,17 +446,42 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             return false;
         }
 
-        $answer = $this->exportService->createReturns($rows);
+        $failedAccounts = 0;
 
-        foreach ($answer['errors'] as $error) {
-            $this->messageManager->addErrorMessage($error);
+        // One call per account, so that an error can name the orders of that account.
+        foreach ($rows as $apiKey => $accountRows) {
+            $answer = $this->exportService->createReturns([$apiKey => $accountRows]);
+
+            foreach ($answer['errors'] as $error) {
+                $this->messageManager->addErrorMessage($this->ordersMessage(array_column($accountRows, 'parent'), $error));
+            }
+
+            $failedAccounts += $answer['errors'] ? 1 : 0;
+            $this->recordReturns(array_replace([], ...array_values($answer['returns'])));
         }
 
-        $this->recordReturns(array_replace([], ...array_values($answer['returns'])));
+        return $failedAccounts < count($rows);
+    }
 
-        // createReturns() reports one error per failing account, so an error for every account it
-        // was given means nothing was mailed.
-        return count($answer['errors']) < count($rows);
+    /**
+     * Prefix a message with the increment ids of the orders behind these MyParcel shipments.
+     *
+     * @param int[] $shipmentIds
+     */
+    private function ordersMessage(array $shipmentIds, string $message): string
+    {
+        $incrementIds = array_unique(array_filter(array_map(fn (int $id) => $this->incrementIdOf($id), $shipmentIds)));
+
+        return $incrementIds ? sprintf('%s: %s', implode(', ', $incrementIds), $message) : $message;
+    }
+
+    /** The increment id of the order behind a MyParcel shipment, or null when no track names it. */
+    private function incrementIdOf(int $shipmentId): ?string
+    {
+        $track    = $this->firstTrackByMyParcelId()[$shipmentId] ?? null;
+        $shipment = $track ? $this->getShipmentsCollection()->getItemById((int) $track->getData('parent_id')) : null;
+
+        return $shipment ? (string) $shipment->getOrder()->getIncrementId() : null;
     }
 
     /**
@@ -469,11 +494,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     private function shipmentMessage(int $shipmentId, callable $phrase, ?string $barcode = null): string
     {
-        $track    = $this->firstTrackByMyParcelId()[$shipmentId] ?? null;
-        $shipment = $track ? $this->getShipmentsCollection()->getItemById((int) $track->getData('parent_id')) : null;
-        $message  = (string) $phrase((string) ($barcode ?: ($track ? $track->getData('track_number') : '') ?: $shipmentId));
+        $track   = $this->firstTrackByMyParcelId()[$shipmentId] ?? null;
+        $message = (string) $phrase((string) ($barcode ?: ($track ? $track->getData('track_number') : '') ?: $shipmentId));
 
-        return $shipment ? sprintf('%s: %s', $shipment->getOrder()->getIncrementId(), $message) : $message;
+        return $this->ordersMessage([$shipmentId], $message);
     }
 
     /**

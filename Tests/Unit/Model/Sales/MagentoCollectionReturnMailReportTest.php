@@ -53,9 +53,9 @@ function returnMailRun(
     $exportService->shouldReceive('fetchLatestWithErrors')->andReturn($lookup);
     $exportService->shouldReceive('createReturns')->andReturnUsing(
         static function (array $given) use (&$rows, $createReturnsErrors, $returns): array {
-            $rows = $given;
+            $rows += $given;
 
-            return ['returns' => $returns, 'errors' => $createReturnsErrors];
+            return ['returns' => array_intersect_key($returns, $given), 'errors' => $createReturnsErrors];
         }
     );
 
@@ -290,4 +290,20 @@ it('names only the unsupported carrier when no shipment can get a return', funct
     expect($run['sent'])->toBeFalse()
         ->and($run['rows'])->toBe([])
         ->and($run['errors'])->toBe(['000000001: The carrier of shipment BARCODE111 does not support return labels.']);
+});
+
+it('names the orders of an account whose return call failed', function () {
+    $run = returnMailRun(
+        ['shipments' => [111 => returnMailShipment(), 222 => returnMailShipment(222)], 'errors' => [], 'failedApiKeys' => []],
+        ['It is unknown whether MyParcel created and mailed the return labels of 2 shipment(s): timed out.'],
+        [],
+        [5 => [returnMailTrack(111, 5)], 6 => [returnMailTrack(222, 6)]],
+        [111, 222],
+        [returnMailMagentoShipment(5, '000000001'), returnMailMagentoShipment(6, '000000002')]
+    );
+
+    expect($run['sent'])->toBeFalse()
+        ->and($run['errors'])->toBe([
+            '000000001, 000000002: It is unknown whether MyParcel created and mailed the return labels of 2 shipment(s): timed out.',
+        ]);
 });
