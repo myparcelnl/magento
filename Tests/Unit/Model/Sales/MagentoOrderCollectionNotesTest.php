@@ -9,7 +9,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 /**
  * The status-history comments a PPS export sends as order notes.
  *
- * Two queries for the whole batch, not two per order.
+ * One status-history query per chunk, not one per order.
  */
 function fakeRows(array $rows): object
 {

@@ -16,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
  * Outbound it restores the `;` separators that the generated client encodes to `%3B`: the endpoint
  * answers 500 to an encoded separator.
  * Inbound it logs only the shape of a non-PDF body: the values can quote recipient data.
- * It never copies a real PDF and never touches or logs the Authorization header.
+ * A seekable PDF body passes through without a copy. It never touches or logs the Authorization header.
  */
 class LabelHttpClient implements ClientInterface
 {

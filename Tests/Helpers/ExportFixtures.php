@@ -160,8 +160,9 @@ function postShipmentsRequestIn(array $args)
     throw new RuntimeException('postShipments() was called without a request object');
 }
 
-/** Answers every create by echoing each request's own references back, in reverse order. */
 /**
+ * Answers every create by echoing each request's own references back, in reverse order.
+ *
  * @param bool|int      $failing true fails every call; a number fails that call (1-based) only
  * @param callable|null $onCall  receives the call number before the call is answered
  */
@@ -201,8 +202,11 @@ function makeShipmentApiSpy(array &$calls, $failing = false, ?callable $onCall =
     return $api;
 }
 
-/** @param array<string,ShipmentApi> $clientsByKey */
-/** @param \Psr\Http\Client\ClientInterface|null $httpClient what the label and return services send with */
+/**
+ * @param array<string,ShipmentApi>             $clientsByKey
+ * @param int|string|null                       $chunkSize    the raw config value; a string tests the fallback
+ * @param \Psr\Http\Client\ClientInterface|null $httpClient   what the label and return services send with
+ */
 function makeExportService(array $clientsByKey, $chunkSize = null, ?\Psr\Http\Client\ClientInterface $httpClient = null): ShipmentExportService
 {
     $httpClient = $httpClient ?? Mockery::mock(\Psr\Http\Client\ClientInterface::class);

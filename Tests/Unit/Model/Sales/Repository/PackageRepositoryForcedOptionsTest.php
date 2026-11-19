@@ -7,8 +7,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 /**
  * A forced option is one the order gets whatever the shopper picks: set on a product, or on in the
- * carrier's export settings. Both tiers are always read, because a future entry in
- * ShipmentOption::LIMIT_PACKAGE_TYPE may have only one of them.
+ * carrier's export settings.
  *
  * The product tier is stubbed rather than driven: reading it means an EAV query, which
  * getAttributesProductsOptions() owns and which is not what these cases are about.

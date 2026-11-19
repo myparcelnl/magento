@@ -382,7 +382,7 @@ class NewShipment extends AbstractItems
      * the real destination anyway, and refusing to offer insurance because a lookup failed is exactly
      * what must not happen.
      *
-     * @return array{default: int, min: int|null, max: int|null, floor: int, required: bool}
+     * @return array{default: int, max: int|null, floor: int, note: string|null}
      */
     private function insuranceField(string $carrier, string $packageType): array
     {

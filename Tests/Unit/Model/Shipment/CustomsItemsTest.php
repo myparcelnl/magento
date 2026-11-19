@@ -35,6 +35,10 @@ it('leaves a line that converts exactly alone', function () {
         ->and(customsItems()->lineValueInCents(0.29, 3.0))->toBe(87);
 });
 
+it('declares a weightless line at the default weight, never at zero grams', function () {
+    expect(customsItems()->lineWeightInGrams(0.0, 3.0))->toBe(Weight::DEFAULT_WEIGHT);
+});
+
 /**
  * A CustomsItems on a mocked product collection. Do not read the value tables directly: on Commerce
  * they are keyed by row_id.

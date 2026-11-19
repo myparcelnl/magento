@@ -95,8 +95,8 @@ class UpdateStatus
      *
      * Each order_shipments entry gets its own track; updateMagentoTrack() expands a multicollo entry
      * from the shipment API. The API's reference is the increment_id, the track table holds entity_id.
-     * An order left without a track gets its barcode on the order row, decided by outcome and not by
-     * canShip(): a failed shipment rolls back, so canShip() stays true.
+     * An order whose MyParcel tracks carry no real barcode gets its barcode on the order row, decided
+     * by outcome and not by canShip(): a failed shipment rolls back, so canShip() stays true.
      *
      * @return $this
      * @throws AlreadyExistsException
@@ -202,7 +202,7 @@ class UpdateStatus
 
         if ($tally['order_row'] || $tally['without_id']) {
             Logger::notice(sprintf(
-                'PPS: %d order(s) got their barcode on the order row for want of a track; '
+                'PPS: %d order(s) got their barcode on the order row, as no MyParcel track carries a real barcode; '
                 . '%d shipment(s) came back with no id, so they get no status and no link',
                 $tally['order_row'],
                 $tally['without_id']
@@ -317,7 +317,7 @@ class UpdateStatus
     }
 
     /**
-     * Write the barcode to the order row for an order that could not get a track.
+     * Write the barcode to the order row for an order whose MyParcel tracks carry no real barcode.
      *
      * Such an order gets no link: myparcel_tracktrace_url is a column on sales_shipment_track.
      *

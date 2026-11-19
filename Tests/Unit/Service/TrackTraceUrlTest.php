@@ -7,8 +7,8 @@ use MyParcelNL\Magento\Service\TrackTraceUrl;
 /**
  * The fallback url, for shipments stored before the module read the link from the API.
  *
- * The proposition cases are the Belgian regression: one build now serves both countries, so the host
- * follows the account rather than a single configured value.
+ * In the proposition cases the host follows the account, not one configured value, so one build
+ * serves both countries.
  */
 function trackTraceUrl(): TrackTraceUrl
 {
@@ -55,8 +55,7 @@ it('falls back to the configured default when the proposition maps to nothing', 
 
 /*
  * Injection cases. Every part is a path segment, so a payload in one must not be able to end the
- * segment, add an attribute, or swap the scheme. Ported from the TrackAndTrace column test that
- * covered this before the link moved here.
+ * segment, add an attribute, or swap the scheme.
  */
 
 it('does not let a postcode break out of the href attribute', function () {

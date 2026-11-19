@@ -35,7 +35,7 @@ it('leaves a description that already fits exactly alone', function () {
 });
 
 it('uses all 45 characters when it truncates', function () {
-    // Str::limit counts its own marker inside the width. Subtracting the marker as well loses three.
+    // Text::limit puts the ellipsis inside the 45 characters.
     $result = labelDescriptionFor(str_repeat('a', 200));
 
     expect(mb_strlen($result))->toBe(OrderShipmentOptions::LABEL_DESCRIPTION_MAX_LENGTH);
