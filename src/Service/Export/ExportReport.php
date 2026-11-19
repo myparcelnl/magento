@@ -22,7 +22,7 @@ class ExportReport
     /** @var array<string,array{reason: string, refused: bool}> increment ids that did not ship but were never blamed */
     private array $collateral = [];
 
-    /** True while every chunk that produced collateral was refused; one transport failure clears it. */
+    /** True while every chunk that produced collateral was refused; one unconfirmed chunk clears it. */
     private bool $collateralRefused = true;
 
     /**
@@ -63,7 +63,7 @@ class ExportReport
      * Record an order that did not ship because something else in its chunk failed.
      *
      * @param bool $refused the API validated the chunk and refused it, so nothing was created.
-     *                      False for a timeout or a 5xx, which changes what the admin is told.
+     *                      False for any other failure, which changes what the admin is told.
      */
     public function failCollateral(string $incrementId, string $reason, bool $refused): void
     {
