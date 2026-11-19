@@ -15,7 +15,8 @@ use Throwable;
  * Gets capabilities through the cache, per API key and request.
  *
  * - Fail open: any failure returns CapabilitySet::permissive(), so a lookup never stops a label.
- * - Cache forever: a success entry has no expiry and is not fetched again until cache:clean.
+ * - Cache forever: a success entry has no expiry. cache:clean, an API key change and a settings
+ *   import clean the capabilities cache type, and only then is it fetched again.
  * - A failure is remembered for FAILURE_LIFETIME_SECONDS, and is read after the success entry.
  */
 class Repository

@@ -174,7 +174,7 @@ class Rejection
 
     /**
      * Check whether the API refused the chunk outright, so nothing shipped.
-     * False for a timeout or a 5xx: the call can have been processed, and a second run pays twice.
+     * False for anything but a 422: the call can have been processed, and a second run pays twice.
      */
     public function isRefusal(): bool
     {

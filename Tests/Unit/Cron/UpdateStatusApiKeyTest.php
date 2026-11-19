@@ -73,8 +73,7 @@ function runPpsCron(
     $orderResource = Mockery::mock(Magento\Sales\Model\ResourceModel\Order::class);
     $orderResource->shouldReceive('save')->andReturnSelf();
 
-    // IteratorAggregate is named explicitly: a mock of the collection alone iterates nothing, and
-    // the order lookup and the track lookup are one query each.
+    // IteratorAggregate is named explicitly: a mock of the collection alone iterates nothing.
     $magentoOrders = Mockery::mock(
         Magento\Sales\Model\ResourceModel\Order\Collection::class . ', IteratorAggregate'
     );
