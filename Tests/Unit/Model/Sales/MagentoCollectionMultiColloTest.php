@@ -23,7 +23,7 @@ function createCollectionAnswering(array $responses): array
     $repository = makeCapabilitiesRepository($responses);
 
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
-    setPrivateProperty($collection, 'capabilityLookup', new CapabilitiesLookup($repository['repository']));
+    setPrivateProperty($collection, 'capabilityLookup', capabilitiesLookupOver($repository['repository']));
 
     return ['collection' => $collection, 'history' => &$repository['history']];
 }

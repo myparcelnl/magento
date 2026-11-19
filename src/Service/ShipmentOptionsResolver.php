@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Service;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
@@ -206,9 +207,9 @@ class ShipmentOptionsResolver
      * Null is "no opinion", so the carrier default decides; an order without items must answer null.
      * An explicit non-'1' value is an opinion, and beats the carrier default.
      *
-     * @param $products
+     * @param iterable $products quote or order items
      */
-    public static function getAgeCheckFromProduct($products): ?bool
+    public static function getAgeCheckFromProduct($products, ProductAttributes $attributes): ?bool
     {
         $productIds = [];
 
@@ -216,10 +217,7 @@ class ShipmentOptionsResolver
             $productIds[] = (int) $product['product_id'];
         }
 
-        // The request's shared reader: one load for the whole quote. A new reader per call loads again.
-        $ageChecks   = ObjectManager::getInstance()
-            ->get(ProductAttributes::class)
-            ->getColumn($productIds, ShipmentOption::AGE_CHECK);
+        $ageChecks   = $attributes->getColumn($productIds, ShipmentOption::AGE_CHECK);
         $hasAgeCheck = null;
 
         foreach ($productIds as $productId) {
@@ -265,7 +263,7 @@ class ShipmentOptionsResolver
                 Dating::convertDeliveryDate($checkoutDate, 'd-m-Y') ?: '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
-                $productInfo ? round($this->getProductInfo($productInfo, 'qty')) : null,
+                $productInfo ? round((float) $this->getProductInfo($productInfo, 'qty')) : null,
             ],
             $labelDescription
         );
@@ -282,7 +280,7 @@ class ShipmentOptionsResolver
     private function getProductInfo(array $productInfo, string $field): ?string
     {
         if ($productInfo) {
-            return $productInfo[0][$field];
+            return null === $productInfo[0][$field] ? null : (string) $productInfo[0][$field];
         }
 
         return null;

@@ -42,6 +42,15 @@ it('names an order whose other collo was refused after one collo shipped', funct
         ->toContain('Not every collo of this order was exported: The postal code is invalid');
 });
 
+it('does not ask for a re-run when a blamed order sits next to orders that timed out', function () {
+    $report = new ExportReport();
+    $report->fail('100000001', 'Invalid postal code');
+    $report->failCollateral('100000002', 'Operation timed out', false);
+
+    expect($report->failureMessages()[1])
+        ->toStartWith('Orders for which MyParcel could not be reached: 1. It is unknown whether they shipped.');
+});
+
 it('still lists an order the API refused without any text', function () {
     $report = new ExportReport();
     $report->fail('100000001', '   ');

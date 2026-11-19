@@ -69,7 +69,7 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Re-read the orders, after new Magento shipments were created for them.
      *
-     * One filtered collection, not an Order::load() each: a page of fifty orders was fifty loads.
+     * One filtered collection, not an Order::load() per order.
      *
      * @return $this
      */

@@ -50,17 +50,21 @@ function createAddress(array $overrides = []): Address
  * A real Magento\Framework\DataObject, not a Mockery mock: it genuinely
  * supports both array access ($item['product_id']) and magic getters
  * ($item->getProductId()), which is how CustomsDeclarationBuilder reads
- * shipment items.
+ * shipment items. Its order item carries the same price as its base price.
  */
 function createShipmentItem(array $data = []): \Magento\Framework\DataObject
 {
-    return new \Magento\Framework\DataObject(array_merge([
+    $data = array_merge([
         'name'       => 'Test product',
         'qty'        => 1,
         'weight'     => 100.0,
         'price'      => 10.0,
         'product_id' => 1,
-    ], $data));
+    ], $data);
+
+    $data['order_item'] = $data['order_item'] ?? new \Magento\Framework\DataObject(['base_price' => $data['price']]);
+
+    return new \Magento\Framework\DataObject($data);
 }
 
 /**

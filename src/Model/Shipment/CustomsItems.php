@@ -15,12 +15,9 @@ use MyParcelNL\Sdk\Support\Str;
 /**
  * The customs facts both export paths share: HS codes, countries of origin, and the line arithmetic.
  *
- * The two paths keep their own item source on purpose. A shipment declares what was shipped, with
- * the item's own weight and price; a fulfilment order declares what was ordered, with the product's.
- * Only the lookups and the per-line maths are the same, and only those live here.
- *
- * Both lookups take every product id at once. Asking per item is what made a 40-line order outside
- * the EU cost 120 queries.
+ * Each path keeps its own item source: a label declares its shipment items at the EUR base price, a
+ * fulfilment order its order lines at the price paid in the order currency. Both lookups take every
+ * product id at once, never one query per item.
  */
 class CustomsItems
 {

@@ -48,6 +48,17 @@ it('maps every customs field from the shipment item', function () {
     expect($items[0]->getCountry())->toBe('CN');
 });
 
+it('declares the base price in EUR, not the price in the order currency', function () {
+    $item = createShipmentItem([
+        'price'      => 10.00,
+        'order_item' => new Magento\Framework\DataObject(['base_price' => 11.50]),
+    ]);
+
+    [, $items] = buildCustomsFor([$item]);
+
+    expect(customsItemValue($items[0]))->toBe(['amount' => 1150, 'currency' => RefTypesMoney::CURRENCY_EUR]);
+});
+
 it('declares a multi-quantity line at line level, not per unit', function () {
     // A customs item carries the line's weight and the line's value while amount carries the count,
     // so the module multiplies both itself. Every other fixture here ships a qty of 1, which cannot

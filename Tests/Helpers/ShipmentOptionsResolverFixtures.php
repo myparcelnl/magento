@@ -48,7 +48,7 @@ function createShipmentOptions(
         // the one the repository double asserts.
         $objectManager->shouldReceive('get')
             ->with(CapabilitiesLookup::class)
-            ->andReturn(new CapabilitiesLookup($capabilities));
+            ->andReturn(capabilitiesLookupOver($capabilities));
     }
 
     $defaultOptions = $defaultOptions ?? Mockery::mock(DefaultOptions::class);

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 /**
@@ -21,17 +23,22 @@ class CapabilitiesLookup
 {
     private Repository $repository;
 
-    /** @var array<string,CapabilitySet> keyed by scope, country, package type and carrier */
+    private ShipmentApiProvider $apiProvider;
+
+    /** @var array<string,CapabilitySet> keyed by API key, country, package type and carrier */
     private array $answers = [];
 
-    public function __construct(Repository $repository)
+    public function __construct(Repository $repository, ShipmentApiProvider $apiProvider)
     {
-        $this->repository = $repository;
+        $this->repository  = $repository;
+        $this->apiProvider = $apiProvider;
     }
 
     /**
      * Get the capabilities for this store and request. Without a package type, use the answer only
      * for the carriers and their package types. An empty country gets the permissive set.
+     *
+     * @param int|null $storeId resolves the API key at that store's scope; never an ambient store
      */
     public function forRequest(
         ?int    $storeId,
@@ -40,19 +47,30 @@ class CapabilitiesLookup
         ?string $carrier = null
     ): CapabilitySet
     {
-        return $this->answer(
-            'store:' . $storeId,
-            $country,
-            $packageType,
-            $carrier,
-            function (CapabilitiesRequest $request) use ($storeId): CapabilitySet {
-                return $this->repository->forStore($storeId, $request);
-            }
-        );
+        $apiKey = $this->apiProvider->apiKeyForStoreOrNull($storeId);
+
+        if (null !== $apiKey) {
+            return $this->forApiKeyRequest($apiKey, $country, $packageType, $carrier);
+        }
+
+        // Memoised like any answer, so answeredPermissively() sees it and the warning is logged once.
+        $memoKey = 'store:' . $storeId;
+
+        if (! isset($this->answers[$memoKey])) {
+            Logger::warning(sprintf(
+                'No MyParcel API key for store %s; capabilities unavailable, offering everything.',
+                null === $storeId ? 'default' : (string) $storeId
+            ));
+
+            $this->answers[$memoKey] = CapabilitySet::permissive();
+        }
+
+        return $this->answers[$memoKey];
     }
 
     /**
-     * Get the capabilities for this API key and request, for the export, which groups by key.
+     * Get the capabilities for this API key and request, once per set of inputs. The memo comes
+     * before the request build, which costs a model and a hash.
      */
     public function forApiKeyRequest(
         string  $apiKey,
@@ -65,39 +83,14 @@ class CapabilitiesLookup
             return CapabilitySet::permissive();
         }
 
-        return $this->answer(
-            'key:' . $apiKey,
-            $country,
-            $packageType,
-            $carrier,
-            function (CapabilitiesRequest $request) use ($apiKey): CapabilitySet {
-                return $this->repository->forApiKey($apiKey, $request);
-            }
-        );
-    }
+        $memoKey = $apiKey . '|' . $country . '|' . (string) $packageType . '|' . (string) $carrier;
 
-    /**
-     * Build the request and ask it, once per set of inputs. The memo comes before the build, which
-     * costs a model and a hash.
-     *
-     * @param callable(CapabilitiesRequest): CapabilitySet $ask
-     */
-    private function answer(
-        string   $scope,
-        string   $country,
-        ?string  $packageType,
-        ?string  $carrier,
-        callable $ask
-    ): CapabilitySet
-    {
-        $key = $scope . '|' . $country . '|' . (string) $packageType . '|' . (string) $carrier;
-
-        if (isset($this->answers[$key])) {
-            return $this->answers[$key];
+        if (isset($this->answers[$memoKey])) {
+            return $this->answers[$memoKey];
         }
 
         if ('' === $country) {
-            return $this->answers[$key] = CapabilitySet::permissive();
+            return $this->answers[$memoKey] = CapabilitySet::permissive();
         }
 
         $request = CapabilitiesRequest::forCountry($country);
@@ -107,7 +100,7 @@ class CapabilitiesLookup
 
             if (null === $v2) {
                 // The API cannot be asked about this package type, so the answer is permissive.
-                return $this->answers[$key] = CapabilitySet::permissive();
+                return $this->answers[$memoKey] = CapabilitySet::permissive();
             }
 
             $request = $request->withPackageType($v2);
@@ -117,13 +110,13 @@ class CapabilitiesLookup
             $v2Carrier = Carrier::toV2Name($carrier);
 
             if (null === $v2Carrier) {
-                return $this->answers[$key] = CapabilitySet::permissive();
+                return $this->answers[$memoKey] = CapabilitySet::permissive();
             }
 
             $request = $request->withCarrier($v2Carrier);
         }
 
-        return $this->answers[$key] = $ask($request);
+        return $this->answers[$memoKey] = $this->repository->forApiKey($apiKey, $request);
     }
 
     /** Check whether one of the answers of this instance was a fallback, not the account's own. */

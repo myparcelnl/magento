@@ -13,12 +13,9 @@ use Throwable;
 /**
  * The proposition id behind a store's api key, read from stored account settings, with no API call.
  *
- * Answers null when the store has no api key, its settings were never imported, or the stored row
- * cannot be read at all, which the fallback url reads as "use the default host". Never throws: the
- * order grid asks per row, so an unusable row must cost the Belgian host and never the page.
- *
- * Memoised per request: a grid page may hold orders from many stores, and the same store's settings
- * must not be deserialised once per row. A null is memoised too, or one broken row logs once per row.
+ * Answers null, and never throws, when the store has no api key, no imported settings or an
+ * unreadable row; the fallback url then uses the default host. The order grid asks per row, so the
+ * answer is memoised per store and request, a null included.
  */
 class AccountProposition
 {
