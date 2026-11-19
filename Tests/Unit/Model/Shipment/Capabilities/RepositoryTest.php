@@ -116,7 +116,7 @@ it('fails open on a 500, a timeout and an undecodable body', function () {
     }
 });
 
-it('serves the cached answer when a later refresh would fail', function () {
+it('serves the cached answer without a new request', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
     $r       = makeCapabilitiesRepository([capabilitiesOk(), new GuzzleResponse(500, [], '')]);
@@ -135,7 +135,7 @@ it('serves the cached answer when a later refresh would fail', function () {
         ->and($again['history'])->toHaveCount(0);
 });
 
-it('writes the entry with no expiry, which is what makes stale-serving work', function () {
+it('writes the entry with no expiry', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
     $r = makeCapabilitiesRepository([capabilitiesOk()]);

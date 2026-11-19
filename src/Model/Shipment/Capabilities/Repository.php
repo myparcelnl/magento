@@ -15,7 +15,7 @@ use Throwable;
  * Gets capabilities through the cache, per API key and request.
  *
  * - Fail open: any failure returns CapabilitySet::permissive(), so a lookup never stops a label.
- * - Serve stale: success entries never expire, so a failed refresh finds the previous answer.
+ * - Cache forever: a success entry has no expiry and is not fetched again until cache:clean.
  * - A failure is remembered for FAILURE_LIFETIME_SECONDS, and is read after the success entry.
  */
 class Repository

@@ -48,7 +48,7 @@ it('does not ask for a re-run when a blamed order sits next to orders that timed
     $report->failCollateral('100000002', 'Operation timed out', false);
 
     expect($report->failureMessages()[1])
-        ->toStartWith('Orders for which MyParcel could not be reached: 1. It is unknown whether they shipped.');
+        ->toStartWith('Orders that MyParcel did not confirm: 1. It is unknown whether they shipped.');
 });
 
 it('still lists an order the API refused without any text', function () {

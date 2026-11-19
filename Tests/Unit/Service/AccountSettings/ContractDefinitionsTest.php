@@ -82,12 +82,13 @@ it('resolves the api key configured at the asked scope', function () {
         ->and($reader->forScope(ScopeInterface::SCOPE_STORES, 9)->isPermissive())->toBeTrue();
 });
 
-it('narrows nothing by package type, because a contract has no shipment', function () {
+it('narrows contract definitions by the package types each item lists', function () {
     $reader = contractDefinitionsFor([
-        settingsPathFor('live-key') => accountSettingsRow([contractDefinitionItem()]),
+        settingsPathFor('live-key') => accountSettingsRow([contractDefinitionItem(['packageTypes' => ['PACKAGE']])]),
     ]);
 
     $set = $reader->forApiKey('live-key');
 
-    expect($set->hasOption(Carrier::POSTNL, PackageType::MAILBOX_NAME, ShipmentOption::INSURANCE))->toBeTrue();
+    expect($set->hasOption(Carrier::POSTNL, PackageType::PACKAGE_NAME, ShipmentOption::INSURANCE))->toBeTrue()
+        ->and($set->hasOption(Carrier::POSTNL, PackageType::MAILBOX_NAME, ShipmentOption::INSURANCE))->toBeFalse();
 });

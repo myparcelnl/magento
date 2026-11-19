@@ -74,7 +74,7 @@ function runPpsCron(
     $orderResource->shouldReceive('save')->andReturnSelf();
 
     // IteratorAggregate is named explicitly: a mock of the collection alone iterates nothing, and
-    // both the order lookup and the track lookup are now one query each rather than one per order.
+    // the order lookup and the track lookup are one query each.
     $magentoOrders = Mockery::mock(
         Magento\Sales\Model\ResourceModel\Order\Collection::class . ', IteratorAggregate'
     );
@@ -274,9 +274,8 @@ it('tells the collection not to add a second track to a shipment that has one', 
 
 /*
  * A fulfilment order can hold several shipments, all created in one run: separate shipments side by
- * side are one order_shipments entry each. Reading only the first is what let a single barcode
- * through. A multicollo is one entry instead, and its colli are expanded from the shipment
- * API by updateMagentoTrack(), so they are tested there.
+ * side are one order_shipments entry each. A multicollo is one entry instead, and its colli are
+ * expanded from the shipment API by updateMagentoTrack(), so they are tested there.
  */
 
 it('carries every shipped shipment of one fulfilment order', function () {
@@ -307,7 +306,7 @@ it('leaves a concept behind while carrying its shipped siblings', function () {
         ])]
     );
 
-    // Reading order_shipments[0] alone skipped this whole order: its first entry is a concept.
+    // The first order_shipments entry is a concept; the shipped one after it still counts.
     expect($calls->fulfilment)->toBe(['100000001' => [['barcode' => '3SB', 'shipmentId' => 2]]]);
 });
 

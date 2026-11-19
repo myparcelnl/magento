@@ -34,9 +34,7 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
 
     private const ALLOWED_SCOPES = [
         ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-        ScopeInterface::SCOPE_WEBSITE,
         ScopeInterface::SCOPE_WEBSITES,
-        ScopeInterface::SCOPE_STORE,
         ScopeInterface::SCOPE_STORES,
     ];
 
@@ -143,7 +141,7 @@ class CarrierConfigurationImport extends Action implements HttpPostActionInterfa
         }
 
         $scopeId   = (int) $scopeId;
-        $isWebsite = in_array($scope, [ScopeInterface::SCOPE_WEBSITE, ScopeInterface::SCOPE_WEBSITES], true);
+        $isWebsite = ScopeInterface::SCOPE_WEBSITES === $scope;
 
         try {
             $isWebsite

@@ -78,8 +78,8 @@ class PackageRepository extends Package
                 continue;
             }
 
-            // No row means 0, so the weight decides, as before SDK v11. A product gets the -1 default
-            // only when it is saved in the admin.
+            // No row means 0, so the weight decides. A product gets the -1 default only when it is
+            // saved in the admin.
             $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox') ?? 0;
 
             if (-1 === $mailboxQty) {
@@ -274,7 +274,8 @@ class PackageRepository extends Package
     }
 
     /**
-     * Both tiers are always read; a product attribute or config path that does not exist answers no.
+     * Whether a product or the carrier's export setting forces this option on; a missing attribute or
+     * path answers no.
      *
      * Compared against '1' rather than cast: an *_active path need not be a Yes/No. LargeFormatOptions
      * offers 'price' and '0', and 'price' casts to true without ever meaning 1.
