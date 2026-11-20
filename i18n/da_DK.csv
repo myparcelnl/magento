@@ -499,3 +499,5 @@ this order is a pickup but carries no pickup location,"denne ordre er en afhentn
 "customs item %1: %2","toldvare %1: %2"
 "It is unknown whether MyParcel created and mailed the return labels of %1 shipment(s): %2. Check them in the MyParcel backoffice before you send them again.","Det er uvist, om MyParcel har oprettet og mailet returlabels for %1 forsendelse(r): %2. Kontrollér dem i MyParcel backoffice, før du sender dem igen."
 "%1: %2 of %3 order notes were not exported to MyParcel.","%1: %2 af %3 ordrenoter blev ikke eksporteret til MyParcel."
+"MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel læser hver produktvægt med denne ene enhed, så denne indstilling findes kun i standardomfang."
+"Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Pas på: produktvægt er ikke en global attribut i denne installation, så et produkt kan veje et andet tal per omfang. MyParcel læser dem stadig alle med enheden ovenfor."

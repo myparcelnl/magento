@@ -8,6 +8,23 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\UserAgent;
 
 /**
+ * A Config whose getConfigValue() and getGeneralConfig() answer from one lookup by full path.
+ *
+ * @param callable(string, ?int): mixed $lookup full config path and store id => value
+ * @return Config|Mockery\MockInterface
+ */
+function configAnswering(callable $lookup): Config
+{
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getConfigValue')
+           ->andReturnUsing(static fn(string $path, ?int $storeId = null) => $lookup($path, $storeId));
+    $config->shouldReceive('getGeneralConfig')
+           ->andReturnUsing(static fn(string $code = '', ?int $storeId = null) => $lookup(Config::XML_PATH_GENERAL . $code, $storeId));
+
+    return $config;
+}
+
+/**
  * Mock Config by what a scope resolves to, not where the row lives. Anything unlisted is not configured.
  *
  * @param array $values         paths every store resolves to

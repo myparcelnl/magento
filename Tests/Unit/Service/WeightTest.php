@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item as QuoteItem;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
 function createQuoteItem(float $weight, float $qty): QuoteItem
@@ -140,4 +141,13 @@ it('returns 0 for package types that have no empty weight configured', function 
     expect($weight->getEmptyPackageWeightInGrams(PackageType::PALLET))->toBe(0)
         ->and($weight->getEmptyPackageWeightInGrams(PackageType::ENVELOPE))->toBe(0)
         ->and($weight->getEmptyPackageWeightInGrams(PackageType::PACKAGE))->toBe(200);
+});
+
+it('sums the items weight in the merchant unit without reading any setting', function () {
+    $config = Mockery::mock(Config::class);
+    $config->shouldNotReceive('getConfigValue', 'getGeneralConfig');
+
+    $items = [createQuoteItem(1.5, 2.0), createQuoteItem(99.0, 0.0), createQuoteItem(0.0, 1.0)];
+
+    expect((new Weight($config))->itemsWeight($items))->toBe(3.0);
 });

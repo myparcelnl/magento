@@ -27,13 +27,40 @@ class Weight
      */
     public function convertToGrams(?float $weight): int
     {
-        $weightType = $this->config->getGeneralConfig('print/weight_indication');
-
-        if ('kilo' === $weightType) {
+        if ($this->unitIsKilo()) {
             return (int) ($weight * 1000) ?: self::DEFAULT_WEIGHT;
         }
 
         return (int) $weight ?: self::DEFAULT_WEIGHT;
+    }
+
+    /** Check whether the merchant weighs products in kilos; the setting exists at default scope only. */
+    public function unitIsKilo(): bool
+    {
+        return 'kilo' === $this->config->getGeneralConfig('print/weight_indication');
+    }
+
+    /**
+     * Get the weight of the items in the merchant's own unit. Skips items with qty < 1 or no weight.
+     *
+     * @param \Magento\Quote\Model\Quote\Item[] $items
+     */
+    public function itemsWeight(array $items): float
+    {
+        $weight = 0.0;
+
+        foreach ($items as $item) {
+            $itemQty    = (float) $item->getQty();
+            $itemWeight = (float) $item->getWeight();
+
+            if ($itemQty < 1 || $itemWeight <= 0) {
+                continue;
+            }
+
+            $weight += $itemWeight * $itemQty;
+        }
+
+        return $weight;
     }
 
     /**
@@ -62,19 +89,6 @@ class Weight
      */
     public function getQuoteWeightInGrams(Quote $quote): int
     {
-        $products = $quote->getAllItems();
-        $weight   = 0;
-
-        foreach ($products as $product) {
-            $productQty    = (float) $product->getQty();
-            $productWeight = (float) $product->getWeight();
-            if ($productQty < 1 || $productWeight <= 0) {
-                continue;
-            }
-
-            $weight += $productWeight * $productQty;
-        }
-
-        return $this->convertToGrams($weight);
+        return $this->convertToGrams($this->itemsWeight($quote->getAllItems()));
     }
 }
