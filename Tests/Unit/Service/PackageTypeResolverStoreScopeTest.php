@@ -34,18 +34,6 @@ const SCOPED_POSTNL_PATH = 'myparcelnl_magento_postnl_settings/';
 $mailboxOn  = [SCOPED_POSTNL_PATH . 'mailbox' => ['active' => '1', 'weight' => '1500']];
 $mailboxOff = [SCOPED_POSTNL_PATH . 'mailbox' => ['active' => '0']];
 
-it('reads mailbox settings from the store it was asked about', function () use ($mailboxOn, $mailboxOff) {
-    $resolver = createScopedResolver([1 => $mailboxOff, 2 => $mailboxOn]);
-
-    expect($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, 2))->toBe(1500.0);
-});
-
-it('does not read another store settings', function () use ($mailboxOn, $mailboxOff) {
-    $resolver = createScopedResolver([1 => $mailboxOff, 2 => $mailboxOn]);
-
-    expect($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, 1))->toBe(0.0);
-});
-
 it('scopes digital stamp settings to the same store', function () {
     $resolver = createScopedResolver([
         1 => [SCOPED_POSTNL_PATH . 'digital_stamp' => ['active' => '0']],
@@ -72,9 +60,7 @@ it('passes null through when no store was named, preserving ambient resolution',
     expect($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, null))->toBe(1500.0);
 });
 
-it('does not carry one store maximum weight into the next store', function () use ($mailboxOn, $mailboxOff) {
-    // The predecessor kept the weight on the instance and its loader returned early without
-    // clearing it, so a carrier or store with no mailbox group inherited the previous one.
+it('reads mailbox settings per store, and keeps no maximum from the store before', function () use ($mailboxOn, $mailboxOff) {
     $resolver = createScopedResolver([1 => $mailboxOff, 2 => $mailboxOn]);
 
     expect($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, 2))->toBe(1500.0)

@@ -11,9 +11,8 @@ use MyParcelNL\Magento\Service\Config;
 /**
  * Deletes the stored `mailbox/pickup_mailbox` row of every carrier in Config::CARRIERS_XML_PATH_MAP.
  *
- * The setting was dead end to end: its value was written onto the package object and never read
- * back, and no admin field ever offered it. The defaults went with Package.php, and these rows are
- * what a merchant could still have from a build that wrote them.
+ * The admin field ("Show pickup option") was removed in #830 and nothing has read the value since.
+ * Merchants could set it per scope before that, so rows can exist in every scope.
  *
  * Idempotent, and it removes nothing a reader would miss.
  */

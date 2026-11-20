@@ -94,7 +94,7 @@ class UnscopeWeightIndication
                 (string) $row->getData('value'),
                 (string) $row->getData('scope'),
                 (string) $row->getData('scope_id'),
-                (string) $default
+                self::unitOf($default)
             ));
         }
     }

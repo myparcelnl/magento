@@ -12,9 +12,9 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 /**
  * Resolves the package type one cart ships as with one carrier.
  *
- * Takes a carrier **name**, unlike CartShippingRules, which takes a config path: the PostNL
- * international check needs the name. Stateless, so one instance serves every carrier in a
- * checkout without one carrier's weights leaking into the next.
+ * resolve() takes a carrier **name**, because the PostNL international check needs it; the
+ * max*Weight() methods take a carrier config path, as CartShippingRules does. Stateless, so one
+ * instance serves every carrier in a checkout without one carrier's weights leaking into the next.
  */
 class PackageTypeResolver
 {
@@ -63,7 +63,7 @@ class PackageTypeResolver
 
         $this->preloadAttributes($items);
 
-        $weight       = 0.0;
+        $weight       = $this->cartWeight($items);
         $percentage   = 0.0;
         $digitalStamp = true;
 
@@ -73,10 +73,6 @@ class PackageTypeResolver
 
             if ($itemQty < 1) {
                 continue;
-            }
-
-            if ($itemWeight > 0) {
-                $weight += $itemWeight * $itemQty;
             }
 
             if ($digitalStamp && ! $this->attributeOf($item, 'digital_stamp')) {
