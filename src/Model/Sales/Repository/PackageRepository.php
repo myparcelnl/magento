@@ -18,11 +18,15 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
+use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * Class PackageRepository
@@ -38,7 +42,9 @@ class PackageRepository extends Package
     /**
      * @var bool
      */
-    public $deliveryOptionsDisabled = false;
+    public bool $deliveryOptionsDisabled = false;
+
+    private ?ProductAttributes $attributes = null;
 
     /**
      * @param array  $products
@@ -48,6 +54,7 @@ class PackageRepository extends Package
      */
     public function selectPackageType(array $products, string $carrierName): string
     {
+        $this->warmAttributes($products);
         $this->setMailboxPercentage(0);
         $weight       = 0;
         $digitalStamp = true;
@@ -71,7 +78,9 @@ class PackageRepository extends Package
                 continue;
             }
 
-            $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
+            // No row means 0, so the weight decides. A product gets the -1 default only when it is
+            // saved in the admin.
+            $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox') ?? 0;
 
             if (-1 === $mailboxQty) {
                 $this->setMailboxPercentage(101);
@@ -91,18 +100,18 @@ class PackageRepository extends Package
         $this->setWeight($weight);
 
         if ($digitalStamp && $this->fitInDigitalStamp()) {
-            return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
+            return PackageType::DIGITAL_STAMP_NAME;
         }
 
         if ($this->fitInMailbox($carrierName)) {
-            return AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
+            return PackageType::MAILBOX_NAME;
         }
 
         if ($this->fitInPackageSmall()) {
-            return AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME;
+            return PackageType::PACKAGE_SMALL_NAME;
         }
 
-        return AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+        return PackageType::PACKAGE_NAME;
     }
 
     /**
@@ -112,6 +121,8 @@ class PackageRepository extends Package
      */
     public function productWithoutDeliveryOptions(array $products): PackageRepository
     {
+        $this->warmAttributes($products);
+
         foreach ($products as $product) {
             $this->isDeliveryOptionsDisabled($product);
         }
@@ -129,9 +140,9 @@ class PackageRepository extends Package
      */
     public function fitInMailbox(string $carrierName): bool
     {
-        $mailboxAllowedToCountry = AbstractConsignment::CC_NL === $this->getCurrentCountry();
+        $mailboxAllowedToCountry = CountryCode::CC_NL === $this->getCurrentCountry();
         if (! $mailboxAllowedToCountry && CarrierPostNL::NAME === $carrierName) {
-            $account = (new AccountSettings((string) $this->getGeneralConfig('api/key')))->getAccount();
+            $account = (new AccountSettings((string) $this->getGeneralConfig('api/key', $this->getStoreId())))->getAccount();
             if ($account) {
                 $mailboxAllowedToCountry = $account->getGeneralSettings()->hasPostnlMailboxInternational();
             }
@@ -151,7 +162,7 @@ class PackageRepository extends Package
         $orderWeight               = (new Weight($this))->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
-        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
+        return $this->getCurrentCountry() === CountryCode::CC_NL
             && $this->isDigitalStampActive()
             && $orderWeight <= $maximumDigitalStampWeight;
     }
@@ -166,7 +177,7 @@ class PackageRepository extends Package
      */
     public function setMailboxSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue("{$carrierPath}mailbox");
+        $settings = $this->getConfigValue("{$carrierPath}mailbox", $this->getStoreId());
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             return $this;
@@ -175,7 +186,7 @@ class PackageRepository extends Package
         $this->setMailboxActive('1' === $settings['active']);
         if (true === $this->isMailboxActive()) {
             $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
-            $unit   = $this->getGeneralConfig('print/weight_indication');
+            $unit   = $this->getGeneralConfig('print/weight_indication', $this->getStoreId());
 
             if ('kilo' === $unit) {
                 $epsilon = 0.00001;
@@ -189,7 +200,7 @@ class PackageRepository extends Package
                 $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
             }
 
-            $pickupMailbox = (bool) $this->getConfigValue("{$carrierPath}mailbox/pickup_mailbox");
+            $pickupMailbox = (bool) $this->getConfigValue("{$carrierPath}mailbox/pickup_mailbox", $this->getStoreId());
             $this->setPickupMailboxActive($pickupMailbox);
         }
 
@@ -219,6 +230,7 @@ class PackageRepository extends Package
      */
     public function getProductDropOffDelay(array $products): ?int
     {
+        $this->warmAttributes($products);
         $highestDropOffDelay = null;
 
         foreach ($products as $product) {
@@ -240,15 +252,50 @@ class PackageRepository extends Package
      */
     public function getAgeCheck(array $products, string $carrierPath): bool
     {
-        foreach ($products as $product) {
-            $productAgeCheck  = (bool) $this->getAttributesProductsOptions($product, 'age_check');
+        return $this->optionForcedOn($products, $carrierPath, ShipmentOption::AGE_CHECK);
+    }
 
-            if ($productAgeCheck) {
+    /**
+     * The limiting options this order carries whatever the shopper picks, so a package type that
+     * cannot carry one of them is not a candidate.
+     *
+     * @param  \Magento\Quote\Model\Quote\Item[] $products
+     *
+     * @return string[]
+     */
+    public function forcedLimitingOptions(array $products, string $carrierPath): array
+    {
+        return array_values(array_filter(
+            ShipmentOption::LIMIT_PACKAGE_TYPE,
+            function (string $option) use ($products, $carrierPath): bool {
+                return $this->optionForcedOn($products, $carrierPath, $option);
+            }
+        ));
+    }
+
+    /**
+     * Whether a product or the carrier's export setting forces this option on; a missing attribute or
+     * path answers no.
+     *
+     * Compared against '1' rather than cast: an *_active path need not be a Yes/No. LargeFormatOptions
+     * offers 'price' and '0', and 'price' casts to true without ever meaning 1.
+     *
+     * @param \Magento\Quote\Model\Quote\Item[] $products
+     */
+    private function optionForcedOn(array $products, string $carrierPath, string $option): bool
+    {
+        $this->warmAttributes($products);
+
+        foreach ($products as $product) {
+            if ((bool) $this->getAttributesProductsOptions($product, $option)) {
                 return true;
             }
         }
 
-        return (bool) $this->getConfigValue($carrierPath . 'default_options/age_check_active');
+        return '1' === (string) $this->getConfigValue(
+            $carrierPath . 'default_options/' . $option . '_active',
+            $this->getStoreId()
+        );
     }
 
     /**
@@ -262,8 +309,10 @@ class PackageRepository extends Package
     public function getExcludeParcelLockers(array $products, string $carrierPath): bool
     {
         try {
+            $this->warmAttributes($products);
+
             // Check if general setting is enabled
-            $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers');
+            $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers', $this->getStoreId());
             if ($generalExclude) {
                 return true;
             }
@@ -297,9 +346,11 @@ class PackageRepository extends Package
      */
     public function getPriorityDelivery(array $products, string $carrierPath): bool
     {
-        if ((bool) $this->getConfigValue($carrierPath . 'mailbox/priority_delivery_active')) {
+        if ((bool) $this->getConfigValue($carrierPath . 'mailbox/priority_delivery_active', $this->getStoreId())) {
             return true;
         }
+
+        $this->warmAttributes($products);
 
         foreach ($products as $product) {
             if ((bool) $this->getProductPriorityDelivery($product)) {
@@ -329,7 +380,7 @@ class PackageRepository extends Package
      */
     public function setDigitalStampSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue("{$carrierPath}digital_stamp");
+        $settings = $this->getConfigValue("{$carrierPath}digital_stamp", $this->getStoreId());
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             return $this;
@@ -353,7 +404,7 @@ class PackageRepository extends Package
      */
     public function setPackageSmallSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue("{$carrierPath}package_small");
+        $settings = $this->getConfigValue("{$carrierPath}package_small", $this->getStoreId());
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             return $this;
@@ -362,7 +413,7 @@ class PackageRepository extends Package
         $this->setPackageSmallActive('1' === $settings['active']);
         if ($this->isPackageSmallActive()) {
             $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
-            $unit   = $this->getGeneralConfig('print/weight_indication');
+            $unit   = $this->getGeneralConfig('print/weight_indication', $this->getStoreId());
 
             if ('kilo' === $unit) {
                 $epsilon = 0.00001;
@@ -395,82 +446,60 @@ class PackageRepository extends Package
      *
      * @return null|int
      */
-    private function getAttributesProductsOptions($product, string $column): ?int
+    protected function getAttributesProductsOptions($product, string $column): ?int
     {
-        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
-        if (empty($attributeValue)) {
-            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $column);
+        $productId = self::productIdOf($product);
+
+        if (null === $productId) {
+            return null;
         }
 
-        if (isset($attributeValue)) {
-            return (int) $attributeValue;
-        }
+        $value = $this->attributes()->getValue($productId, $column);
 
-        return null;
+        return null === $value ? null : (int) $value;
     }
 
     /**
-     * @param string                          $tableName
+     * A quote item whose catalogue product is gone has no attributes to read, and an order that
+     * outlives its catalogue is ordinary. Null rather than a fatal.
+     *
      * @param \Magento\Quote\Model\Quote\Item $product
-     * @param string                          $column
-     *
-     * @return null|string
      */
-    private function getAttributesFromProduct(string $tableName, $product, string $column): ?string
+    private static function productIdOf($product): ?int
     {
-        /**
-         * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
-         */
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $entityId      = $product->getProduct()->getEntityId();
-        $connection    = $resource->getConnection();
+        $catalogProduct = $product->getProduct();
 
-        $attributeId    = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
-        $attributeValue = $this
-            ->getValueFromAttribute(
-                $connection,
-                $resource->getTableName($tableName),
-                $attributeId,
-                $entityId
-            );
-
-        return $attributeValue;
+        return $catalogProduct ? (int) $catalogProduct->getId() : null;
     }
 
     /**
-     * @param        $connection
-     * @param string $tableName
-     * @param string $databaseColumn
+     * One product load for a whole quote, paid before the per-product reads rather than during
+     * them. Call it from anything that loops a product list.
      *
-     * @return mixed
+     * @param \Magento\Quote\Model\Quote\Item[] $products
      */
-    private function getAttributeId($connection, string $tableName, string $databaseColumn)
+    private function warmAttributes(array $products): void
     {
-        $sql = $connection
-            ->select('entity_type_id')
-            ->from($tableName)
-            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
+        $productIds = [];
 
-        return $connection->fetchOne($sql);
+        foreach ($products as $product) {
+            $productId = self::productIdOf($product);
+
+            if (null !== $productId) {
+                $productIds[] = $productId;
+            }
+        }
+
+        $this->attributes()->preload($productIds);
     }
 
-    /**
-     * @param        $connection
-     * @param string $tableName
-     * @param string $attributeId
-     * @param string $entityId
-     *
-     * @return mixed
-     */
-    private function getValueFromAttribute($connection, string $tableName, string $attributeId, string $entityId)
+    /** Held for the instance's lifetime, which is what keeps the warmed batch warm. */
+    private function attributes(): ProductAttributes
     {
-        $sql = $connection
-            ->select()
-            ->from($tableName, ['value'])
-            ->where('attribute_id = ?', $attributeId)
-            ->where('entity_id = ?', $entityId);
+        if (null === $this->attributes) {
+            $this->attributes = new ProductAttributes(ObjectManager::getInstance());
+        }
 
-        return $connection->fetchOne($sql);
+        return $this->attributes;
     }
 }

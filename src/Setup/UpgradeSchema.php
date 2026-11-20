@@ -204,6 +204,102 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
         }
+        if (version_compare($context->getVersion(), '6.0.0', '<')) {
+            $tableTrack = $setup->getTable('sales_shipment_track');
+
+            if ($setup->getConnection()->isTableExists($tableTrack)) {
+                // Length above 255 makes this a TEXT column: a tokenised portal link must not be
+                // truncated, and nothing indexes or filters on it.
+                $this->addTextColumnOnce(
+                    $setup,
+                    $tableTrack,
+                    'myparcel_tracktrace_url',
+                    'MyParcel consumer portal link as received from the api'
+                );
+                // A JSON list: every return mail sent for this track adds the return shipment it created.
+                $this->addTextColumnOnce(
+                    $setup,
+                    $tableTrack,
+                    'myparcel_return_ids',
+                    'MyParcel return shipment ids created by the return mail'
+                );
+                // carrier_code first: equality; myparcel_status is the IN().
+                $this->addIndexOnce($setup, $tableTrack, ['carrier_code', 'myparcel_status']);
+            }
+
+            $this->addUuidPrefixIndex($setup, $tableSalesOrder);
+        }
+
         $setup->endSetup();
+    }
+
+    /** Add a nullable TEXT(1023) column unless it is already there. */
+    private function addTextColumnOnce(
+        SchemaSetupInterface $setup,
+        string $table,
+        string $column,
+        string $comment
+    ): void
+    {
+        if ($setup->getConnection()->tableColumnExists($table, $column)) {
+            return;
+        }
+
+        $setup->getConnection()->addColumn($table, $column, [
+            'type'     => Table::TYPE_TEXT,
+            'length'   => 1023,
+            'nullable' => true,
+            'comment'  => $comment,
+        ]);
+    }
+
+    /**
+     * Adds an index unless a column it needs is missing or the index is already there, so upgrade()
+     * stays re-runnable and an install that never got the columns does not fail here.
+     *
+     * @param string[] $columns
+     */
+    private function addIndexOnce(SchemaSetupInterface $setup, string $table, array $columns): void
+    {
+        $connection = $setup->getConnection();
+
+        foreach ($columns as $column) {
+            if (false === $connection->tableColumnExists($table, $column)) {
+                return;
+            }
+        }
+
+        $name = $setup->getIdxName($table, $columns);
+
+        if (isset($connection->getIndexList($table)[strtoupper($name)])) {
+            return;
+        }
+
+        $connection->addIndex($table, $name, $columns);
+    }
+
+    /** Raw DDL: addIndex() cannot set the prefix length that a TEXT column needs. */
+    private function addUuidPrefixIndex(SchemaSetupInterface $setup, string $table): void
+    {
+        $connection = $setup->getConnection();
+
+        if (
+            false === $connection->isTableExists($table)
+            || false === $connection->tableColumnExists($table, 'myparcel_uuid')
+        ) {
+            return;
+        }
+
+        $name = $setup->getIdxName($table, ['myparcel_uuid']);
+
+        if (isset($connection->getIndexList($table)[strtoupper($name)])) {
+            return;
+        }
+
+        $connection->query(sprintf(
+            'ALTER TABLE %s ADD INDEX %s (myparcel_uuid(36))',
+            $connection->quoteIdentifier($table),
+            $connection->quoteIdentifier($name)
+        ));
     }
 }

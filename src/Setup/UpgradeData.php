@@ -29,12 +29,13 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
+use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
+use MyParcelNL\Magento\Setup\Migrations\LegacyInsuranceTiers;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * Upgrade Data script
@@ -99,12 +100,24 @@ class UpgradeData implements UpgradeDataInterface
     private $fingerprintAccountSettingsPaths;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache
+     */
+    private $enableCapabilitiesCache;
+
+    /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar
+     */
+    private $classificationToVarchar;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange        $replaceDpzRange
      * @param  \MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths
+     * @param  \MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache $enableCapabilitiesCache
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar $classificationToVarchar
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -112,7 +125,9 @@ class UpgradeData implements UpgradeDataInterface
         ReplaceFitInMailbox $replaceFitInMailbox,
         ReplaceDisableCheckout $replaceDisableCheckout,
         ReplaceDpzRange $replaceDpzRange,
-        FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths
+        FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths,
+        EnableCapabilitiesCache $enableCapabilitiesCache,
+        ClassificationToVarchar $classificationToVarchar
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -120,6 +135,8 @@ class UpgradeData implements UpgradeDataInterface
         $this->replaceDisableCheckout          = $replaceDisableCheckout;
         $this->replaceDpzRange                 = $replaceDpzRange;
         $this->fingerprintAccountSettingsPaths = $fingerprintAccountSettingsPaths;
+        $this->enableCapabilitiesCache         = $enableCapabilitiesCache;
+        $this->classificationToVarchar         = $classificationToVarchar;
     }
 
     /**
@@ -290,7 +307,12 @@ class UpgradeData implements UpgradeDataInterface
                         'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                         'label'   => 'HS code',
                         'input'   => 'text',
-                        'default' => '0',
+                        // Text, because a merchant types dots (6109.10) and leading zeros, and an int
+                        // clamps above 2147483647. 18 is the longest declaration code, see "HS code
+                        // length" in docs/sdk-v11.md.
+                        'type'    => 'varchar',
+                        'class'   => 'validate-length maximum-length-18',
+                        'default' => '',
                     ]
                 )
             );
@@ -644,7 +666,10 @@ class UpgradeData implements UpgradeDataInterface
                             'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                             'label'   => 'HS code',
                             'input'   => 'text',
-                            'default' => '0',
+                            // See the note on the first definition of this attribute.
+                            'type'    => 'varchar',
+                            'class'   => 'validate-length maximum-length-18',
+                            'default' => '',
                         ]
                     )
                 );
@@ -670,7 +695,6 @@ class UpgradeData implements UpgradeDataInterface
             );
 
             $this->replaceFitInMailbox->writeNewAttributeEntity();
-
 
             $this->replaceDisableCheckout->indexOldAttribute();
             $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_disable_checkout');
@@ -918,41 +942,10 @@ class UpgradeData implements UpgradeDataInterface
                 return $insuranceFromPriceArray;
             };
 
-            $getCustomAmountFunction = static function ($rows, $path) {
-                $insuranceCustomAmount = 0;
-                foreach ($rows as $row) {
-                    if ($row['path'] === $path) {
-                        $insuranceCustomAmount = $row['value'];
-                        break;
-                    }
-                }
-
-                return $insuranceCustomAmount;
-            };
-
-            $compareAmountWithTiers = static function ($insuranceAmount, $insuranceTiers) {
-                if ($insuranceAmount === 0) {
-                    return 0;
-                }
-                sort($insuranceTiers);
-                $amountOfTiers = count($insuranceTiers);
-                for ($i = 0; $i < $amountOfTiers; $i++) {
-                    // Check if the insurance falls into the tier
-                    if ($insuranceAmount <= $insuranceTiers[$i]) {
-                        $insuranceAmount = $insuranceTiers[$i];
-                        break;
-                    }
-                    // If the insurance is even larger than the largest tier we use the largest tier instead.
-                    if ($i === $amountOfTiers - 1) {
-                        $insuranceAmount = $insuranceTiers[$i];
-                    }
-                }
-
-                return $insuranceAmount;
-            };
-
+            // The tiers and the rounding rule are frozen in LegacyInsuranceTiers: an upgrade runs
+            // offline and must keep producing the same rows.
             foreach ($carriers as $carrier) {
-                $carrierConsignment = ConsignmentFactory::createByCarrierName($carrier['carrierName']);
+                $carrierName = $carrier['carrierName'];
                 $insuranceFromPriceArray = [];
                 $basePath = $carrier['basePath'];
 
@@ -983,12 +976,14 @@ class UpgradeData implements UpgradeDataInterface
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows);
                             }
                             if ($row['path'] === $basePath . 'insurance_custom_active' && $row['value'] === '1') {
-                                $insuranceLocalAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_custom_amount');
+                                $insuranceLocalAmount = LegacyInsuranceTiers::customAmount($rows, $basePath . 'insurance_custom_amount');
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows);
                             }
                         }
-                        $insuranceTiersLocal = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_NL);
-                        $insuranceLocalAmount = $compareAmountWithTiers($insuranceLocalAmount, $insuranceTiersLocal);
+                        $insuranceLocalAmount = LegacyInsuranceTiers::snap(
+                            LegacyInsuranceTiers::forCarrierAndZone($carrierName, LegacyInsuranceTiers::ZONE_LOCAL),
+                            $insuranceLocalAmount
+                        );
                         $updates[$basePath . 'insurance_local_amount'] = $insuranceLocalAmount;
                     }
 
@@ -996,12 +991,14 @@ class UpgradeData implements UpgradeDataInterface
                         $insuranceBelgiumAmount = 0;
                         foreach ($rows as $row) {
                             if ($row['path'] === $basePath . 'insurance_belgium_custom_active' && $row['value'] === '1') {
-                                $insuranceBelgiumAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_belgium_custom_amount');
+                                $insuranceBelgiumAmount = LegacyInsuranceTiers::customAmount($rows, $basePath . 'insurance_belgium_custom_amount');
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows);
                             }
                         }
-                        $insuranceTiersBe = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_BE);
-                        $insuranceBelgiumAmount = $compareAmountWithTiers($insuranceBelgiumAmount, $insuranceTiersBe);
+                        $insuranceBelgiumAmount = LegacyInsuranceTiers::snap(
+                            LegacyInsuranceTiers::forCarrierAndZone($carrierName, LegacyInsuranceTiers::ZONE_BE),
+                            $insuranceBelgiumAmount
+                        );
                         $updates[$basePath . 'insurance_belgium_amount'] = $insuranceBelgiumAmount;
                     }
 
@@ -1018,8 +1015,10 @@ class UpgradeData implements UpgradeDataInterface
                             }
                         }
 
-                        $insuranceTiersEu = $carrierConsignment->getInsurancePossibilities(CountryCodes::ZONE_EU);
-                        $insuranceEuAmount = $compareAmountWithTiers($insuranceEuAmount, $insuranceTiersEu);
+                        $insuranceEuAmount = LegacyInsuranceTiers::snap(
+                            LegacyInsuranceTiers::forCarrierAndZone($carrierName, LegacyInsuranceTiers::ZONE_EU),
+                            $insuranceEuAmount
+                        );
                         $updates[$basePath . 'insurance_eu_amount'] = $insuranceEuAmount;
                     }
                     if ($type === 'insurance_row_amount') {
@@ -1074,6 +1073,11 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '5.9.1', '<')) {
             $this->fingerprintAccountSettingsPaths->run();
+        }
+
+        if (version_compare($context->getVersion(), '6.0.0', '<')) {
+            $this->enableCapabilitiesCache->run();
+            $this->classificationToVarchar->run($eavSetup);
         }
 
         $setup->endSetup();

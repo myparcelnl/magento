@@ -129,6 +129,15 @@
     margin-left: 0;
 }
 
+/**
+ * The import wrapper holds the button and the notice the request writes, so as a block box it pushes
+ * the right-floated tooltip below itself. Inline-block gives that float a line box at the top of the
+ * cell, which puts the question mark back on the button's line.
+ */
+.myparcel-account-settings-import {
+    display: inline-block;
+}
+
 #myparcelnl_magento_dynamic_settings_trigger_observer-link {
     display: none;
 }

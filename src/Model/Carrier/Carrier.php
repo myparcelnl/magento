@@ -31,20 +31,14 @@ use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
-use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
@@ -63,30 +57,11 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private ResultFactory $rateResultFactory;
     private MethodFactory $rateMethodFactory;
 
-    public const ALLOWED_CARRIER_CLASSES = [
-        CarrierPostNL::class,
-        CarrierDHLForYou::class,
-        CarrierDHLEuroplus::class,
-        CarrierDHLParcelConnect::class,
-        CarrierUPSStandard::class,
-        CarrierDPD::class,
-        CarrierTrunkrs::class,
-    ];
-
     private const PACKAGE_TYPE_TITLES = [
         'package'       => 'Package',
         'mailbox'       => 'Mailbox',
         'digital_stamp' => 'Digital stamp',
         'package_small' => 'Packet',
-    ];
-
-    private const SHIPMENT_OPTION_TITLES = [
-        'signature'         => 'Signature',
-        'only_recipient'    => 'Only recipient',
-        'hide_sender'       => 'Hide sender',
-        'priority_delivery' => 'Priority delivery',
-        'receipt_code'      => 'Receipt code',
-        'same_day_delivery' => 'Same day delivery',
     ];
 
     /**
@@ -101,7 +76,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param ResultFactory        $rateFactory
      * @param MethodFactory        $rateMethodFactory
      * @param array                $data
-     *
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -180,14 +154,15 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
-        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions();
         $deliveryType    = $deliveryOptions->getDeliveryType();
-        $shipmentFees    = [
-            'delivery/only_recipient_fee'   => $shipmentOptions->hasOnlyRecipient(),
-            'delivery/signature_fee'        => $shipmentOptions->hasSignature(),
-            'delivery/receipt_code_fee'     => $shipmentOptions->hasReceiptCode(),
-            'mailbox/priority_delivery_fee' => $shipmentOptions->isPriorityDelivery(),
-        ];
+        $shipmentFees    = [];
+
+        foreach (['delivery' => 'checkout', 'mailbox' => 'mailbox'] as $group => $flag) {
+            foreach (ShipmentOption::having($flag) as $option) {
+                $shipmentFees["$group/{$option}_fee"] = $shipmentOptions->option($option);
+            }
+        }
 
         // the nulls take carrier, package type and country from the quote
         $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryType);
@@ -208,32 +183,28 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private function getMethodTitle(Quote $quote): string
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
-        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions();
         $carrierName     = $deliveryOptions->getCarrier();
 
         if (null === $carrierName || '0' === $this->config->getGeneralConfig('shipping_methods/show_details_in_summary')) {
             return $this->config->getMagentoCarrierConfig('name');
         }
 
-        try {
-            $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
-        } catch (\Throwable $e) {
-            $carrierHuman = $carrierName;
-        }
+        $carrierHuman = ShipmentCarrier::humanFor($carrierName);
 
-        $deliveryTypeTitle = PricedDeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
+        $deliveryTypeTitle = DeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
-        ob_start();
-        echo $carrierHuman, ' ', __($deliveryTypeTitle), ', ', __($packageTypeTitle);
+        $parts = [$carrierHuman . ' ' . __($deliveryTypeTitle), (string) __($packageTypeTitle)];
 
-        foreach ($shipmentOptions->toArray() as $key => $value) {
-            if ($value && isset(self::SHIPMENT_OPTION_TITLES[$key])) {
-                echo ', ', __(self::SHIPMENT_OPTION_TITLES[$key]);
+        foreach (ShipmentOptions::optionKeys() as $option) {
+            // insurance is an amount, not an option that is on or off
+            if (ShipmentOption::INSURANCE !== $option && $shipmentOptions->option($option)) {
+                $parts[] = (string) __(ShipmentOption::labelFor($option));
             }
         }
 
-        return trim(ob_get_clean());
+        return implode(', ', $parts);
     }
 
     public function processAdditionalValidation(DataObject $request): bool

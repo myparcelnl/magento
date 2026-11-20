@@ -10,13 +10,12 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
  */
 function createPackageRepository(bool $generalActive, array $productFlags): PackageRepository
 {
-    /** @var PackageRepository|Mockery\MockInterface $repository */
-    $repository = Mockery::mock(PackageRepository::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
+    $repository = makePackageRepository();
 
+    // The second argument is the store the package is scoped to; null on a repository nobody has
+    // called setStoreId() on, which means "resolve against the ambient store".
     $repository->shouldReceive('getConfigValue')
-        ->with('myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active')
+        ->with('myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active', null)
         ->andReturn($generalActive ? '1' : '0');
 
     $repository->shouldReceive('getProductPriorityDelivery')
@@ -30,7 +29,7 @@ it('returns true when the general priority setting is enabled', function () {
     $repository = createPackageRepository(true, [null, null]);
 
     expect($repository->getPriorityDelivery(
-        ['productA', 'productB'],
+        [quoteItemFor(1), quoteItemFor(2)],
         'myparcelnl_magento_postnl_settings/'
     ))->toBeTrue();
 });
@@ -46,7 +45,7 @@ it('returns true when the general setting is off but one product has priority en
     $repository = createPackageRepository(false, [null, 1]);
 
     expect($repository->getPriorityDelivery(
-        ['productA', 'productB'],
+        [quoteItemFor(1), quoteItemFor(2)],
         'myparcelnl_magento_postnl_settings/'
     ))->toBeTrue();
 });
@@ -56,7 +55,7 @@ it('returns false when the general setting is off and no product has priority en
     $repository = createPackageRepository(false, [null, 0]);
 
     expect($repository->getPriorityDelivery(
-        ['productA', 'productB'],
+        [quoteItemFor(1), quoteItemFor(2)],
         'myparcelnl_magento_postnl_settings/'
     ))->toBeFalse();
 });

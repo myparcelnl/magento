@@ -1,0 +1,169 @@
+<?php
+
+declare(strict_types=1);
+
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Observer\NewShipment;
+
+/**
+ * PPS export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
+ * observer, so the uuid setFulfilment() stores has to land on that same instance. Exporting a
+ * reload of the order puts it on a copy, and the later save writes myparcel_uuid back to null.
+ */
+
+it('exports the order instance the shipment holds, not a reload of it', function () {
+    $order    = createOrder();
+    $shipment = createShipment(['getOrder' => $order]);
+
+    $exported   = null;
+    $collection = Mockery::mock(MagentoOrderCollection::class);
+    $collection->shouldReceive('setOrderCollection')
+               ->once()
+               ->andReturnUsing(function ($orders) use (&$exported, $collection) {
+                   $exported = $orders;
+
+                   return $collection;
+               });
+    $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', $collection);
+
+    invokePrivateMethod($observer, 'exportEntireOrder', [$shipment]);
+
+    expect($exported)->toBe([$order]);
+});
+
+it('writes the two grid columns without saving the order', function () {
+    // $order->save() rewrote every column of a possibly stale order and re-synced the grid for it.
+    // save() is deliberately left unstubbed: a call to it fails this test.
+    $columns = ['track_status' => 'status_3', 'track_number' => '["3SA"]'];
+    $set     = [];
+    $written = [];
+
+    $order = createOrder(['getEntityId' => 7]);
+    $order->shouldReceive('setData')->andReturnUsing(function ($key, $value) use ($order, &$set) {
+        $set[$key] = $value;
+
+        return $order;
+    });
+
+    $shipment = createShipment(['getOrder' => $order, 'getTracksCollection' => []]);
+
+    $collection = Mockery::mock(MagentoOrderCollection::class);
+
+    $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
+    $gridColumns->shouldReceive('columnsForTracks')->andReturn($columns);
+    $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
+        $written[] = [$orderId, $values];
+
+        return true;
+    });
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', $collection);
+    setPrivateProperty($observer, 'gridColumns', $gridColumns);
+
+    invokePrivateMethod($observer, 'updateTrackGrid', [$shipment, false]);
+
+    // Set as well as written: Magento saves this order again after the observer.
+    expect($written)->toBe([[7, $columns]])
+        ->and($set)->toBe($columns);
+});
+
+it('does not blank a column on the order that the tracks cannot fill', function () {
+    $set   = [];
+    $order = createOrder(['getEntityId' => 7]);
+    $order->shouldReceive('setData')->andReturnUsing(function ($key, $value) use ($order, &$set) {
+        $set[$key] = $value;
+
+        return $order;
+    });
+
+    $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
+    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => 'status_3', 'track_number' => '']);
+    $gridColumns->shouldReceive('writeColumns')->andReturnTrue();
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', Mockery::mock(MagentoOrderCollection::class));
+    setPrivateProperty($observer, 'gridColumns', $gridColumns);
+
+    invokePrivateMethod($observer, 'updateTrackGrid', [createShipment(['getOrder' => $order, 'getTracksCollection' => []]), false]);
+
+    expect($set)->toBe(['track_status' => 'status_3']);
+});
+
+it('marks a PPS export exported rather than reading it off the tracks', function () {
+    $order = createOrder(['getEntityId' => 7]);
+    $order->shouldReceive('setData')->andReturnSelf();
+
+    $shipment = createShipment(['getOrder' => $order, 'getTracksCollection' => []]);
+
+    $collection = Mockery::mock(MagentoOrderCollection::class);
+
+    $written     = [];
+    $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
+    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
+    $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
+        $written = $values;
+
+        return true;
+    });
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', $collection);
+    setPrivateProperty($observer, 'gridColumns', $gridColumns);
+
+    invokePrivateMethod($observer, 'updateTrackGrid', [$shipment, true]);
+
+    expect($written['track_status'])->toBe(MyParcelNL\Magento\Cron\UpdateStatus::ORDER_STATUS_EXPORTED);
+});
+
+/** Runs the PPS branch of the observer; the order's uuid goes from $uuidBefore to $uuidAfter. */
+function ppsExportGridWrites(?string $uuidBefore, ?string $uuidAfter): array
+{
+    $order = createOrder(['getEntityId' => 7]);
+    $order->shouldReceive('setData')->andReturnSelf();
+    $order->shouldReceive('getData')->with('myparcel_uuid')->andReturn($uuidBefore, $uuidAfter);
+
+    $shipment = createShipment(['getOrder' => $order, 'getTracksCollection' => []]);
+
+    $collection = Mockery::mock(MagentoOrderCollection::class);
+    $collection->shouldReceive('setOptionsFromParameters')->andReturnSelf();
+    $collection->shouldReceive('getOptions')->andReturn(['label_amount' => 2]);
+    $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
+    $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
+
+    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
+    $config->shouldReceive('getExportMode')->andReturn(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS);
+
+    $written     = [];
+    $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
+    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
+    $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
+        $written[] = $values;
+
+        return true;
+    });
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'orderCollection', $collection);
+    setPrivateProperty($observer, 'config', $config);
+    setPrivateProperty($observer, 'gridColumns', $gridColumns);
+
+    invokePrivateMethod($observer, 'setMagentoAndMyParcelTrack', [$shipment]);
+
+    return $written;
+}
+
+it('exports a PPS order without building a label shipment and marks it exported', function () {
+    $written = ppsExportGridWrites(null, 'uuid-1');
+
+    expect($written)->toHaveCount(1)
+        ->and($written[0]['track_status'])->toBe(MyParcelNL\Magento\Cron\UpdateStatus::ORDER_STATUS_EXPORTED);
+});
+
+it('leaves the grid alone when the PPS export did not confirm the order', function () {
+    expect(ppsExportGridWrites(null, null))->toBe([])
+        ->and(ppsExportGridWrites('uuid-1', 'uuid-1'))->toBe([]);
+});

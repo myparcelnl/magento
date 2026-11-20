@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\DataObject;
+use MyParcelNL\Magento\Model\Shipment\OrderCustomsDeclarationBuilder;
+use MyParcelNL\Magento\Service\Weight;
+
+/** The PPS customs path: each line at product weight and at the price paid in the order's currency. */
+function ppsCustomsItems(array $productData, array $config = [], array $itemData = []): array
+{
+    $item  = createOrderItem($itemData, ['id' => 7] + $productData);
+    $order = createOrder([
+        'getItems'         => [$item],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    $config        = createConfig(['print/weight_indication' => 'gram'] + $config);
+    $objectManager = customsObjectManager([7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null], $config);
+
+    return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+}
+
+it('takes the country of origin from the product when it has one', function () {
+    expect(ppsCustomsItems(['country_of_manufacture' => 'CN'])[0]->getCountry())->toBe('CN');
+});
+
+it('falls back to the configured country of origin, not a hardcoded NL', function () {
+    expect(ppsCustomsItems([], ['print/country_of_origin' => 'BE'])[0]->getCountry())->toBe('BE');
+});
+
+it('declares weight and the price paid at line level, multiplied by the quantity', function () {
+    // The catalog price differs from what the customer paid: the declaration takes the paid price.
+    $items = ppsCustomsItems(
+        ['country_of_manufacture' => 'CN', 'weight' => 100.0, 'price' => 99.0],
+        [],
+        ['qty_ordered' => 3, 'price' => 10.0]
+    );
+
+    expect($items[0]->getWeight())->toBe(300)
+        ->and($items[0]->getItemValue()['amount'])->toBe(3000);
+});
+
+it('declares at least one piece for a fractional quantity, which the API would refuse as zero', function () {
+    $items = ppsCustomsItems(['country_of_manufacture' => 'CN'], [], ['qty_ordered' => 0.5, 'price' => 10.0]);
+
+    expect($items[0]->getAmount())->toBe(1);
+});
+
+it('declares a configurable product once and a virtual product not at all, as a label does', function () {
+    $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable'], ['id' => 7, 'name' => 'Shirt']);
+    $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true], ['id' => 7, 'name' => 'Shirt, red']);
+    $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true], ['id' => 7, 'name' => 'Gift wrap']);
+    $order   = createOrder([
+        'getItems'         => [$parent, $child, $virtual],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    $config        = createConfig(['print/weight_indication' => 'gram']);
+    $objectManager = customsObjectManager([7 => '6109.10'], [7 => 'CN'], $config);
+    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+
+    expect($items)->toHaveCount(1)
+        ->and($items[0]->getDescription())->toBe('Shirt');
+});
+
+it('declares the children of a bundle shipped separately, not the bundle', function () {
+    $bundle = createOrderItem(['item_id' => 1, 'product_type' => 'bundle', 'is_dummy' => true], ['id' => 7, 'name' => 'Gift set']);
+    $mug    = createOrderItem(['item_id' => 2, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Mug']);
+    $plate  = createOrderItem(['item_id' => 3, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Plate']);
+    $order  = createOrder([
+        'getItems'         => [$bundle, $mug, $plate],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    $config        = createConfig(['print/weight_indication' => 'gram']);
+    $objectManager = customsObjectManager([7 => '6109.10'], [7 => 'CN'], $config);
+    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+
+    expect(array_map(static fn ($item) => $item->getDescription(), $items))->toBe(['Mug', 'Plate']);
+});

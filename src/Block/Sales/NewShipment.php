@@ -24,13 +24,25 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
+/**
+ * The admin New Shipment form, resolved from the account's capabilities per carrier and package type.
+ *
+ * getFormCarriers() is what performs those lookups, so the template must call it before asking
+ * hasUnverifiedCapabilities(), which otherwise answers about a render that has not happened.
+ */
 class NewShipment extends AbstractItems
 {
     /**
@@ -48,25 +60,39 @@ class NewShipment extends AbstractItems
      */
     private NewShipmentForm $form;
 
+    private CapabilitiesLookup $capabilityLookup;
+
+    private Weight $weightService;
+
+    private Config $configService;
+
+    private bool $deliveryTypeRead = false;
+
+    private ?int $deliveryType = null;
+
     /**
      * @param Context                     $context
      * @param StockRegistryInterface      $stockRegistry
      * @param StockConfigurationInterface $stockConfiguration
      * @param Registry                    $registry
      * @param ObjectManagerInterface      $objectManager
+     * @param CapabilitiesLookup          $capabilityLookup
      */
     public function __construct(
         Context                     $context,
         StockRegistryInterface      $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
         Registry                    $registry,
-        ObjectManagerInterface      $objectManager
+        ObjectManagerInterface      $objectManager,
+        CapabilitiesLookup          $capabilityLookup
     )
     {
         $this->order         = $registry->registry('current_shipment')->getOrder();
         $this->weightService = $objectManager->get(Weight::class);
         $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
+
+        $this->capabilityLookup = $capabilityLookup;
 
         $this->defaultOptions = new DefaultOptions($this->order);
 
@@ -113,11 +139,12 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * Get package type
+     * Unresolved on purpose: an unrecognised value matches no radio, so nothing is pre-selected
+     * rather than the form suggesting a package type the customer never chose.
      */
-    public function getPackageType(): int
+    public function getPackageTypeName(): string
     {
-        return $this->defaultOptions->getPackageType();
+        return $this->defaultOptions->getPackageTypeName() ?? PackageType::DEFAULT_NAME;
     }
 
     /**
@@ -140,49 +167,237 @@ class NewShipment extends AbstractItems
         return '';
     }
 
-    public function getDeliveryType(): int
+    /**
+     * Null means the order carries a delivery type we do not recognise, so callers withhold
+     * anything that depends on it rather than guessing. Absent is different: no stored type means
+     * there was never a choice to honour, so it defaults quietly.
+     */
+    public function getDeliveryType(): ?int
     {
+        // Read once: the form asks per carrier, package type and option, and an unknown type logs.
+        if ($this->deliveryTypeRead) {
+            return $this->deliveryType;
+        }
+
+        $this->deliveryTypeRead = true;
+
         try {
-            $deliveryTypeName = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
-            $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
+            $deliveryOptions  = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true);
+            $deliveryTypeName = $deliveryOptions['deliveryType'] ?? null;
         } catch (\Throwable $e) {
-            $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;
+            $deliveryTypeName = null;
+        }
+
+        if (null === $deliveryTypeName) {
+            return $this->deliveryType = DeliveryType::DEFAULT;
+        }
+
+        $deliveryType = $this->deliveryType = DeliveryType::toIdOrNull($deliveryTypeName);
+
+        if (null === $deliveryType) {
+            Logger::warning(sprintf(
+                'Unrecognised delivery type "%s" on order %s; shipment options that depend on the '
+                . 'delivery type are withheld rather than guessed.',
+                (string) $deliveryTypeName,
+                (string) $this->order->getIncrementId()
+            ));
         }
 
         return $deliveryType;
     }
 
-    public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool
+    /** @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for. */
+    private function getCapabilities(?string $packageType = null): CapabilitySet
     {
-        /**
-         * Business logic determining what shipment options to show, if any.
-         */
-        if (AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE === $shipmentOption
-            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $this->getDeliveryType()
-        ) {
-            return false; // receipt code is only available for standard delivery
+        return $this->capabilityLookup->forRequest(
+            (int) $this->order->getStoreId(),
+            $this->getCountry(),
+            $packageType
+        );
+    }
+
+    /**
+     * Get the carriers to offer. A carrier without settings in this module cannot be offered: it would
+     * have no fee, no active flag and no drop-off days.
+     *
+     * @return string[]
+     */
+    public function getCarriers(): array
+    {
+        return $this->getCapabilities()->configuredCarriers();
+    }
+
+    /**
+     * @return string[] module package type names
+     */
+    public function getPackageTypes(string $carrier): array
+    {
+        if ($this->getCapabilities()->isPermissive()) {
+            // without capabilities, offer the types of PACKAGE_TYPE_HUMAN_MAP: hiding everything is
+            // worse, and pallet and envelope do not belong on this form
+            return array_map(
+                [PackageType::class, 'nameFromIdOrNull'],
+                array_keys(NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP)
+            );
         }
 
-        if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
-            return $consignment->canHaveShipmentOption($shipmentOption);
+        return $this->getCapabilities()->packageTypesFor($carrier);
+    }
+
+    /**
+     * Options to render as checkboxes. Insurance is excluded: the template renders it as an amount
+     * selector of its own.
+     *
+     * @return string[]
+     */
+    public function getShipmentOptions(string $carrier, string $packageType): array
+    {
+        $capabilities = $this->getCapabilities($packageType);
+
+        $options = $capabilities->isPermissive()
+            ? ShipmentOption::having('toggle')
+            : $capabilities->optionsFor($carrier, $packageType);
+
+        return array_values(array_filter(
+            $options,
+            function (string $option) use ($carrier, $packageType): bool {
+                return ShipmentOption::INSURANCE !== $option
+                       && $this->hasShipmentOption($carrier, $packageType, $option);
+            }
+        ));
+    }
+
+    public function hasShipmentOption(string $carrier, string $packageType, string $shipmentOption): bool
+    {
+        $deliveryTypeId = $this->getDeliveryType();
+
+        // An unknown stored type allows no option that only some delivery types take.
+        if (null === $deliveryTypeId && isset(ShipmentOption::LIMIT_DELIVERY_TYPE[$shipmentOption])) {
+            return false;
         }
 
-        // For PostNL in Belgium - recipient-only, signature and receipt-code are available
-        if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
-            return in_array($shipmentOption, [
-                AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
-                AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
-            ],true);
+        $deliveryType = DeliveryType::nameFromIdOrNull($deliveryTypeId);
+
+        if (! ShipmentOption::allowedForDeliveryType($shipmentOption, $deliveryType)) {
+            return false;
         }
 
-        // For UPS shipment options are available for all countries in the EU
-        if (CarrierUPSStandard::NAME === $consignment->getCarrierName()) {
-            return true;
+        return $this->getCapabilities($packageType)->hasOption($carrier, $packageType, $shipmentOption);
+    }
+
+    /**
+     * Whether any answer this render used was a fallback rather than the account's own.
+     *
+     * Only meaningful once the form data has been resolved, which is why the template asks for
+     * getFormCarriers() first.
+     */
+    public function hasUnverifiedCapabilities(): bool
+    {
+        return $this->capabilityLookup->answeredPermissively();
+    }
+
+    /**
+     * The whole form, resolved: carriers, their package types, and per package type the options,
+     * insurance and digital-stamp weights.
+     *
+     * Built here rather than in the template so the template is a renderer, and so the
+     * unverified-capabilities notice can be rendered above a form whose data is already known.
+     *
+     * @return array<int,array{name:string,human:string,packageTypes:array}>
+     */
+    public function getFormCarriers(): array
+    {
+        $carriers = [];
+
+        foreach ($this->getCarriers() as $carrierName) {
+            $packageTypes = [];
+
+            foreach ($this->getPackageTypes($carrierName) as $packageTypeName) {
+                $packageTypeId = PackageType::toIdOrNull($packageTypeName);
+
+                if (null === $packageTypeId) {
+                    // Nothing to submit: the radio's value would resolve to no id on the way out.
+                    continue;
+                }
+
+                $packageTypes[] = [
+                    'name'      => $packageTypeName,
+                    'id'        => $packageTypeId,
+                    'human'     => NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName,
+                    'options'   => $this->getShipmentOptions($carrierName, $packageTypeName),
+                    'insurance' => $this->hasInsurance($carrierName, $packageTypeName)
+                        ? $this->insuranceField($carrierName, $packageTypeName)
+                        : null,
+                    'weights'   => PackageType::DIGITAL_STAMP === $packageTypeId
+                        ? $this->getDigitalStampWeightOptions()
+                        : null,
+                ];
+            }
+
+            $carriers[] = [
+                'name'         => $carrierName,
+                'human'        => Carrier::humanFor($carrierName),
+                'packageTypes' => $packageTypes,
+            ];
         }
 
-        // No shipment options available in any other cases
-        return false;
+        return $carriers;
+    }
+
+    /**
+     * Digital stamp weight ranges, with the one the order falls in pre-selected.
+     *
+     * The ranges are DigitalStampWeight's, shared with the admin default-weight setting.
+     *
+     * @return array<int,array{value:int,label:\Magento\Framework\Phrase,selected:bool}>
+     */
+    public function getDigitalStampWeightOptions(): array
+    {
+        $selected = DigitalStampWeight::valueFor($this->getDigitalStampWeight());
+
+        return array_map(
+            static function (array $option) use ($selected): array {
+                return [
+                    'value'    => $option['value'],
+                    'label'    => $option['label'],
+                    // NO_STANDARD_WEIGHT is never the answer valueFor() gives, so it stays unselected.
+                    'selected' => $option['value'] === $selected,
+                ];
+            },
+            DigitalStampWeight::options()
+        );
+    }
+
+    public function hasInsurance(string $carrier, string $packageType): bool
+    {
+        return $this->getCapabilities($packageType)
+                    ->hasOption($carrier, $packageType, ShipmentOption::INSURANCE);
+    }
+
+    /**
+     * The amount field's bounds and starting value.
+     *
+     * Asked with the package type set, so the bound is this request's rather than a union across
+     * package types. Null bounds render an unbounded field: the export path clamps against
+     * the real destination anyway, and refusing to offer insurance because a lookup failed is exactly
+     * what must not happen.
+     *
+     * @return array{default: int, max: int|null, floor: int, note: string|null}
+     */
+    private function insuranceField(string $carrier, string $packageType): array
+    {
+        $range = InsuranceRange::fromOptionValue(
+            $this->getCapabilities($packageType)
+                 ->optionValue($carrier, $packageType, ShipmentOption::INSURANCE)
+        );
+
+        return [
+            'default' => $this->getDefaultInsurance($carrier),
+            'max'     => $range ? $range->max() : null,
+            // Zero is enterable unless the contract makes insurance compulsory.
+            'floor'   => $range ? $range->lowestAccepted() : 0,
+            'note'    => $range ? $range->note() : null,
+        ];
     }
 
     /**

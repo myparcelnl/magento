@@ -6,18 +6,21 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
-use MyParcelNL\Sdk\Model\Account\CarrierOptions;
+use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Services\Web\AccountWebService;
-use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
 use MyParcelNL\Sdk\Support\Collection;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
- * Fetches a MyParcel account's settings and caches them under the api key's fingerprint (see
- * Config::XML_PATH_ACCOUNT_SETTINGS for why that is the key). Shared by the *Import MyParcel Backoffice
- * settings* button and the automatic import on an api key change.
+ * Fetches a MyParcel account's settings and caches them under the api key's fingerprint.
+ *
+ * Two sources, one row: the account and its shop come from the SDK's account web service, the
+ * contract definitions from the capabilities client in a single unfiltered call.
  *
  * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
  * observer catches it.
@@ -28,34 +31,41 @@ class Importer
     private ScopeConfigInterface $scopeConfig;
     private Fingerprint          $fingerprint;
     private LoggerInterface      $logger;
+    private Client               $client;
+    private UserAgent            $userAgent;
 
     public function __construct(
         WriterInterface      $configWriter,
         ScopeConfigInterface $scopeConfig,
         Fingerprint          $fingerprint,
-        LoggerInterface      $logger
+        LoggerInterface      $logger,
+        Client               $client,
+        UserAgent            $userAgent
     ) {
         $this->configWriter = $configWriter;
         $this->scopeConfig  = $scopeConfig;
         $this->fingerprint  = $fingerprint;
         $this->logger       = $logger;
+        $this->client       = $client;
+        $this->userAgent    = $userAgent;
     }
 
     /**
-     * Whether this account's settings are already cached, so a caller can heal a missing row without
-     * paying for an API call on every save.
+     * Check whether this account's settings are stored, so a caller can heal a missing row without an
+     * API call on every save. A row without contract definitions counts as missing: rows stored before
+     * 6.0.0 have none.
      */
     public function hasSettingsFor(string $apiKey): bool
     {
-        return (bool) $this->scopeConfig->getValue(
-            Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey)
-        );
+        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey));
+        $decoded = is_string($stored) ? json_decode($stored, true) : null;
+
+        return is_array($decoded) && array_key_exists('contract_definitions', $decoded);
     }
 
     /**
-     * Fetches the account from the MyParcel API and stores it under the api key's fingerprint,
-     * replacing whatever was there. Costs one API call every time, so check hasSettingsFor() first
-     * when the goal is only to heal a missing row.
+     * Fetch the account and replace the stored row. Always costs an API call: to heal a missing row
+     * only, check hasSettingsFor() first.
      *
      * @throws \MyParcelNL\Sdk\Exception\ApiException
      * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
@@ -87,24 +97,61 @@ class Importer
      */
     private function fetchConfigurations(string $apiKey): Collection
     {
-        $accountService = (new AccountWebService())->setApiKey($apiKey);
+        $accountService = (new AccountWebService())->setUserAgents($this->userAgent->map())
+                                                   ->setApiKey($apiKey);
 
         // each api key points to a specific shop in an account, so we can just take the first one.
         $account = $accountService->getAccount();
         $shop    = $account->getShops()
                            ->first()
         ;
-        $shopId                     = $shop->getId();
-        $optionConfigurationService = (new CarrierOptionsWebService())->setApiKey($apiKey);
-        $optionConfiguration        = $optionConfigurationService->getCarrierOptions($shopId);
 
         return new Collection(
             [
-                'shop'            => $shop,
-                'account'         => $account,
-                'carrier_options' => $optionConfiguration,
+                'shop'                 => $shop,
+                'account'              => $account,
+                // A failed fetch keeps the stored list rather than replacing it with nothing.
+                'contract_definitions' => $this->fetchContractDefinitions($apiKey) ?? $this->storedContractDefinitions($apiKey),
             ]
         );
+    }
+
+    /** @return array<int, array<string, mixed>>|null the stored list, or null when none is stored */
+    private function storedContractDefinitions(string $apiKey): ?array
+    {
+        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey));
+        $decoded = is_string($stored) ? json_decode($stored, true) : null;
+        $items   = is_array($decoded) ? ($decoded['contract_definitions'] ?? null) : null;
+
+        return is_array($items) && [] !== $items ? $items : null;
+    }
+
+    /**
+     * Fetch the contract definitions of every carrier in one call.
+     *
+     * @return array<int, array<string, mixed>>|null null when the call failed
+     */
+    private function fetchContractDefinitions(string $apiKey): ?array
+    {
+        try {
+            $answer = $this->client->sendContractDefinitions($apiKey);
+        } catch (Throwable $e) {
+            $this->logger->warning(
+                'No contract definitions could be fetched; the stored ones are kept, or the screens '
+                . 'fall open until the next import.',
+                LogContext::of($e)
+            );
+
+            return null;
+        }
+
+        $definitions = array_values(array_filter($answer, 'is_array'));
+
+        if ([] === $definitions) {
+            $this->logger->warning('The account answered no contract definitions; the screens fall open until the next import.');
+        }
+
+        return $definitions;
     }
 
     /**
@@ -118,29 +165,17 @@ class Importer
         $shop = $settings->get('shop');
         /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
-        /** @var \MyParcelNL\Sdk\Model\Account\CarrierOptions[]|Collection $carrierOptions */
-        $carrierOptions = $settings->get('carrier_options');
 
         return [
-            'shop'            => [
+            'shop'                 => [
                 'id'   => $shop->getId(),
                 'name' => $shop->getName(),
             ],
-            'account'         => $account->toArray(),
-            'carrier_options' => array_map(static function (CarrierOptions $carrierOptions) {
-                $carrier = $carrierOptions->getCarrier();
-                return [
-                    'carrier'  => [
-                        'human' => $carrier->getHuman(),
-                        'id'    => $carrier->getId(),
-                        'name'  => $carrier->getName(),
-                    ],
-                    'enabled'  => $carrierOptions->isEnabled(),
-                    'label'    => $carrierOptions->getLabel(),
-                    'optional' => $carrierOptions->isOptional(),
-                    'type'     => $carrierOptions->getType(),
-                ];
-            }, $carrierOptions->all()),
-        ];
+            'account'              => $account->toArray(),
+        ] + (null === $settings->get('contract_definitions') ? [] : [
+            // Stored verbatim: a generated model is an allow-list and would drop the insurance
+            // bounds the settings screen reads. Left out when unknown, so hasSettingsFor() asks again.
+            'contract_definitions' => $settings->get('contract_definitions'),
+        ]);
     }
 }

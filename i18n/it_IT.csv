@@ -91,6 +91,7 @@ Express delivery,Consegna espressa
 Express delivery fee,Costo consegna espressa
 Express delivery active,Consegna espressa attiva
 Same day delivery,Consegna in giornata
+Early morning delivery,Consegna di primo mattino
 Same day title,Titolo consegna in giornata
 Morning delivery active,Consegna mattutina attiva
 If age check is active then the evening delivery is not possible,"Se il controllo dell'età è attivo, la consegna serale non è possibile"
@@ -261,7 +262,6 @@ Sunday,Domenica
 Mailbox,Pacco buca lettere
 Digital stamp,Francobollo digitale
 Small package,Piccolo pacco
-Print return label directly,Stampa direttamente l'etichetta di reso
 I use the following weight type,Utilizzo la seguente unità di misura del peso
 This is the type of weight that I use with my products.,Questa è l'unità di misura del peso che utilizzi per i tuoi prodotti.
 Default,Predefinito
@@ -278,11 +278,8 @@ error3517,Non disponibile per questo paese.
 error3707,Tipo di pacco non valido.
 error3728,Nessuna opzione di consegna trovata.
 
-Without options,Senza opzioni
-Options equal to shipment,Opzioni uguali alla spedizione
 Export to MyParcel,Esporta su MyParcel
 Already exported,Già esportato
-Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,"Abilitando questa impostazione viene creata automaticamente una spedizione di reso correlata per ogni spedizione esportata. Quando si scaricano le etichette di spedizione, verranno incluse anche le corrispondenti etichette di reso."
 Show details in summary,Mostra dettagli nel riepilogo
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Dove viene mostrato il metodo di spedizione, mostra i dettagli attualmente noti (sì) o il titolo del metodo (no)."
 
@@ -419,7 +416,7 @@ The minimum amount from when signature is active.,L'importo minimo da cui la fir
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Questo determina il modo in cui il prezzo di consegna viene mostrato al cliente tramite le opzioni di consegna. Il prezzo può essere mostrato come totale per ciascuna opzione di consegna o come sovrapprezzo rispetto al prezzo di spedizione standard.
 This setting applies to domestic shipments only,Questa impostazione si applica solo alle spedizioni nazionali
 This will be added to or subtracted from the regular shipping price,Questo verrà aggiunto o sottratto dal prezzo di spedizione standard
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.","Usa la percentuale dell'importo totale dell'ordine per l'assicurazione. Dopo il calcolo, viene selezionata la successiva scala di prezzo disponibile."
+Use percentage of total order amount for insurance.,Usa la percentuale dell'importo totale dell'ordine per l'assicurazione.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Quando abilitato, i locker per pacchi saranno esclusi dai punti di ritiro per tutti i prodotti. Verranno mostrati solo i punti di ritiro fisici."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Con 'Esporta intero ordine', MyParcel esporterà ogni ordine nella sua interezza al back office per ulteriori elaborazioni."
 
@@ -444,3 +441,65 @@ A token is currently configured at this scope.,In questo ambito è attualmente c
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.",Copre ogni vista store in questo sito web che non ha un token separato all'ambito vista store. L'emissione di questo token rimuove questi store dalla vista del token con ambito predefinito; qualsiasi vista store con il proprio token dedicato rimane invisibile a questo token.
 Covers every store not tokened separately at website or store-view scope.,Copre ogni store che non ha un token separato all'ambito sito web o vista store.
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","La tua API key è stata salvata, ma non è stato possibile importare le impostazioni dell’account MyParcel: %1. Controlla l’API key, quindi usa il pulsante Importa impostazioni Backoffice MyParcel."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel non ha potuto confermare quali opzioni ha questo account, quindi vengono mostrate tutte le opzioni. Un'opzione che l'account non possiede viene rifiutata all'esportazione della spedizione."
+No standard weight,Nessun peso standard
+0 - 20 gram,0 - 20 grammi
+20 - 50 gram,20 - 50 grammi
+50 - 350 gram,50 - 350 grammi
+350 - 2000 gram,350 - 2000 grammi
+Create MyParcel consignment,Crea spedizione MyParcel
+Export Entire Order,Esporta l'intero ordine
+Label amount:,Numero di etichette:
+Letter,Non affrancata
+Return if no answer,Restituisci se nessuna risposta
+24 hour priority,Consegna prioritaria
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Se abilitato, la casella Consegna prioritaria viene mostrata nel checkout quando questo prodotto è nel carrello, anche se l'impostazione generale della consegna prioritaria è disattivata."
+"Your contract allows € %1 to € %2. Enter 0 to switch insurance off.","Il tuo contratto consente da € %1 a € %2. Inserisci 0 per disattivare l'assicurazione."
+"The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.","Non è stato possibile recuperare l'intervallo consentito. Qui viene accettato qualsiasi importo e decide MyParcel. Inserisci 0 per disattivare l'assicurazione."
+"Insurance amount %1 was not saved: your contract allows € %2 to € %3.","L'importo dell'assicurazione %1 non è stato salvato: il tuo contratto consente da € %2 a € %3."
+"Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Il tuo contratto consente da € %1 a € %2. L'assicurazione è obbligatoria per questo corriere e non può essere disattivata."
+"Insurance amount ""%1"" was not saved: enter a whole number of euros.","L'importo dell'assicurazione ""%1"" non è stato salvato: inserisci un importo intero in euro."
+"Importing the MyParcel Backoffice settings failed:","L'importazione delle impostazioni MyParcel Backoffice non è riuscita:"
+"Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importazione delle impostazioni MyParcel Backoffice non è riuscita. Controlla il log per i dettagli."
+"MyParcel Backoffice settings imported.","Impostazioni MyParcel Backoffice importate."
+Records per export request,Record per richiesta di esportazione
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Quante spedizioni o ordini vengono inviati a MyParcel in una richiesta. Lascia vuoto per 20. Riduci il valore se le esportazioni grandi vanno in timeout. Il massimo è 100.
+Return label sent,Etichetta di reso inviata
+MyParcel does not know shipment %1 for the API key of this store.,MyParcel non conosce la spedizione %1 con l'API key di questo store.
+The carrier of shipment %1 does not support return labels.,Il corriere della spedizione %1 non supporta le etichette di reso.
+No MyParcel shipments were found to make a return label for.,Non è stata trovata alcuna spedizione MyParcel per cui creare un'etichetta di reso.
+"MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel non ha confermato questi ordini, quindi non si sa se MyParcel li ha creati: %1. Controllali nel backoffice MyParcel prima di esportarli di nuovo."
+"Not every collo of this order was exported: %1","Non tutti i colli di questo ordine sono stati esportati: %1"
+"It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Non si sa se MyParcel ha creato tutti i colli di questo ordine: %1. Controlla l'ordine nel backoffice MyParcel prima di esportarlo di nuovo."
+"Orders that were not exported because MyParcel refused this batch: %1. Reason: %2","Ordini non esportati perché MyParcel ha rifiutato questo lotto: %1. Motivo: %2"
+"Orders that MyParcel did not confirm: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2","Ordini che MyParcel non ha confermato: %1. Non si sa se le spedizioni sono state create. Controllali nel backoffice MyParcel prima di esportarli di nuovo. Motivo: %2"
+"MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel ha creato questi ordini, ma non è stato possibile contrassegnarli come esportati: %1. Non esportarli di nuovo. Controlla il log."
+The MyParcel API refused this order without giving a reason.,L'API MyParcel ha rifiutato questo ordine senza indicare un motivo.
+The MyParcel API did not return a shipment for this order.,L'API MyParcel non ha restituito una spedizione per questo ordine.
+The MyParcel export could not be completed.,L'esportazione MyParcel non è stata completata.
+The MyParcel labels could not be downloaded.,Non è stato possibile scaricare le etichette MyParcel.
+The MyParcel export failed. Please check the log.,L'esportazione MyParcel non è riuscita. Controlla il log.
+No shipments were given to print labels for.,Non è stata indicata alcuna spedizione per cui stampare le etichette.
+The MyParcel labels could not be fetched. Please check the log.,Non è stato possibile recuperare le etichette MyParcel. Controlla il log.
+The MyParcel labels could not be fetched. %1,Non è stato possibile recuperare le etichette MyParcel. %1
+No MyParcel labels to download.,Nessuna etichetta MyParcel da scaricare.
+Some labels are missing. %1,Alcune etichette mancano. %1
+The return label mail is sent to the customer.,L'e-mail con l'etichetta di reso è stata inviata al cliente.
+An unexpected error occurred. Please check the log.,Si è verificato un errore imprevisto. Controlla il log.
+"Unknown configuration scope ""%1"".","Ambito di configurazione sconosciuto ""%1""."
+Configuration scope id must be a number.,L'ID dell'ambito di configurazione deve essere un numero.
+"Configuration scope ""%1"" has no id %2.","L'ambito di configurazione ""%1"" non ha l'ID %2."
+Customs declaration: %1,Dichiarazione doganale: %1
+"carrier ""%1"" is not one this module knows","il corriere ""%1"" non è noto a questo modulo"
+This order is a pickup but its pickup location cannot be read (%1),"Questo ordine è un ritiro, ma il punto di ritiro non può essere letto (%1)"
+"This track has no Magento shipment, so there is nothing to export","Questo tracking non ha una spedizione Magento, quindi non c'è nulla da esportare"
+this order is a pickup but carries no pickup location,"questo ordine è un ritiro, ma non ha un punto di ritiro"
+%1 label file(s) could not be merged. Please check the log.,Non è stato possibile unire %1 file di etichette. Controlla il log.
+"created as MyParcel shipment %1, but the id could not be stored: %2","creato come spedizione MyParcel %1, ma non è stato possibile salvare l'ID: %2"
+"MyParcel carrier capabilities","Funzionalità dei corrieri MyParcel"
+"Per-account carrier capability answers from the MyParcel API","Risposte dell'API MyParcel sulle funzionalità dei corrieri, per account"
+"this order has no billing address, so it cannot be exported","questo ordine non ha un indirizzo di fatturazione, quindi non può essere esportato"
+"this order has no shipping address, so it cannot be exported","questo ordine non ha un indirizzo di spedizione, quindi non può essere esportato"
+"customs item %1: %2","articolo doganale %1: %2"
+"It is unknown whether MyParcel created and mailed the return labels of %1 shipment(s): %2. Check them in the MyParcel backoffice before you send them again.","Non è noto se MyParcel abbia creato e inviato per e-mail le etichette di reso di %1 spedizione/i: %2. Controllale nel backoffice MyParcel prima di inviarle di nuovo."
+"%1: %2 of %3 order notes were not exported to MyParcel.","%1: %2 note d'ordine su %3 non sono state esportate verso MyParcel."

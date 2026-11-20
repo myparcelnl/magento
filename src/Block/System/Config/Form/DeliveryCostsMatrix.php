@@ -4,16 +4,33 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
+use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
-use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
+use MyParcelNL\Magento\Service\Settings;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
 {
+    private ContractDefinitions $contractDefinitions;
+    private Settings            $settings;
+
+    public function __construct(
+        Context             $context,
+        ContractDefinitions $contractDefinitions,
+        Settings            $settings,
+        array               $data = []
+    )
+    {
+        parent::__construct($context, $data);
+        $this->contractDefinitions = $contractDefinitions;
+        $this->settings            = $settings;
+    }
+
     /**
      * Path to template file in theme.
      *
@@ -21,24 +38,31 @@ class DeliveryCostsMatrix extends Field
      */
     protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
 
+    /**
+     * Get the carriers with settings that the account has a contract for.
+     * When the contracts cannot be read, get all of them.
+     */
     public function getCarriers(): array
     {
+        [$scopeName, $scopeId] = $this->settings->getCurrentScopeFromRequest($this->getRequest());
+
         $carriers = [];
-        foreach (Carrier::ALLOWED_CARRIER_CLASSES as $carrierClass) {
-            $carrier                       = new $carrierClass();
-            $carriers[$carrier->getName()] = $carrier->getHuman();
+
+        foreach ($this->contractDefinitions->forScope($scopeName, $scopeId)->configuredCarriers() as $carrierName) {
+            $carriers[$carrierName] = ShipmentCarrier::humanFor($carrierName);
         }
+
         return $carriers;
     }
 
     public function getPackageTypes(): array
     {
         return [
-            AbstractConsignment::PACKAGE_TYPE_PACKAGE       => __('Package'),
-            AbstractConsignment::PACKAGE_TYPE_MAILBOX       => __('Mailbox'),
-            AbstractConsignment::PACKAGE_TYPE_LETTER        => __('Letter'),
-            AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => __('Digital stamp'),
-            AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => __('Small package'),
+            PackageType::PACKAGE       => __('Package'),
+            PackageType::MAILBOX       => __('Mailbox'),
+            PackageType::LETTER        => __('Letter'),
+            PackageType::DIGITAL_STAMP => __('Digital stamp'),
+            PackageType::PACKAGE_SMALL => __('Small package'),
         ];
     }
 
@@ -46,8 +70,8 @@ class DeliveryCostsMatrix extends Field
     public function getDeliveryTypes(): array
     {
         $deliveryTypes = [];
-        foreach (PricedDeliveryType::NAMES as $name) {
-            $deliveryTypes[$name] = __(PricedDeliveryType::TITLES[$name]);
+        foreach (DeliveryType::pricedPerTypeNames() as $name) {
+            $deliveryTypes[$name] = __(DeliveryType::TITLES[$name]);
         }
 
         return $deliveryTypes;
