@@ -81,9 +81,9 @@ class OrderCustomsDeclarationBuilder
             $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
             $totalWeight += $lineWeight;
 
-            $customsDeclaration->addCustomsItem(
-                (new MyParcelCustomsItem())
-                    ->setDescription($this->items->description((string) $product->getName()))
+            try {
+                $customsItem = (new MyParcelCustomsItem())
+                    ->setDescription((string) $product->getName())
                     ->setAmount($amount)
                     ->setWeight($lineWeight)
                     ->setItemValueArray([
@@ -92,7 +92,12 @@ class OrderCustomsDeclarationBuilder
                     ])
                     ->setCountry($customsData[$index]['country'])
                     ->setClassification($this->items->classification($customsData[$index]['classification']))
-            );
+                    ->setExternalProductReference($customsData[$index]['external_product_reference']);
+            } catch (\InvalidArgumentException $e) {
+                throw CustomsItems::refused((string) $product->getName(), $product->getSku(), $e);
+            }
+
+            $customsDeclaration->addCustomsItem($customsItem);
         }
 
         $customsDeclaration

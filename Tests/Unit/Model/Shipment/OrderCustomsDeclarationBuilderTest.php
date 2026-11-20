@@ -7,7 +7,13 @@ use MyParcelNL\Magento\Model\Shipment\OrderCustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 
 /** The Order v1 customs path: each line at product weight and at the price paid in the order's currency. */
-function orderV1CustomsItems(array $productData, array $config = [], array $itemData = [], string $homeCountry = 'NL'): array
+function orderV1CustomsItems(
+    array  $productData,
+    array  $config = [],
+    array  $itemData = [],
+    string $homeCountry = 'NL',
+    array  $attributes = []
+): array
 {
     $item  = createOrderItem($itemData, ['id' => 7] + $productData);
     $order = createOrder([
@@ -17,7 +23,12 @@ function orderV1CustomsItems(array $productData, array $config = [], array $item
     ]);
 
     $config        = createConfig(['print/weight_indication' => 'gram'] + $config);
-    $objectManager = customsObjectManager([7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null], $config, $homeCountry);
+    $objectManager = customsObjectManager(
+        ['classification' => [7 => '6109.10']] + $attributes,
+        [7 => $productData['country_of_manufacture'] ?? null],
+        $config,
+        $homeCountry
+    );
 
     return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 }
@@ -76,7 +87,7 @@ it('leaves a virtual product out of the declaration', function () {
  */
 
 function orderV1ConfigurableCustomsItems(
-    array $classifications,
+    array $attributes,
     array $countries,
     array $parentQty = [],
     array $childQty = []
@@ -97,7 +108,7 @@ function orderV1ConfigurableCustomsItems(
     ]);
 
     $config        = createConfig(['print/weight_indication' => 'gram']);
-    $objectManager = customsObjectManager($classifications, $countries, $config);
+    $objectManager = customsObjectManager($attributes, $countries, $config);
 
     return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 }
@@ -107,7 +118,7 @@ it('declares a configurable product once, as the variant, and falls back to the 
     array $countries,
     array $expected
 ) {
-    $items = orderV1ConfigurableCustomsItems($classifications, $countries);
+    $items = orderV1ConfigurableCustomsItems(['classification' => $classifications], $countries);
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->getDescription())->toBe('Caterham Red')
@@ -119,7 +130,7 @@ it('declares a configurable product once, as the variant, and falls back to the 
 
 it('takes a configurable line\'s quantity from the parent, which alone records what shipped', function () {
     $items = orderV1ConfigurableCustomsItems(
-        [9 => '6109.10'],
+        ['classification' => [9 => '6109.10']],
         [9 => 'CN'],
         ['qty_ordered' => 3, 'qty_shipped' => 1],
         ['qty_ordered' => 3, 'qty_shipped' => 0]
@@ -145,3 +156,29 @@ it('declares the children of a bundle shipped separately, not the bundle', funct
 
     expect(array_map(static fn ($item) => $item->getDescription(), $items))->toBe(['Mug', 'Plate']);
 });
+
+it('sends the external product reference of a product that has one', function () {
+    $items = orderV1CustomsItems([], [], [], 'NL', ['external_product_reference' => [7 => 'zonos-item-1']]);
+
+    expect($items[0]->getExternalProductReference())->toBe('zonos-item-1');
+});
+
+it('refuses an external product reference above 64 characters and names the product', function () {
+    orderV1CustomsItems(['name' => 'Widget', 'sku' => 'SKU-7'], [], [], 'NL', ['external_product_reference' => [7 => str_repeat('z', 65)]]);
+})->throws(RuntimeException::class, 'customs item "Widget" (SKU-7): External product reference must be 64 characters or less');
+
+it('sets no external product reference when the product has none', function () {
+    expect(orderV1CustomsItems([])[0]->getExternalProductReference())->toBeNull();
+});
+
+it('takes a configurable line its external product reference from the variant, or else the parent', function (
+    array $references,
+    string $expected
+) {
+    $items = orderV1ConfigurableCustomsItems(['external_product_reference' => $references], [4 => 'CN', 9 => null]);
+
+    expect($items[0]->getExternalProductReference())->toBe($expected);
+})->with([
+    'the variant has one' => [[4 => 'zonos-parent', 9 => 'zonos-variant'], 'zonos-variant'],
+    'the variant has none' => [[4 => 'zonos-parent'], 'zonos-parent'],
+]);
