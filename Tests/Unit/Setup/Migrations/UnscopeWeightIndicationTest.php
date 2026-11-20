@@ -49,7 +49,7 @@ function weightIndicationRows(MyParcelTokenLifecycleHarness $harness): array
     return $rows;
 }
 
-it('promotes a value every scope agrees on, so a merchant who only configured websites keeps it', function () {
+it('promotes the unit every store view reads, so a merchant who configured it per website keeps it', function () {
     $harness = new MyParcelTokenLifecycleHarness();
     $harness->save(UnscopeWeightIndication::PATH, 'gram', 'default', 0);
     $harness->save(UnscopeWeightIndication::PATH, 'kilo', ScopeInterface::SCOPE_WEBSITES, 1);
@@ -147,7 +147,7 @@ it('changes no value when the scopes only repeat the default', function () {
     $logger->shouldNotHaveReceived('notice');
 });
 
-it('leaves a lone default row alone and stays a no-op on a second run', function () {
+it('promotes the unit of the only website over the default, and a second run changes nothing', function () {
     $harness = new MyParcelTokenLifecycleHarness();
     $harness->save(UnscopeWeightIndication::PATH, 'kilo', 'default', 0);
     $harness->save(UnscopeWeightIndication::PATH, 'gram', ScopeInterface::SCOPE_WEBSITES, 1);
@@ -157,7 +157,7 @@ it('leaves a lone default row alone and stays a no-op on a second run', function
     unscopeWeightIndication($harness)->run();
 
     expect(weightIndicationRows($harness))->toBe($afterFirst)
-        ->and($afterFirst)->toHaveCount(1);
+        ->and($afterFirst)->toBe([['scope' => 'default', 'scope_id' => 0, 'value' => 'gram']]);
 });
 
 it('touches no other setting', function () {

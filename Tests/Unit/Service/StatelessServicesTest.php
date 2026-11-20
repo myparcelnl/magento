@@ -6,11 +6,7 @@ use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\PostnlMailboxInternational;
 
-/**
- * These three replaced a shared singleton whose mutable state leaked between carriers and between
- * carts. Nothing stops that creeping back except a test, so this is it: a service may hold its
- * injected collaborators and nothing else.
- */
+/** These services are shared between carriers and carts, so each may hold its injected collaborators only. */
 $statelessServices = [
     PackageTypeResolver::class        => [PackageTypeResolver::class],
     CartShippingRules::class          => [CartShippingRules::class],
@@ -34,7 +30,7 @@ it('holds no property that is not an injected collaborator', function (string $c
     expect(array_values(array_diff($declared, $injected)))->toBe([]);
 })->with($statelessServices);
 
-it('declares no static property, which would outlive every request', function (string $class) {
+it('declares no static property, which would outlive the instance', function (string $class) {
     $static = array_map(
         static fn(ReflectionProperty $p): string => $p->getName(),
         (new ReflectionClass($class))->getProperties(ReflectionProperty::IS_STATIC)

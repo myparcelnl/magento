@@ -3,32 +3,31 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\Config;
 
-const POSTNL_PATH = 'myparcelnl_magento_postnl_settings/';
-
-it('finds nothing forced when neither the product nor the export setting says so', function () {
+it('finds nothing forced when neither the product nor the default options say so', function () {
     $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '0'], [1 => []]);
 
-    expect($rules->forcedLimitingOptions([quoteItemFor()], POSTNL_PATH))->toBe([]);
+    expect($rules->forcedLimitingOptions([quoteItemFor()], Config::XML_PATH_POSTNL_SETTINGS))->toBe([]);
 });
 
-it('reads a forced option from the export settings', function () {
+it('reads a forced option from the carrier\'s default options', function () {
     $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '1']);
 
-    expect($rules->forcedLimitingOptions([], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK]);
+    expect($rules->forcedLimitingOptions([], Config::XML_PATH_POSTNL_SETTINGS))->toBe([ShipmentOption::AGE_CHECK]);
 });
 
-it('reads a forced option from a product, even with the export setting off', function () {
+it('reads a forced option from a product, even with the default option off', function () {
     $rules = createCartShippingRules(
         [CART_RULES_AGE_CHECK_PATH => '0'],
         [1 => ['myparcel_age_check' => '1']]
     );
 
-    expect($rules->forcedLimitingOptions([quoteItemFor()], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK]);
+    expect($rules->forcedLimitingOptions([quoteItemFor()], Config::XML_PATH_POSTNL_SETTINGS))->toBe([ShipmentOption::AGE_CHECK]);
 });
 
 it('treats a config path that does not exist as not forced', function () {
-    // A future limiting option may have no export setting for a given carrier. Absent is "no",
+    // A future limiting option may have no default option for a given carrier. Absent is "no",
     // never an error.
     $rules = createCartShippingRules([]);
 
@@ -41,42 +40,39 @@ it('does not read a threshold or a stray string as on', function () {
     foreach (['No', 'price', '0', ''] as $value) {
         $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => $value]);
 
-        expect($rules->forcedLimitingOptions([], POSTNL_PATH))
+        expect($rules->forcedLimitingOptions([], Config::XML_PATH_POSTNL_SETTINGS))
             ->toBe([], sprintf('"%s" was read as forced', $value));
     }
 });
 
-it('keeps forcesAgeCheck answering the same question', function () {
+it('answers forcesAgeCheck from the default options', function () {
     $forced = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '1']);
     $unset  = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '0']);
 
-    expect($forced->forcesAgeCheck([], POSTNL_PATH))->toBeTrue()
-        ->and($unset->forcesAgeCheck([], POSTNL_PATH))->toBeFalse();
+    expect($forced->forcesAgeCheck([], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue()
+        ->and($unset->forcesAgeCheck([], Config::XML_PATH_POSTNL_SETTINGS))->toBeFalse();
 });
 
-/**
- * Checkout asks this three times per carrier: for the age check, the forced options and the
- * package type. Each pass must not run an EAV query per quote item.
- */
+/** Checkout asks this several times per carrier; one product load must serve every call. */
 it('loads the product batch once however often it is asked', function () {
     $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '0'], [1 => [], 2 => []], $loads);
 
     $products = [quoteItemFor(1), quoteItemFor(2)];
 
     foreach ([1, 2, 3] as $ignored) {
-        $rules->forcedLimitingOptions($products, POSTNL_PATH);
+        $rules->forcedLimitingOptions($products, Config::XML_PATH_POSTNL_SETTINGS);
     }
 
     expect($loads)->toHaveCount(1)
         ->and($loads[0])->toBe([1, 2]);
 });
 
-it('answers the same for a second cart, so nothing carried over from the first', function () {
+it('answers the second cart from its own items, so nothing carries over from the first', function () {
     $rules = createCartShippingRules(
         [CART_RULES_AGE_CHECK_PATH => '0'],
         [1 => ['myparcel_age_check' => '1'], 2 => []]
     );
 
-    expect($rules->forcedLimitingOptions([quoteItemFor(1)], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK])
-        ->and($rules->forcedLimitingOptions([quoteItemFor(2)], POSTNL_PATH))->toBe([]);
+    expect($rules->forcedLimitingOptions([quoteItemFor(1)], Config::XML_PATH_POSTNL_SETTINGS))->toBe([ShipmentOption::AGE_CHECK])
+        ->and($rules->forcedLimitingOptions([quoteItemFor(2)], Config::XML_PATH_POSTNL_SETTINGS))->toBe([]);
 });

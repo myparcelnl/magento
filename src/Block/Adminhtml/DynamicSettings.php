@@ -214,16 +214,9 @@ class DynamicSettings extends Template
     }
 
     /**
-     * The note of a field that has no frontend model of its own.
+     * Get the note of the field's `note_model` block, or '' when it has none or the block fails.
      *
-     * A frontend model replaces the control it belongs to, so a field that only needs a computed
-     * note cannot use one without re-rendering its own input. `note_model` names a block that
-     * renders nothing and answers a note; the field keeps whatever control its type gives it.
-     *
-     * Never throws: a note is not worth failing a settings screen over.
-     *
-     * @param array $field
-     * @return string
+     * A `note_model`, not a `frontend_model`: a frontend model replaces the field's control.
      */
     public function getNoteFor(array $field): string
     {

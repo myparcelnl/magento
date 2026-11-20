@@ -9,11 +9,7 @@ use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Magento\Service\PostnlMailboxInternational;
 use Psr\Log\LoggerInterface;
 
-/**
- * AccountSettings reads the stored row through the static ObjectManager, so the row is seeded there
- * rather than injected. That indirection is exactly what this class exists to keep out of the
- * package type decision.
- */
+/** AccountSettings reads the stored row through the static ObjectManager, so the row is seeded there. */
 function postnlMailboxInternationalFor(array $rowsByPath, string $apiKey = 'live-key'): PostnlMailboxInternational
 {
     $objectManager = Mockery::mock(ObjectManagerInterface::class);

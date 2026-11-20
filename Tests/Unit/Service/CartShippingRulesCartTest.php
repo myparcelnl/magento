@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-const CART_RULES_PRIORITY_PATH = 'myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active';
-const CART_RULES_LOCKERS_PATH  = 'myparcelnl_magento_general/shipping_methods/exclude_parcel_lockers';
-const CART_RULES_CARRIER_PATH  = 'myparcelnl_magento_postnl_settings/';
+use MyParcelNL\Magento\Service\Config;
+
+const CART_RULES_PRIORITY_PATH = Config::XML_PATH_POSTNL_SETTINGS . 'mailbox/priority_delivery_active';
+const CART_RULES_LOCKERS_PATH  = Config::XML_PATH_GENERAL . 'shipping_methods/exclude_parcel_lockers';
 
 it('offers priority delivery when the carrier setting is on', function () {
     $rules = createCartShippingRules([CART_RULES_PRIORITY_PATH => '1'], [1 => [], 2 => []]);
 
-    expect($rules->allowsPriorityDelivery([quoteItemFor(1), quoteItemFor(2)], CART_RULES_CARRIER_PATH))->toBeTrue();
+    expect($rules->allowsPriorityDelivery([quoteItemFor(1), quoteItemFor(2)], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue();
 });
 
 it('offers priority delivery on an empty cart when the carrier setting is on', function () {
     $rules = createCartShippingRules([CART_RULES_PRIORITY_PATH => '1']);
 
-    expect($rules->allowsPriorityDelivery([], CART_RULES_CARRIER_PATH))->toBeTrue();
+    expect($rules->allowsPriorityDelivery([], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue();
 });
 
 it('offers priority delivery when one product asks for it and the setting is off', function () {
@@ -24,7 +25,7 @@ it('offers priority delivery when one product asks for it and the setting is off
         [1 => [], 2 => ['myparcel_priority_delivery' => '1']]
     );
 
-    expect($rules->allowsPriorityDelivery([quoteItemFor(1), quoteItemFor(2)], CART_RULES_CARRIER_PATH))->toBeTrue();
+    expect($rules->allowsPriorityDelivery([quoteItemFor(1), quoteItemFor(2)], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue();
 });
 
 it('refuses priority delivery when neither the setting nor any product asks for it', function () {
@@ -33,13 +34,13 @@ it('refuses priority delivery when neither the setting nor any product asks for 
         [1 => [], 2 => ['myparcel_priority_delivery' => '0']]
     );
 
-    expect($rules->allowsPriorityDelivery([quoteItemFor(1), quoteItemFor(2)], CART_RULES_CARRIER_PATH))->toBeFalse();
+    expect($rules->allowsPriorityDelivery([quoteItemFor(1), quoteItemFor(2)], Config::XML_PATH_POSTNL_SETTINGS))->toBeFalse();
 });
 
 it('refuses priority delivery on an empty cart with the setting off', function () {
     $rules = createCartShippingRules([CART_RULES_PRIORITY_PATH => '0']);
 
-    expect($rules->allowsPriorityDelivery([], CART_RULES_CARRIER_PATH))->toBeFalse();
+    expect($rules->allowsPriorityDelivery([], Config::XML_PATH_POSTNL_SETTINGS))->toBeFalse();
 });
 
 it('hides delivery options when a product says so', function () {
@@ -49,8 +50,6 @@ it('hides delivery options when a product says so', function () {
 });
 
 it('does not let one cart that hides delivery options silence the next', function () {
-    // The predecessor set a public flag and never reset it, so on a shared instance the second cart
-    // inherited the first cart's answer.
     $rules = createCartShippingRules([], [1 => ['myparcel_disable_checkout' => '1'], 2 => []]);
 
     expect($rules->hidesDeliveryOptions([quoteItemFor(1)]))->toBeTrue()
@@ -75,7 +74,7 @@ it('answers no drop off delay rather than zero', function () {
 it('excludes parcel lockers on the general setting alone', function () {
     $rules = createCartShippingRules([CART_RULES_LOCKERS_PATH => '1']);
 
-    expect($rules->excludesParcelLockers([], CART_RULES_CARRIER_PATH))->toBeTrue();
+    expect($rules->excludesParcelLockers([], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue();
 });
 
 it('excludes parcel lockers when a product says so', function () {
@@ -84,16 +83,16 @@ it('excludes parcel lockers when a product says so', function () {
         [1 => ['myparcel_exclude_parcel_lockers' => '1']]
     );
 
-    expect($rules->excludesParcelLockers([quoteItemFor(1)], CART_RULES_CARRIER_PATH))->toBeTrue();
+    expect($rules->excludesParcelLockers([quoteItemFor(1)], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue();
 });
 
-it('excludes parcel lockers for 18+ goods', function () {
+it('excludes parcel lockers when the carrier forces the age check', function () {
     $rules = createCartShippingRules(
         [CART_RULES_LOCKERS_PATH => '0', CART_RULES_AGE_CHECK_PATH => '1'],
         [1 => []]
     );
 
-    expect($rules->excludesParcelLockers([quoteItemFor(1)], CART_RULES_CARRIER_PATH))->toBeTrue();
+    expect($rules->excludesParcelLockers([quoteItemFor(1)], Config::XML_PATH_POSTNL_SETTINGS))->toBeTrue();
 });
 
 it('allows parcel lockers when nothing excludes them', function () {
@@ -102,11 +101,11 @@ it('allows parcel lockers when nothing excludes them', function () {
         [1 => []]
     );
 
-    expect($rules->excludesParcelLockers([quoteItemFor(1)], CART_RULES_CARRIER_PATH))->toBeFalse();
+    expect($rules->excludesParcelLockers([quoteItemFor(1)], Config::XML_PATH_POSTNL_SETTINGS))->toBeFalse();
 });
 
-it('allows parcel lockers when the read throws, rather than hiding pickup over a config error', function () {
+it('allows parcel lockers when reading the cart throws', function () {
     $rules = createCartShippingRules([], [1 => []]);
 
-    expect($rules->excludesParcelLockers([Mockery::mock()], CART_RULES_CARRIER_PATH))->toBeFalse();
+    expect($rules->excludesParcelLockers([Mockery::mock()], Config::XML_PATH_POSTNL_SETTINGS))->toBeFalse();
 });
