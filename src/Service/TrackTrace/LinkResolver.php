@@ -8,6 +8,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -15,25 +16,24 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 /**
  * Reads the MyParcel track & trace links for a page of orders in one query. Manual tracks are left out.
  *
- * The link the API issued is stored on the track; TrackTraceUrl only fills in for shipments exported
- * before that was so, and its host depends on the account's proposition, hence the store id in the
- * rows. That lookup is made only when a row actually needs the fallback, so an install with nothing
- * but fresh exports never reads account settings while rendering a grid.
+ * The API's link is stored on the track. For a track without one, TrackTraceUrl builds a link
+ * from the account's proposition, which is why the rows carry the store id. That lookup happens
+ * only for a row that needs it.
  */
 class LinkResolver
 {
     private ResourceConnection $resource;
-    private AccountProposition $proposition;
+    private StoredAccount      $storedAccount;
     private TrackTraceUrl      $trackTraceUrl;
 
     public function __construct(
         ResourceConnection $resource,
-        AccountProposition $proposition,
+        StoredAccount      $storedAccount,
         TrackTraceUrl      $trackTraceUrl
     )
     {
         $this->resource      = $resource;
-        $this->proposition   = $proposition;
+        $this->storedAccount = $storedAccount;
         $this->trackTraceUrl = $trackTraceUrl;
     }
 
@@ -234,12 +234,12 @@ class LinkResolver
         }
 
         return $this->trackTraceUrl->create(
+            $this->storedAccount->propositionForStore(isset($row['store_id']) ? (int) $row['store_id'] : null),
             $barcode,
             $postcode,
             // an order without a country on its shipping address counts as Dutch: the portal needs
             // a country to resolve the barcode
-            (string) ($row['country_id'] ?? '') ?: CountryCode::CC_NL,
-            $this->proposition->forStore(isset($row['store_id']) ? (int) $row['store_id'] : null)
-        );
+            (string) ($row['country_id'] ?? '') ?: CountryCode::CC_NL
+        ) ?? '';
     }
 }

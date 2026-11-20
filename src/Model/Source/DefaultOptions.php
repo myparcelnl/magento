@@ -23,10 +23,10 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
@@ -198,21 +198,11 @@ class DefaultOptions
     private function insuranceCapKey(): string
     {
         $shippingAddress = $this->quote->getShippingAddress();
-        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCode::CC_NL;
 
-        if (CountryCode::CC_NL === $shippingCountry) {
-            return InsuranceAmountSetting::LOCAL;
-        }
-
-        if (CountryCode::CC_BE === $shippingCountry) {
-            return InsuranceAmountSetting::BELGIUM;
-        }
-
-        if (CountryCode::isEu($shippingCountry)) {
-            return InsuranceAmountSetting::EU;
-        }
-
-        return InsuranceAmountSetting::ROW;
+        return InsuranceAmountSetting::fieldFor(
+            $shippingAddress ? $shippingAddress->getCountryId() : null,
+            ObjectManager::getInstance()->get(StoredAccount::class)->propositionForStore((int) $this->quote->getStoreId())
+        );
     }
 
     /**

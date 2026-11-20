@@ -36,30 +36,48 @@ class OrderCustomsDeclarationBuilder
         foreach ($order->getItems() as $item) {
             $product = $item->getProduct();
 
-            // The rows a label ships: getQtyToShip() is 0 for a dummy row, such as the child of a
-            // configurable or the parent of a bundle shipped separately.
-            if (! $product || $item->isDummy(true) || $item->getIsVirtual()) {
+            $parent    = $item->getParentItem();
+            $isVariant = $parent && CustomsItems::CONFIGURABLE === $parent->getProductType();
+
+            // The rows a label ships, but a configurable is declared by its variant, which holds the
+            // customs data. Other dummy rows, such as a bundle shipped separately, ship as their items.
+            if (! $product
+                || $item->getIsVirtual()
+                || CustomsItems::CONFIGURABLE === $item->getProductType()
+                || ($item->isDummy(true) && ! $isVariant)
+            ) {
                 continue;
             }
 
+            $productIds     = [(int) $product->getId()];
+            $quantitySource = $item;
+
+            if ($isVariant) {
+                $productIds[] = (int) $parent->getProductId();
+                // Magento ships the parent and never registers qty_shipped on the variant.
+                $quantitySource = $parent;
+            }
+
             $lines[] = [
-                'product' => $product,
+                'product'    => $product,
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
-                'amount'  => max(1, (int) ($item->getQtyShipped() ?: $item->getQtyOrdered())),
-                'price'   => (float) $item->getPrice(),
+                'amount'     => max(1, (int) ($quantitySource->getQtyShipped() ?: $quantitySource->getQtyOrdered())),
+                'price'      => (float) $quantitySource->getPrice(),
+                'productIds' => $productIds,
             ];
         }
 
-        $productIds      = array_map(static fn(array $line): int => (int) $line['product']->getId(), $lines);
-        $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
-        $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
-        $currency        = $order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO;
+        $customsData = $lines
+            ? $this->items->customsDataFor(array_column($lines, 'productIds'), (int) $order->getStoreId())
+            : [];
+        $currency    = $order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO;
 
-        foreach ($lines as $line) {
-            $product   = $line['product'];
-            $productId = (int) $product->getId();
-            $amount    = $line['amount'];
+        foreach ($lines as $index => $line) {
+            $product = $line['product'];
+            $amount  = $line['amount'];
 
+            // Computed once and reused for the declaration total, which is the sum of the line
+            // weights and must agree with them.
             $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
             $totalWeight += $lineWeight;
 
@@ -72,8 +90,8 @@ class OrderCustomsDeclarationBuilder
                         'amount'   => $this->items->lineValueInCents($line['price'], $amount),
                         'currency' => $currency,
                     ])
-                    ->setCountry((string) ($countries[$productId] ?? ''))
-                    ->setClassification($this->items->classification((string) ($classifications[$productId] ?? '')))
+                    ->setCountry($customsData[$index]['country'])
+                    ->setClassification($this->items->classification($customsData[$index]['classification']))
             );
         }
 
