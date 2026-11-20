@@ -237,6 +237,12 @@ class Config extends AbstractHelper
         return $this->getGeneralConfig('print/export_mode');
     }
 
+    /** Whether the checkout uses pickup until the customer chooses a delivery option. */
+    public function isPickupDefault(?int $storeId = null): bool
+    {
+        return '1' === $this->getConfigValue(self::XML_PATH_GENERAL . 'shipping_methods/pickup_default', $storeId);
+    }
+
     /**
      * @param Address|Magento\Quote\Model\Quote\Address\Interceptor|null $address
      * @param int|null                                                   $storeId // for scoping

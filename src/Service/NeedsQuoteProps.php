@@ -20,11 +20,13 @@ use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
  *
  * @property AbstractDeliveryOptionsAdapter $deliveryOptions
+ * @property Config                         $config the class that uses this trait must have it
  */
 trait NeedsQuoteProps
 {
@@ -81,13 +83,40 @@ trait NeedsQuoteProps
                 $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($deliveryOptions, true, 512, JSON_THROW_ON_ERROR));
             } catch (\Throwable $e) {
                 Logger::log('warning', "Failed to retrieve delivery options from quote {$quote->getId()}", (array) $deliveryOptions);
-                $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+                $this->deliveryOptions = $this->getDefaultDeliveryOptions($quote);
             }
         } else {
-            $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+            $this->deliveryOptions = $this->getDefaultDeliveryOptions($quote);
         }
 
         return $this->deliveryOptions;
+    }
+
+    /**
+     * Delivery options to use before the customer chooses.
+     * The SDK adapter needs the pickupLocation key for pickup: without it, it crashes.
+     */
+    private function getDefaultDeliveryOptions(Quote $quote): AbstractDeliveryOptionsAdapter
+    {
+        $storeId = (int) $quote->getStoreId();
+
+        if (! $this->config->isPickupDefault($storeId)) {
+            return new DeliveryOptionsV3Adapter();
+        }
+
+        $carrier = $this->config->getDefaultCarrierName($quote->getShippingAddress(), $storeId);
+
+        if ('1' !== $this->config->getCarrierConfig($carrier, 'pickup/active', $storeId)) {
+            return new DeliveryOptionsV3Adapter();
+        }
+
+        // the carrier selects the pickup fee; the package type only feeds the rate title
+        return new DeliveryOptionsV3Adapter([
+            'carrier'        => $carrier,
+            'deliveryType'   => AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME,
+            'packageType'    => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
+            'pickupLocation' => [],
+        ]);
     }
 
     /**
