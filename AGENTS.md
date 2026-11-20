@@ -4,7 +4,7 @@ The Magento 2 module for MyParcel shipping: labels, delivery options in the chec
 
 ## MyParcel stack
 
-This module is not built on the PDK. The other plugins ([myparcelnl/woocommerce](https://github.com/myparcelnl/woocommerce), [myparcelnl/prestashop](https://github.com/myparcelnl/prestashop)) are thin adapters on top of [myparcelnl/pdk](https://github.com/myparcelnl/pdk) and [myparcelnl/js-pdk](https://github.com/myparcelnl/js-pdk). Their rules, and tools such as `pdk-dev-on`, do not apply here.
+This module is not built on the PDK. The other plugins ([myparcelnl/woocommerce](https://github.com/myparcelnl/woocommerce), [myparcelnl/prestashop](https://github.com/myparcelnl/prestashop)) are thin adapters on top of [myparcelnl/pdk](https://github.com/myparcelnl/pdk) and [myparcelnl/js-pdk](https://github.com/myparcelnl/js-pdk). Their rules, and tools such as `pdk-dev`, do not apply here.
 
 What this module shares with the stack:
 
