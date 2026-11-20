@@ -73,7 +73,6 @@ function packageTypeResolverMock(): PackageTypeResolver
 /** The real Checkout with only the collaborators getDeliveryData() reads; returns the settings of one carrier. */
 function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote, string $carrier = 'postnl'): array
 {
-
     $cartRules = Mockery::mock(CartShippingRules::class);
     foreach (['forcedLimitingOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
               'excludesParcelLockers' => false, 'forcesAgeCheck' => false, 'dropOffDelay' => null] as $method => $answer) {

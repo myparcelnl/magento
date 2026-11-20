@@ -45,24 +45,28 @@ class PackageTypeResolver
 
     /**
      * Get the package types the carrier may ship the cart as: those $allowed allows, narrowed to the
-     * groups the carrier switched on. Abroad the mailbox follows `mailbox/international_active`.
+     * groups the carrier switched on. Abroad the mailbox also needs `mailbox/international_active`,
+     * which the settings only show while `mailbox/active` is on.
      *
      * @param array<string,bool> $allowed package type name => what capabilities and forced options allow
      */
     public function candidates(array $allowed, string $carrierPath, string $country, ?int $storeId): PackageTypeCandidates
     {
+        $mailboxToggles = CountryCodes::CC_NL === $country
+            ? ['mailbox/active']
+            : ['mailbox/active', 'mailbox/international_active'];
+
+        /** @var array<string, string[]> $toggles package type name => config keys that must all be on */
         $toggles = [
-            PackageType::DIGITAL_STAMP_NAME => 'digital_stamp/active',
-            PackageType::MAILBOX_NAME       => CountryCodes::CC_NL === $country ? 'mailbox/active' : 'mailbox/international_active',
-            PackageType::PACKAGE_SMALL_NAME => 'package_small/active',
+            PackageType::DIGITAL_STAMP_NAME => ['digital_stamp/active'],
+            PackageType::MAILBOX_NAME       => $mailboxToggles,
+            PackageType::PACKAGE_SMALL_NAME => ['package_small/active'],
         ];
 
         $candidates = PackageTypeCandidates::none();
 
-        foreach ($toggles as $packageTypeName => $toggle) {
-            if (($allowed[$packageTypeName] ?? false)
-                && '1' === $this->config->getConfigValue($carrierPath . $toggle, $storeId)
-            ) {
+        foreach ($toggles as $packageTypeName => $keys) {
+            if (($allowed[$packageTypeName] ?? false) && $this->allOn($carrierPath, $keys, $storeId)) {
                 $candidates = $candidates->with($packageTypeName);
             }
         }
@@ -135,8 +139,8 @@ class PackageTypeResolver
             return PackageType::DIGITAL_STAMP_NAME;
         }
 
-        if ($candidates->has(PackageType::MAILBOX_NAME)
-            && $this->mailboxAllowedTo($country, $carrierName, $storeId)
+        if ($this->mailboxAllowedTo($country, $carrierName, $storeId)
+            && $candidates->has(PackageType::MAILBOX_NAME)
             && $weight <= $maxMailboxWeight
             && $percentage <= 100
         ) {
@@ -196,10 +200,19 @@ class PackageTypeResolver
         return $this->configuredWeight($settings['weight'] ?? '', self::DEFAULT_MAXIMUM_PACKAGE_SMALL_WEIGHT);
     }
 
-    /**
-     * Get the group when its own `active` is on, not the country or `international_active`.
-     * A group switched off at home thus has a maximum of zero abroad.
-     */
+    /** @param string[] $keys config keys below the carrier path */
+    private function allOn(string $carrierPath, array $keys, ?int $storeId): bool
+    {
+        foreach ($keys as $key) {
+            if ('1' !== $this->config->getConfigValue($carrierPath . $key, $storeId)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Get the group when its own `active` is on. */
     private function groupIfActive(string $path, ?int $storeId): ?array
     {
         $settings = $this->config->getConfigValue($path, $storeId);
@@ -223,6 +236,10 @@ class PackageTypeResolver
         return (float) ((int) $weight ?: $default);
     }
 
+    /**
+     * Asked before the candidates, so an order abroad reads its account even when the mailbox is
+     * already ruled out. That read logs when it fails; skipping it would hide a broken account row.
+     */
     private function mailboxAllowedTo(string $country, string $carrierName, ?int $storeId): bool
     {
         if (CountryCodes::CC_NL === $country) {
