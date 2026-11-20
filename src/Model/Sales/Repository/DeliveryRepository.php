@@ -18,8 +18,14 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
+use Magento\Backend\Model\Auth\Session;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Sales\Model\Order;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Sales\DeliveryInterface;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 
 class DeliveryRepository extends Config implements DeliveryInterface
 {
@@ -27,6 +33,19 @@ class DeliveryRepository extends Config implements DeliveryInterface
      * @var int
      */
     private int $deliveryDateTime;
+
+    private Dating $dating;
+
+    public function __construct(
+        Context               $context,
+        StoreManagerInterface $storeManager,
+        Session               $authSession,
+        ModuleListInterface   $moduleList,
+        Dating                $dating
+    ) {
+        parent::__construct($context, $storeManager, $authSession, $moduleList);
+        $this->dating = $dating;
+    }
 
     /**
      * @return int
@@ -48,13 +67,14 @@ class DeliveryRepository extends Config implements DeliveryInterface
      * Get drop off day with chosen options from checkout
      *
      * @param array $deliveryOptions
+     * @param Order $order
      * @return string
      */
-    public function getDropOffDayFromDeliveryOptions(array $deliveryOptions): ?string
+    public function getDropOffDayFromDeliveryOptions(array $deliveryOptions, Order $order): ?string
     {
         if (array_key_exists('date', $deliveryOptions)) {
             if (! $deliveryOptions['date']) {
-                return date('Y-m-d', strtotime("+1 day"));
+                return $this->dating->tomorrow($order);
             }
 
             $this->setDeliveryDateTime(strtotime($deliveryOptions['date']));
@@ -73,24 +93,15 @@ class DeliveryRepository extends Config implements DeliveryInterface
      */
     public function getDropOffDay()
     {
-        $weekDay = date('N', $this->getDeliveryDateTime());
+        return self::dropOffTimestampFor((int) $this->getDeliveryDateTime());
+    }
 
-        switch ($weekDay) {
-            case (1): // Monday
-                $dropOff = strtotime("-2 day", $this->getDeliveryDateTime());
-                break;
-            case (2):
-            case (3):
-            case (4):
-            case (5): // Friday
-            case (6): // Saturday
-            case (7): // Sunday
-            default:
-                $dropOff = strtotime("-1 day", $this->getDeliveryDateTime());
-                break;
-        }
+    /** Two days before a Monday delivery, else the day before. */
+    public static function dropOffTimestampFor(int $deliveryTimestamp): int
+    {
+        $days = 1 === (int) date('N', $deliveryTimestamp) ? 2 : 1;
 
-        return $dropOff;
+        return (int) strtotime("-{$days} day", $deliveryTimestamp);
     }
 
 

@@ -34,6 +34,17 @@
                 </item>
             </argument>
         </column>
+        <!-- Hidden by default: the actions column shows the error. Here only to filter on. -->
+        <column name="myparcel_export_error">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="visible" xsi:type="boolean">false</item>
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">MyParcel export error</item>
+                    <item name="sortOrder" xsi:type="number">5</item>
+                </item>
+            </argument>
+        </column>
         <column name="track_number" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -47,13 +58,13 @@
                 </item>
             </argument>
         </column>
-        <column name="drop_off_day" class="MyParcelNL\Magento\Ui\Component\Listing\Column\DeliveryDate">
+        <column name="drop_off_day" class="MyParcelNL\Magento\Ui\Component\Listing\Column\DropOffDay">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="visible" xsi:type="boolean">true</item>
                     <item name="filter" xsi:type="string">dateRange</item>
-                    <item name="label" xsi:type="string" translate="true">Delivery date</item>
+                    <item name="label" xsi:type="string" translate="true">Drop-off day</item>
                     <item name="sortOrder" xsi:type="number">7</item>
                     <item name="resizeEnabled" xsi:type="boolean">true</item>
                     <item name="resizeDefaultWidth" xsi:type="string">160</item>
@@ -64,6 +75,7 @@
         <actionsColumn name="track_actions" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackActions">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
+                    <item name="bodyTmpl" xsi:type="string">MyParcelNL_Magento/grid/cells/actions-with-error</item>
                     <item name="label" xsi:type="string" translate="true">Shipment</item>
                     <item name="indexField" xsi:type="string">entity_id</item>
                 </item>
