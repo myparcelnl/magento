@@ -41,7 +41,7 @@ class NewShipment implements ObserverInterface
      *
      * @param MagentoOrderCollection|null $orderCollection
      */
-    public function __construct(MagentoOrderCollection $orderCollection = null)
+    public function __construct(?MagentoOrderCollection $orderCollection = null)
     {
         $this->objectManager   = ObjectManager::getInstance();
         $this->request         = $this->objectManager->get(RequestInterface::class);
