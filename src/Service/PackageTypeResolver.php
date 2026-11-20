@@ -87,8 +87,6 @@ class PackageTypeResolver
     {
         $carrierPath = Config::CARRIERS_XML_PATH_MAP[$carrierName];
 
-        // Read before the loop and whatever the candidates say: the per-item mailbox count divides
-        // by it even when the mailbox was never a candidate.
         $maxMailboxWeight = $this->maxMailboxWeight($carrierPath, $storeId);
 
         $this->attributes->preloadItems($items);
@@ -164,8 +162,9 @@ class PackageTypeResolver
      */
     public function fitsMailboxWeight(array $items, string $carrierPath, ?int $storeId): bool
     {
-        return null !== $this->groupIfActive("{$carrierPath}mailbox", $storeId)
-            && $this->weight->itemsWeight($items) <= $this->maxMailboxWeight($carrierPath, $storeId);
+        $maxMailboxWeight = $this->maxMailboxWeight($carrierPath, $storeId);
+
+        return $maxMailboxWeight > 0.0 && $this->weight->itemsWeight($items) <= $maxMailboxWeight;
     }
 
     /** Zero when the carrier has no mailbox group, or has one that is switched off. */

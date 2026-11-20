@@ -213,11 +213,7 @@ class DynamicSettings extends Template
         return $block instanceof NoteProviderInterface ? $block->getNote() : '';
     }
 
-    /**
-     * Get the note of the field's `note_model` block, or '' when it has none or the block fails.
-     *
-     * A `note_model`, not a `frontend_model`: a frontend model replaces the field's control.
-     */
+    /** Get the note of the field's `note_model` block, or '' when it has none or the block fails. */
     public function getNoteFor(array $field): string
     {
         $noteModel = (string) ($field['note_model'] ?? '');

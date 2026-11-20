@@ -26,7 +26,7 @@ use MyParcelNL\Magento\Service\Tax;
  * The cases read the PackageTypeCandidates that checkPackageType() hands to the resolver. The
  * resolver mock offers every package type the capabilities allow, as if every config toggle is on.
  *
- * @return array{checkout: Checkout, packageTypeResolver: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
+ * @return array{checkout: Checkout, cartRules: CartShippingRules, calls: object}
  */
 function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = []): array
 {
@@ -63,10 +63,9 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     ]);
 
     return [
-        'checkout'            => $checkout,
-        'packageTypeResolver' => $packageTypeResolver,
-        'cartRules'           => $cartRules,
-        'calls'               => $calls,
+        'checkout'  => $checkout,
+        'cartRules' => $cartRules,
+        'calls'     => $calls,
     ];
 }
 
@@ -206,13 +205,12 @@ it('restricts nothing when capabilities could not be reached, even with a forced
  */
 function deliveryDataAllowsOptionsFor(string $carrierName, array $capabilities, array $forced): bool
 {
-    $c            = createCheckoutWith($capabilities, 'NL', $forced);
-    $checkout     = $c['checkout'];
-    $cartRules    = $c['cartRules'];
+    $c         = createCheckoutWith($capabilities, 'NL', $forced);
+    $checkout  = $c['checkout'];
+    $cartRules = $c['cartRules'];
 
     $cartRules->shouldReceive('allowsPriorityDelivery')->andReturn(false)->byDefault();
     $cartRules->shouldReceive('forcesAgeCheck')->andReturn(in_array(ShipmentOption::AGE_CHECK, $forced, true))->byDefault();
-    $cartRules->shouldReceive('excludesParcelLockers')->andReturn(false)->byDefault();
 
     $tax = Mockery::mock(Tax::class);
     $tax->shouldReceive('shippingPrice')->andReturn(0.0)->byDefault();

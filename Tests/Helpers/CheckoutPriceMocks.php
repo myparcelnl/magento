@@ -75,7 +75,7 @@ function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $delive
 {
     $cartRules = Mockery::mock(CartShippingRules::class);
     foreach (['forcedLimitingOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
-              'excludesParcelLockers' => false, 'forcesAgeCheck' => false, 'dropOffDelay' => null] as $method => $answer) {
+              'forcesAgeCheck' => false, 'dropOffDelay' => null] as $method => $answer) {
         $cartRules->shouldReceive($method)->andReturn($answer)->byDefault();
     }
 
