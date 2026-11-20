@@ -262,11 +262,11 @@ function packageTypeConfigMap(array $case): array
 
 /**
  * The product attribute rows a case describes, keyed by product id and prefixed the way the
- * collection stores them.
+ * collection stores them. Ids start at $firstId, so cases that share one ProductAttributes do not collide.
  *
  * @return array<int, array<string, string>>
  */
-function packageTypeProductRows(array $items): array
+function packageTypeProductRows(array $items, int $firstId = 1): array
 {
     $rows = [];
 
@@ -277,7 +277,7 @@ function packageTypeProductRows(array $items): array
             $row['myparcel_' . $column] = $value;
         }
 
-        $rows[$index + 1] = $row;
+        $rows[$firstId + $index] = $row;
     }
 
     return $rows;
@@ -288,12 +288,12 @@ function packageTypeProductRows(array $items): array
  *
  * @return object[]
  */
-function packageTypeQuoteItems(array $items): array
+function packageTypeQuoteItems(array $items, int $firstId = 1): array
 {
     $quoteItems = [];
 
     foreach ($items as $index => $item) {
-        $quoteItems[] = quoteItemFor($index + 1, $item['qty'], $item['weight']);
+        $quoteItems[] = quoteItemFor($firstId + $index, $item['qty'], $item['weight']);
     }
 
     return $quoteItems;
