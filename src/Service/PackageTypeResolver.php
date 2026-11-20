@@ -236,10 +236,6 @@ class PackageTypeResolver
         return (float) ((int) $weight ?: $default);
     }
 
-    /**
-     * Asked before the candidates, so an order abroad reads its account even when the mailbox is
-     * already ruled out. That read logs when it fails; skipping it would hide a broken account row.
-     */
     private function mailboxAllowedTo(string $country, string $carrierName, ?int $storeId): bool
     {
         if (CountryCodes::CC_NL === $country) {
