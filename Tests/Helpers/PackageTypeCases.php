@@ -15,7 +15,7 @@ use MyParcelNL\Magento\Service\Config;
  *   country    - the destination, which decides mailbox and digital stamp eligibility.
  *   carrier    - module carrier name; its config path is derived.
  *   groups     - the carrier's config groups, exactly as Magento stores them. A group read whole and
- *                a child read by path are the same tree, so both drivers resolve both from this.
+ *                a child read by path are the same tree, so the driver resolves both from this.
  *   weightUnit - myparcelnl_magento_general/print/weight_indication.
  *   candidates - what capabilities plus the forced options allow, before config is consulted.
  *   account    - the account's general settings, for postnl mailbox international.
@@ -85,9 +85,12 @@ function packageTypeCases(): array
         ]),
 
         'fit_in_mailbox of 0 derives the count from the weight' => $case([
-            'items'      => [$item(1.0, 1000.0, ['fit_in_mailbox' => '0'])],
+            'items'      => [
+                $item(1.0, 1000.0, ['fit_in_mailbox' => '0']),
+                $item(1.0, 1.0, ['fit_in_mailbox' => '1']),
+            ],
             'candidates' => $mailboxOnly,
-            'expected'   => PackageType::MAILBOX_NAME,
+            'expected'   => PackageType::PACKAGE_NAME,
         ]),
 
         'fit_in_mailbox of 0 on a weightless item leaves the percentage alone' => $case([
@@ -125,8 +128,8 @@ function packageTypeCases(): array
         ]),
 
         'a kilo unit reads the configured mailbox weight as kilos' => $case([
-            'items'      => [$item(1.0, 1.5, ['fit_in_mailbox' => '1'])],
-            'groups'     => ['mailbox' => ['active' => '1', 'weight' => '2']],
+            'items'      => [$item(1.0, 1.2, ['fit_in_mailbox' => '1'])],
+            'groups'     => ['mailbox' => ['active' => '1', 'weight' => '1.5']],
             'weightUnit' => 'kilo',
             'candidates' => $mailboxOnly,
             'expected'   => PackageType::MAILBOX_NAME,
@@ -141,11 +144,19 @@ function packageTypeCases(): array
         ]),
 
         'a kilo unit with no configured weight falls back to two kilos' => $case([
-            'items'      => [$item(1.0, 1.0, ['fit_in_mailbox' => '1'])],
+            'items'      => [$item(1.0, 1.9, ['fit_in_mailbox' => '1'])],
             'groups'     => ['mailbox' => ['active' => '1', 'weight' => '']],
             'weightUnit' => 'kilo',
             'candidates' => $mailboxOnly,
             'expected'   => PackageType::MAILBOX_NAME,
+        ]),
+
+        'a kilo unit with no configured weight refuses a cart above two kilos' => $case([
+            'items'      => [$item(1.0, 2.1, ['fit_in_mailbox' => '1'])],
+            'groups'     => ['mailbox' => ['active' => '1', 'weight' => '']],
+            'weightUnit' => 'kilo',
+            'candidates' => $mailboxOnly,
+            'expected'   => PackageType::PACKAGE_NAME,
         ]),
 
         'a gram unit with no configured weight falls back to two thousand grams' => $case([
@@ -201,7 +212,7 @@ function packageTypeCases(): array
             'expected'   => PackageType::PACKAGE_NAME,
         ]),
 
-        'a weightless cart still fits a digital stamp, because the conversion floors to a kilo' => $case([
+        'a weightless cart fits a digital stamp' => $case([
             'items'    => [$item(1.0, 0.0, ['digital_stamp' => '1', 'fit_in_mailbox' => '-1'])],
             'expected' => PackageType::DIGITAL_STAMP_NAME,
         ]),
@@ -230,6 +241,20 @@ function packageTypeCases(): array
 function packageTypeDataset(): array
 {
     return array_map(static fn(array $case): array => [$case], packageTypeCases());
+}
+
+/**
+ * A case's candidates as PackageTypeResolver::candidates() takes them.
+ *
+ * @return array<string, bool>
+ */
+function packageTypeAllowed(array $case): array
+{
+    return [
+        PackageType::DIGITAL_STAMP_NAME => $case['candidates']['digital_stamp'],
+        PackageType::MAILBOX_NAME       => $case['candidates']['mailbox'],
+        PackageType::PACKAGE_SMALL_NAME => $case['candidates']['package_small'],
+    ];
 }
 
 /** The carrier's config path for a case's carrier name. */

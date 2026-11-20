@@ -72,6 +72,45 @@ class ProductAttributes
     }
 
     /**
+     * Load the products of a list of quote items in one query. Call it before itemValue() per item.
+     *
+     * @param \Magento\Quote\Model\Quote\Item[] $items
+     */
+    public function preloadItems(array $items): void
+    {
+        $productIds = [];
+
+        foreach ($items as $item) {
+            $productId = self::productIdOf($item);
+
+            if (null !== $productId) {
+                $productIds[] = $productId;
+            }
+        }
+
+        $this->preload($productIds);
+    }
+
+    /**
+     * Get `myparcel_<$column>` of a quote item's product as an int, or null when it has no value.
+     * An item whose product was deleted from the catalogue answers null.
+     *
+     * @param \Magento\Quote\Model\Quote\Item $item
+     */
+    public function itemValue($item, string $column): ?int
+    {
+        $productId = self::productIdOf($item);
+
+        if (null === $productId) {
+            return null;
+        }
+
+        $value = $this->getValue($productId, $column);
+
+        return null === $value ? null : (int) $value;
+    }
+
+    /**
      * Load every attribute of the products not loaded yet, in one query. Call it with the whole batch
      * before you read product by product.
      *
@@ -123,5 +162,13 @@ class ProductAttributes
 
             $this->loaded[(int) $product->getId()] = $values;
         }
+    }
+
+    /** @param \Magento\Quote\Model\Quote\Item $item */
+    private static function productIdOf($item): ?int
+    {
+        $catalogProduct = $item->getProduct();
+
+        return $catalogProduct ? (int) $catalogProduct->getId() : null;
     }
 }

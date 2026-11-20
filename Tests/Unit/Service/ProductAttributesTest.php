@@ -72,3 +72,19 @@ it('does not re-query a product the collection never returned', function () {
     expect($loads)->toHaveCount(1)
         ->and($attributes->getValue(7, 'age_check'))->toBeNull();
 });
+
+it('reads an item value as an int, and null for an item whose product is gone', function () {
+    $attributes = productAttributesFor([7 => ['myparcel_fit_in_mailbox' => '3']]);
+
+    expect($attributes->itemValue(quoteItemFor(7), 'fit_in_mailbox'))->toBe(3)
+        ->and($attributes->itemValue(quoteItemFor(7), 'age_check'))->toBeNull()
+        ->and($attributes->itemValue(quoteItemFor(null), 'fit_in_mailbox'))->toBeNull();
+});
+
+it('loads the products of a cart in one query and skips an item whose product is gone', function () {
+    $attributes = productAttributesFor([7 => [], 9 => []], $loads);
+
+    $attributes->preloadItems([quoteItemFor(7), quoteItemFor(null), quoteItemFor(9)]);
+
+    expect($loads)->toBe([[7, 9]]);
+});

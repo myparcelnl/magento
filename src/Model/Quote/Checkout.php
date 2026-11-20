@@ -12,7 +12,6 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
@@ -39,14 +38,13 @@ class Checkout
     private Tax                   $tax;
     private Config                $config;
     private DeliveryCosts         $deliveryCosts;
-    private PackageTypeResolver   $packageTypes;
+    private PackageTypeResolver   $packageTypeResolver;
     private CartShippingRules     $cartRules;
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
     private CapabilitiesLookup    $capabilityLookup;
 
-    /** The quote's store. Every config read this class delegates carries it, rather than relying on
-     *  the ambient store of the request. */
+    /** The quote's store, passed to every store-scoped config read this class delegates. */
     private int $storeId;
 
     /** @var string[]|null the carriers with delivery or pickup on; getDeliveryOptions() asks more than once */
@@ -58,7 +56,7 @@ class Checkout
      * @param Tax                   $tax
      * @param Config                $config
      * @param DeliveryCosts         $deliveryCosts
-     * @param PackageTypeResolver   $packageTypes
+     * @param PackageTypeResolver   $packageTypeResolver
      * @param CartShippingRules     $cartRules
      * @param StoreManagerInterface $storeManager
      * @param CapabilitiesLookup    $capabilityLookup
@@ -67,22 +65,22 @@ class Checkout
         Tax                   $tax,
         Config                $config,
         DeliveryCosts         $deliveryCosts,
-        PackageTypeResolver   $packageTypes,
+        PackageTypeResolver   $packageTypeResolver,
         CartShippingRules     $cartRules,
         StoreManagerInterface $storeManager,
         CapabilitiesLookup    $capabilityLookup
     )
     {
-        $this->tax              = $tax;
-        $this->config           = $config;
-        $this->deliveryCosts    = $deliveryCosts;
-        $this->packageTypes     = $packageTypes;
-        $this->cartRules        = $cartRules;
-        $this->storeManager     = $storeManager;
-        $this->capabilityLookup = $capabilityLookup;
-        $this->quote            = $this->getQuoteFromCurrentSession();
-        // Cast kept: a quote with no store id resolves as store 0, which is not the same as null.
-        $this->storeId          = (int) $this->quote->getStoreId();
+        $this->tax                 = $tax;
+        $this->config              = $config;
+        $this->deliveryCosts       = $deliveryCosts;
+        $this->packageTypeResolver = $packageTypeResolver;
+        $this->cartRules           = $cartRules;
+        $this->storeManager        = $storeManager;
+        $this->capabilityLookup    = $capabilityLookup;
+        $this->quote               = $this->getQuoteFromCurrentSession();
+        // A quote without a store id resolves as store 0, which is not the same as null.
+        $this->storeId             = (int) $this->quote->getStoreId();
     }
 
     /**
@@ -269,9 +267,7 @@ class Checkout
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === PackageType::MAILBOX_NAME) {
-                $allowDeliveryOptions = $this->config->getBoolConfig($carrierPath, 'mailbox/active')
-                                        && $this->packageTypes->maxMailboxWeight($carrierPath, $this->storeId)
-                                           >= $this->packageTypes->cartWeight($items);
+                $allowDeliveryOptions = $this->packageTypeResolver->fitsMailboxWeight($items, $carrierPath, $this->storeId);
             }
 
             $myParcelConfig['carrierSettings'][$carrierName] = [
@@ -283,7 +279,7 @@ class Checkout
                 'allowPriorityDelivery' => $canHavePriorityDelivery && $this->cartRules->allowsPriorityDelivery($items, $carrierPath, $this->storeId),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
-                'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath),
+                'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $hidesForProduct),
                 'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 // @TODO INT-1464: no admin field switches it on and the export has no same day time check.
                 'allowSameDayDelivery'  => false,
@@ -473,31 +469,18 @@ class Checkout
         // there is none to narrow by yet.
         $capabilities = $this->getCapabilities($country);
 
-        $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrierName];
-        $products            = $this->quote->getAllItems();
-        $forced              = $this->cartRules->forcedLimitingOptions($products, $carrierPath, $this->storeId);
-        $canHaveDigitalStamp = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::DIGITAL_STAMP_NAME, $forced);
-        $canHaveMailbox      = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::MAILBOX_NAME, $forced);
-        $canHavePackageSmall = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::PACKAGE_SMALL_NAME, $forced);
+        $carrierPath = Config::CARRIERS_XML_PATH_MAP[$carrierName];
+        $products    = $this->quote->getAllItems();
+        $forced      = $this->cartRules->forcedLimitingOptions($products, $carrierPath, $this->storeId);
+        $allowed     = [];
 
-        // Abroad the international toggle makes the mailbox a candidate. A group switched off at
-        // home keeps a maximum weight of 0, so then only a cart without weight fits. && short-circuits
-        // per entry, so a config key is not read once the capability has already said no.
-        $mailboxActiveKey = CountryCodes::CC_NL === $country ? 'mailbox/active' : 'mailbox/international_active';
-
-        $candidates = PackageTypeCandidates::none();
-
-        foreach ([
-            PackageType::DIGITAL_STAMP_NAME => $canHaveDigitalStamp && $this->config->getBoolConfig($carrierPath, 'digital_stamp/active'),
-            PackageType::MAILBOX_NAME       => $canHaveMailbox && $this->config->getBoolConfig($carrierPath, $mailboxActiveKey),
-            PackageType::PACKAGE_SMALL_NAME => $canHavePackageSmall && $this->config->getBoolConfig($carrierPath, 'package_small/active'),
-        ] as $packageTypeName => $isCandidate) {
-            if ($isCandidate) {
-                $candidates = $candidates->with($packageTypeName);
-            }
+        foreach ([PackageType::DIGITAL_STAMP_NAME, PackageType::MAILBOX_NAME, PackageType::PACKAGE_SMALL_NAME] as $packageTypeName) {
+            $allowed[$packageTypeName] = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, $packageTypeName, $forced);
         }
 
-        return $this->packageTypes->resolve($products, $carrierName, $country, $candidates, $this->storeId);
+        $candidates = $this->packageTypeResolver->candidates($allowed, $carrierPath, $country, $this->storeId);
+
+        return $this->packageTypeResolver->resolve($products, $carrierName, $country, $candidates, $this->storeId);
     }
 
     /**
@@ -588,9 +571,9 @@ class Checkout
     }
 
     /** Whether the settings allow pickup; which package types can go to a pickup point is for capabilities. */
-    private function isPickupAllowed(string $carrier): bool
+    private function isPickupAllowed(string $carrier, bool $hidesForProduct): bool
     {
-        return ! $this->cartRules->hidesDeliveryOptions($this->quote->getAllItems())
+        return ! $hidesForProduct
                && $this->config->getBoolConfig($carrier, 'pickup/active');
     }
 

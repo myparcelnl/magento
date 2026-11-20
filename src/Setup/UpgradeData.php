@@ -32,9 +32,9 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
 use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
+use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
-use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication;
 

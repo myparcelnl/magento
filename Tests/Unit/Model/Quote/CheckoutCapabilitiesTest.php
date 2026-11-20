@@ -23,9 +23,10 @@ use MyParcelNL\Magento\Service\Tax;
  * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
  * order, which never reaches a narrowed lookup.
  *
- * The cases read the PackageTypeCandidates that checkPackageType() hands to the resolver.
+ * The cases read the PackageTypeCandidates that checkPackageType() hands to the resolver. The
+ * resolver mock offers every package type the capabilities allow, as if every config toggle is on.
  *
- * @return array{checkout: Checkout, packageTypes: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
+ * @return array{checkout: Checkout, packageTypeResolver: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
  */
 function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = []): array
 {
@@ -33,8 +34,8 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         public ?PackageTypeCandidates $candidates = null;
     };
 
-    $packageTypes = Mockery::mock(PackageTypeResolver::class);
-    $packageTypes->shouldReceive('resolve')->andReturnUsing(
+    $packageTypeResolver = packageTypeResolverMock();
+    $packageTypeResolver->shouldReceive('resolve')->andReturnUsing(
         static function (array $items, string $carrierName, string $country, PackageTypeCandidates $candidates) use ($calls): string {
             $calls->candidates = $candidates;
 
@@ -53,19 +54,19 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     $quote->shouldReceive('getStoreId')->andReturn(1)->byDefault();
 
     $checkout = checkoutWith([
-        'packageTypes'     => $packageTypes,
-        'cartRules'        => $cartRules,
-        'config'           => $config,
-        'quote'            => $quote,
-        'storeId'          => 1,
-        'capabilityLookup' => capabilityLookupWith($capabilities, $country),
+        'packageTypeResolver' => $packageTypeResolver,
+        'cartRules'           => $cartRules,
+        'config'              => $config,
+        'quote'               => $quote,
+        'storeId'             => 1,
+        'capabilityLookup'    => capabilityLookupWith($capabilities, $country),
     ]);
 
     return [
-        'checkout'     => $checkout,
-        'packageTypes' => $packageTypes,
-        'cartRules'    => $cartRules,
-        'calls'        => $calls,
+        'checkout'            => $checkout,
+        'packageTypeResolver' => $packageTypeResolver,
+        'cartRules'           => $cartRules,
+        'calls'               => $calls,
     ];
 }
 
@@ -213,11 +214,8 @@ function carrierSettingsFor(
 {
     $c            = createCheckoutWith($capabilities, 'NL', $forced);
     $checkout     = $c['checkout'];
-    $packageTypes = $c['packageTypes'];
     $cartRules    = $c['cartRules'];
 
-    $packageTypes->shouldReceive('maxMailboxWeight')->andReturn(2000.0)->byDefault();
-    $packageTypes->shouldReceive('cartWeight')->andReturn(100.0)->byDefault();
     $cartRules->shouldReceive('allowsPriorityDelivery')->andReturn(false)->byDefault();
     $cartRules->shouldReceive('forcesAgeCheck')->andReturn(in_array(ShipmentOption::AGE_CHECK, $forced, true))->byDefault();
     $cartRules->shouldReceive('excludesParcelLockers')->andReturn(false)->byDefault();

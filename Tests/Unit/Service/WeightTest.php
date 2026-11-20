@@ -141,3 +141,12 @@ it('returns 0 for package types that have no empty weight configured', function 
         ->and($weight->getEmptyPackageWeightInGrams(PackageType::ENVELOPE))->toBe(0)
         ->and($weight->getEmptyPackageWeightInGrams(PackageType::PACKAGE))->toBe(200);
 });
+
+it('sums the items weight in the merchant unit without reading any setting', function () {
+    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
+    $config->shouldNotReceive('getConfigValue', 'getGeneralConfig');
+
+    $items = [quoteItemFor(1, 2.0, 1.5), quoteItemFor(2, 0.0, 99.0), quoteItemFor(3, 1.0, 0.0)];
+
+    expect((new Weight($config))->itemsWeight($items))->toBe(3.0);
+});

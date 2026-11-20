@@ -12,22 +12,21 @@ use MyParcelNL\Sdk\Services\CountryCodes;
 /**
  * Resolves the package type one cart ships as with one carrier.
  *
- * resolve() takes a carrier **name**, because the PostNL international check needs it; the
- * max*Weight() methods take a carrier config path, as CartShippingRules does. Stateless, so one
- * instance serves every carrier in a checkout without one carrier's weights leaking into the next.
+ * resolve() takes a carrier **name**, because the PostNL international check needs it; the other
+ * methods take a carrier config path, as CartShippingRules does. Holds no state of its own, so one
+ * instance serves every carrier in a checkout.
  */
 class PackageTypeResolver
 {
-    use ReadsProductAttributes;
-
-    public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
-    public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
-    public const MAXIMUM_PACKAGE_SMALL_WEIGHT   = 2000;
+    private const DEFAULT_MAXIMUM_MAILBOX_WEIGHT       = 2000;
+    private const MAXIMUM_DIGITAL_STAMP_WEIGHT         = 2000;
+    private const DEFAULT_MAXIMUM_PACKAGE_SMALL_WEIGHT = 2000;
 
     /** Below this a configured kilo weight counts as unset. */
     private const KILO_EPSILON = 0.00001;
 
     private Config                     $config;
+    private ProductAttributes          $attributes;
     private Weight                     $weight;
     private PostnlMailboxInternational $postnlMailboxInternational;
 
@@ -42,6 +41,33 @@ class PackageTypeResolver
         $this->attributes                 = $attributes;
         $this->weight                     = $weight;
         $this->postnlMailboxInternational = $postnlMailboxInternational;
+    }
+
+    /**
+     * Get the package types the carrier may ship the cart as: those $allowed allows, narrowed to the
+     * groups the carrier switched on. Abroad the mailbox follows `mailbox/international_active`.
+     *
+     * @param array<string,bool> $allowed package type name => what capabilities and forced options allow
+     */
+    public function candidates(array $allowed, string $carrierPath, string $country, ?int $storeId): PackageTypeCandidates
+    {
+        $toggles = [
+            PackageType::DIGITAL_STAMP_NAME => 'digital_stamp/active',
+            PackageType::MAILBOX_NAME       => CountryCodes::CC_NL === $country ? 'mailbox/active' : 'mailbox/international_active',
+            PackageType::PACKAGE_SMALL_NAME => 'package_small/active',
+        ];
+
+        $candidates = PackageTypeCandidates::none();
+
+        foreach ($toggles as $packageTypeName => $toggle) {
+            if (($allowed[$packageTypeName] ?? false)
+                && '1' === $this->config->getConfigValue($carrierPath . $toggle, $storeId)
+            ) {
+                $candidates = $candidates->with($packageTypeName);
+            }
+        }
+
+        return $candidates;
     }
 
     /**
@@ -61,9 +87,9 @@ class PackageTypeResolver
         // by it even when the mailbox was never a candidate.
         $maxMailboxWeight = $this->maxMailboxWeight($carrierPath, $storeId);
 
-        $this->preloadAttributes($items);
+        $this->attributes->preloadItems($items);
 
-        $weight       = $this->cartWeight($items);
+        $weight       = $this->weight->itemsWeight($items);
         $percentage   = 0.0;
         $digitalStamp = true;
 
@@ -75,7 +101,7 @@ class PackageTypeResolver
                 continue;
             }
 
-            if ($digitalStamp && ! $this->attributeOf($item, 'digital_stamp')) {
+            if ($digitalStamp && ! $this->attributes->itemValue($item, 'digital_stamp')) {
                 $digitalStamp = false;
             }
 
@@ -85,7 +111,7 @@ class PackageTypeResolver
 
             // No row means 0, so the weight decides. A product gets the -1 default only when it is
             // saved in the admin.
-            $mailboxQty = $this->attributeOf($item, 'fit_in_mailbox') ?? 0;
+            $mailboxQty = $this->attributes->itemValue($item, 'fit_in_mailbox') ?? 0;
 
             if (-1 === $mailboxQty) {
                 $percentage = 101;
@@ -109,8 +135,8 @@ class PackageTypeResolver
             return PackageType::DIGITAL_STAMP_NAME;
         }
 
-        if ($this->mailboxAllowedTo($country, $carrierName, $storeId)
-            && $candidates->has(PackageType::MAILBOX_NAME)
+        if ($candidates->has(PackageType::MAILBOX_NAME)
+            && $this->mailboxAllowedTo($country, $carrierName, $storeId)
             && $weight <= $maxMailboxWeight
             && $percentage <= 100
         ) {
@@ -127,30 +153,19 @@ class PackageTypeResolver
     }
 
     /**
-     * Get the cart's weight in the merchant's own unit, the unit of the mailbox and package small maximums.
+     * Check that the cart is not heavier than the carrier's mailbox maximum. False when the carrier
+     * has no mailbox group, or has one that is switched off.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
-    public function cartWeight(array $items): float
+    public function fitsMailboxWeight(array $items, string $carrierPath, ?int $storeId): bool
     {
-        $weight = 0.0;
-
-        foreach ($items as $item) {
-            $itemQty    = (float) $item->getQty();
-            $itemWeight = (float) $item->getWeight();
-
-            if ($itemQty < 1 || $itemWeight <= 0) {
-                continue;
-            }
-
-            $weight += $itemWeight * $itemQty;
-        }
-
-        return $weight;
+        return null !== $this->groupIfActive("{$carrierPath}mailbox", $storeId)
+            && $this->weight->itemsWeight($items) <= $this->maxMailboxWeight($carrierPath, $storeId);
     }
 
     /** Zero when the carrier has no mailbox group, or has one that is switched off. */
-    public function maxMailboxWeight(string $carrierPath, ?int $storeId): float
+    private function maxMailboxWeight(string $carrierPath, ?int $storeId): float
     {
         $settings = $this->groupIfActive("{$carrierPath}mailbox", $storeId);
 
@@ -158,11 +173,11 @@ class PackageTypeResolver
             return 0.0;
         }
 
-        return $this->configuredWeight($settings['weight'] ?? '', self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT, $storeId);
+        return $this->configuredWeight($settings['weight'] ?? '', self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
     }
 
     /** Zero when the carrier has no digital stamp group, or has one that is switched off. */
-    public function maxDigitalStampWeight(string $carrierPath, ?int $storeId): float
+    private function maxDigitalStampWeight(string $carrierPath, ?int $storeId): float
     {
         return null === $this->groupIfActive("{$carrierPath}digital_stamp", $storeId)
             ? 0.0
@@ -170,7 +185,7 @@ class PackageTypeResolver
     }
 
     /** Zero when the carrier has no package small group, or has one that is switched off. */
-    public function maxPackageSmallWeight(string $carrierPath, ?int $storeId): float
+    private function maxPackageSmallWeight(string $carrierPath, ?int $storeId): float
     {
         $settings = $this->groupIfActive("{$carrierPath}package_small", $storeId);
 
@@ -178,7 +193,7 @@ class PackageTypeResolver
             return 0.0;
         }
 
-        return $this->configuredWeight($settings['weight'] ?? '', self::MAXIMUM_PACKAGE_SMALL_WEIGHT, $storeId);
+        return $this->configuredWeight($settings['weight'] ?? '', self::DEFAULT_MAXIMUM_PACKAGE_SMALL_WEIGHT);
     }
 
     /**
@@ -196,22 +211,18 @@ class PackageTypeResolver
         return $settings;
     }
 
-    private function configuredWeight($configured, int $default, ?int $storeId): float
+    /** @param mixed $configured the group's `weight` value, in the merchant's own unit */
+    private function configuredWeight($configured, int $default): float
     {
         $weight = abs((float) str_replace(',', '.', (string) $configured));
 
-        if ('kilo' === $this->config->getGeneralConfig('print/weight_indication', $storeId)) {
+        if ($this->weight->unitIsKilo()) {
             return $weight < self::KILO_EPSILON ? $default / 1000.0 : $weight;
         }
 
         return (float) ((int) $weight ?: $default);
     }
 
-    /**
-     * Asked before the candidates are consulted, so a PostNL order abroad still resolves its account
-     * even when the mailbox was already ruled out. That read logs when it fails, and losing the log
-     * would hide a broken account settings row.
-     */
     private function mailboxAllowedTo(string $country, string $carrierName, ?int $storeId): bool
     {
         if (CountryCodes::CC_NL === $country) {

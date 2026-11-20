@@ -10,15 +10,13 @@ use Throwable;
 /**
  * Tells what a cart's own items say about how it may ship: forced options, delivery options, drop-off delay.
  *
- * Methods that read config take a carrier **path**, not a name. With no active carrier, checkout
- * passes the PostNL path, so the path can belong to no carrier. Do not harmonise this with
- * PackageTypeResolver, which takes a name. Stateless: it remembers nothing between calls.
+ * Methods that read config take a carrier config path. With no active carrier, checkout passes the
+ * PostNL path, so the path can belong to a carrier that is switched off. Holds no state of its own.
  */
 class CartShippingRules
 {
-    use ReadsProductAttributes;
-
-    private Config $config;
+    private Config            $config;
+    private ProductAttributes $attributes;
 
     public function __construct(Config $config, ProductAttributes $attributes)
     {
@@ -50,24 +48,24 @@ class CartShippingRules
     }
 
     /**
-     * Parcel lockers are excluded by the general setting, by a product that says so, or by 18+ goods.
+     * Parcel lockers are excluded by the general setting, by a product that says so, or by a forced
+     * age check (on a product or in the carrier's default options).
      *
-     * Anything that goes wrong answers "do not exclude": this decides whether a delivery method is
-     * offered, and failing closed would hide pickup locations over a config read.
+     * Anything that goes wrong answers "do not exclude", so a failed read never hides pickup locations.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
     public function excludesParcelLockers(array $items, string $carrierPath, ?int $storeId = null): bool
     {
         try {
-            $this->preloadAttributes($items);
+            $this->attributes->preloadItems($items);
 
             if ((bool) $this->config->getGeneralConfig('shipping_methods/exclude_parcel_lockers', $storeId)) {
                 return true;
             }
 
             foreach ($items as $item) {
-                if ((bool) $this->attributeOf($item, 'exclude_parcel_lockers')) {
+                if ((bool) $this->attributes->itemValue($item, 'exclude_parcel_lockers')) {
                     return true;
                 }
             }
@@ -87,10 +85,10 @@ class CartShippingRules
             return true;
         }
 
-        $this->preloadAttributes($items);
+        $this->attributes->preloadItems($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributeOf($item, 'priority_delivery')) {
+            if ((bool) $this->attributes->itemValue($item, 'priority_delivery')) {
                 return true;
             }
         }
@@ -105,10 +103,10 @@ class CartShippingRules
      */
     public function hidesDeliveryOptions(array $items): bool
     {
-        $this->preloadAttributes($items);
+        $this->attributes->preloadItems($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributeOf($item, 'disable_checkout')) {
+            if ((bool) $this->attributes->itemValue($item, 'disable_checkout')) {
                 return true;
             }
         }
@@ -123,12 +121,12 @@ class CartShippingRules
      */
     public function dropOffDelay(array $items): ?int
     {
-        $this->preloadAttributes($items);
+        $this->attributes->preloadItems($items);
 
         $highest = null;
 
         foreach ($items as $item) {
-            $delay = $this->attributeOf($item, 'dropoff_delay');
+            $delay = $this->attributes->itemValue($item, 'dropoff_delay');
 
             if ($delay > $highest) {
                 $highest = $delay;
@@ -146,10 +144,10 @@ class CartShippingRules
      */
     private function optionForcedOn(array $items, string $carrierPath, string $option, ?int $storeId): bool
     {
-        $this->preloadAttributes($items);
+        $this->attributes->preloadItems($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributeOf($item, $option)) {
+            if ((bool) $this->attributes->itemValue($item, $option)) {
                 return true;
             }
         }

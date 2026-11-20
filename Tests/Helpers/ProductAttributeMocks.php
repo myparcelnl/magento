@@ -52,9 +52,7 @@ function productCollectionFor(array $rows, ?array &$loads = null): ProductCollec
 }
 
 /**
- * The module's product attributes are read through the product collection, never the EAV value
- * tables: Commerce keys those on row_id and holds one row per scheduled update, so a hand-built
- * query answers the wrong version or nothing at all.
+ * A ProductAttributes that answers the given rows through a mocked product collection.
  *
  * @param array<int,array<string,string|null>> $rows product id => attribute code => value
  */
@@ -69,7 +67,7 @@ function productAttributesFor(array $rows, ?array &$loads = null): ProductAttrib
 }
 
 /**
- * A quote item that carries one catalogue product id: the minimum a cart service reads off an item.
+ * A quote item with a catalogue product id, a qty and a weight: what a cart service reads off it.
  * Pass null for an item whose product was deleted, which a cart service must survive.
  */
 function quoteItemFor(?int $productId = 1, float $qty = 1.0, float $weight = 0.0): object

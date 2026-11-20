@@ -56,7 +56,7 @@ Magento order -> builder (src/Service/Export/) -> SDK v11 Shipment or Fulfilment
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
-- **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`) decides the package type (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, and from what the products in the cart allow. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
+- **Package type** (`src/Service/PackageTypeResolver.php`) decides the package type (digital stamp, mailbox, package small) from weight, carrier config and the products in the cart. `Model\Quote\Checkout` first rules out what capabilities and forced options do not allow. `src/Service/CartShippingRules.php` answers what the cart's products force or forbid. Both services hold no state of their own; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
 - **Insurance** is a range per carrier from the account's contract definitions (`ContractDefinitions::insuranceRangeFor()`, `Model\Shipment\Capabilities\InsuranceRange`). `Service\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API (`src/Model/Rest/`)
@@ -91,6 +91,7 @@ These rules are specific to this module. A reviewer can not read them from the c
 - About twenty older classes still call `ObjectManager::getInstance()`. That is known debt. Do not copy it, and do not report it in a review of a change that does not touch it.
 - An around plugin needs a docblock that says why a before or after plugin is not enough. `ProblemDetailsError` is an example: it skips `$proceed()` so that Magento does not render the exception.
 - Setup scripts check that a table or column exists before they change it (`isTableExists()`, `tableColumnExists()`). Data migrations go in `src/Setup/Migrations/`.
+- `print/weight_indication` (the weight unit) exists at default scope only: product `weight` is a global attribute, so one unit applies to every store. `WeightUnitNote` warns when an installation makes `weight` scoped.
 - Every external host that the frontend loads needs an entry in `etc/csp_whitelist.xml`.
 - User-facing strings use `__()`, with a translation in every locale file in `i18n/`. `en_US.csv` is the exception: it holds only the English texts that differ from the source string.
 

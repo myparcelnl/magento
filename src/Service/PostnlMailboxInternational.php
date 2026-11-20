@@ -7,14 +7,9 @@ namespace MyParcelNL\Magento\Service;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 
 /**
- * Whether the account behind a store may send a mailbox parcel outside its own country.
- *
- * It is neither configuration nor a capability: it is a flag on the account's general settings, and
- * the package type decision is the only thing that reads it. Kept behind its own service so the
- * resolver can be tested without a stored settings row.
- *
- * A store with no usable account answers false, which is what the decision assumed before this
- * class existed.
+ * Whether the account behind a store may send a PostNL mailbox parcel abroad: a flag on the
+ * account's general settings, not a config value or a capability. A store without a usable account
+ * answers false.
  */
 class PostnlMailboxInternational
 {

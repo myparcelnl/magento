@@ -7,14 +7,10 @@ namespace MyParcelNL\Magento\Model\Shipment;
 use InvalidArgumentException;
 
 /**
- * The package types one carrier may still ship a given cart as, after capabilities and the options
- * the order forces have both had their say.
+ * The package types one carrier may still ship a cart as, after the capabilities, the forced
+ * options and the carrier's config toggles. Immutable, and without weights.
  *
- * Immutable, and it holds no weights: a candidate's weight is per-carrier configuration, read at a
- * different moment and needed outside this decision as well.
- *
- * PACKAGE_NAME is rejected rather than accepted. It is the fallback every cart falls back to, never
- * something capabilities rules in, and letting it be added would make "no candidates" ambiguous.
+ * PACKAGE_NAME is refused: it is the fallback for every cart, never a candidate.
  */
 final class PackageTypeCandidates
 {
@@ -38,21 +34,11 @@ final class PackageTypeCandidates
             throw new InvalidArgumentException('package is the fallback, never a candidate');
         }
 
-        if (in_array($packageTypeName, $this->names, true)) {
-            return $this;
-        }
-
         return new self(array_merge($this->names, [$packageTypeName]));
     }
 
     public function has(string $packageTypeName): bool
     {
         return in_array($packageTypeName, $this->names, true);
-    }
-
-    /** @return string[] */
-    public function names(): array
-    {
-        return $this->names;
     }
 }

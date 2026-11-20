@@ -2,24 +2,25 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\PostnlMailboxInternational;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
- * Asserts that the store reaches every config read, rather than Magento's own scope fallback.
+ * A resolver whose config answers per store, so a read with the wrong store id finds other groups.
  *
- * Its predecessor had to be told the store once, up front, and every later read depended on that
- * having happened first. Here the store is an argument, so there is no order left to get wrong.
+ * @param array<int|string, array<string, array<string, string>>> $groupsByStore store id => PostNL group => children
  */
-function createScopedResolver(array $configByStore): PackageTypeResolver
+function createScopedResolver(array $groupsByStore): PackageTypeResolver
 {
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getConfigValue')
-           ->andReturnUsing(static fn(string $path, $storeId = null) => $configByStore[$storeId][$path] ?? null);
-    $config->shouldReceive('getGeneralConfig')
-           ->andReturnUsing(static fn(string $code = '', $storeId = null) => $configByStore[$storeId][Config::XML_PATH_GENERAL . $code] ?? null);
+    $mapByStore = array_map(
+        static fn(array $groups): array => packageTypeConfigMap(['carrier' => 'postnl', 'groups' => $groups, 'weightUnit' => 'gram']),
+        $groupsByStore
+    );
+    $config = configAnswering(static fn(string $path, ?int $storeId) => $mapByStore[$storeId ?? ''][$path] ?? null);
 
     return new PackageTypeResolver(
         $config,
@@ -29,40 +30,53 @@ function createScopedResolver(array $configByStore): PackageTypeResolver
     );
 }
 
-const SCOPED_POSTNL_PATH = 'myparcelnl_magento_postnl_settings/';
+$everything = [
+    PackageType::DIGITAL_STAMP_NAME => true,
+    PackageType::MAILBOX_NAME       => true,
+    PackageType::PACKAGE_SMALL_NAME => true,
+];
 
-$mailboxOn  = [SCOPED_POSTNL_PATH . 'mailbox' => ['active' => '1', 'weight' => '1500']];
-$mailboxOff = [SCOPED_POSTNL_PATH . 'mailbox' => ['active' => '0']];
-
-it('scopes digital stamp settings to the same store', function () {
+it('reads the carrier toggles of the store it is asked about', function () use ($everything) {
     $resolver = createScopedResolver([
-        1 => [SCOPED_POSTNL_PATH . 'digital_stamp' => ['active' => '0']],
-        2 => [SCOPED_POSTNL_PATH . 'digital_stamp' => ['active' => '1']],
+        1 => ['digital_stamp' => ['active' => '0'], 'package_small' => ['active' => '0']],
+        2 => ['digital_stamp' => ['active' => '1'], 'package_small' => ['active' => '1']],
     ]);
 
-    expect($resolver->maxDigitalStampWeight(SCOPED_POSTNL_PATH, 2))->toBe(2000.0)
-        ->and($resolver->maxDigitalStampWeight(SCOPED_POSTNL_PATH, 1))->toBe(0.0);
+    $inStore2 = $resolver->candidates($everything, Config::XML_PATH_POSTNL_SETTINGS, 'NL', 2);
+    $inStore1 = $resolver->candidates($everything, Config::XML_PATH_POSTNL_SETTINGS, 'NL', 1);
+
+    expect($inStore2->has(PackageType::DIGITAL_STAMP_NAME))->toBeTrue()
+        ->and($inStore2->has(PackageType::PACKAGE_SMALL_NAME))->toBeTrue()
+        ->and($inStore1->has(PackageType::DIGITAL_STAMP_NAME))->toBeFalse()
+        ->and($inStore1->has(PackageType::PACKAGE_SMALL_NAME))->toBeFalse();
 });
 
-it('scopes package small settings to the same store', function () {
+it('reads the mailbox group per store, and keeps no maximum from the store before', function () {
     $resolver = createScopedResolver([
-        1 => [SCOPED_POSTNL_PATH . 'package_small' => ['active' => '0']],
-        2 => [SCOPED_POSTNL_PATH . 'package_small' => ['active' => '1', 'weight' => '800']],
+        1 => ['mailbox' => ['active' => '0']],
+        2 => ['mailbox' => ['active' => '1', 'weight' => '1500']],
     ]);
+    $cart     = [quoteItemFor(1, 1.0, 1000.0)];
 
-    expect($resolver->maxPackageSmallWeight(SCOPED_POSTNL_PATH, 2))->toBe(800.0)
-        ->and($resolver->maxPackageSmallWeight(SCOPED_POSTNL_PATH, 1))->toBe(0.0);
+    expect($resolver->fitsMailboxWeight($cart, Config::XML_PATH_POSTNL_SETTINGS, 2))->toBeTrue()
+        ->and($resolver->fitsMailboxWeight($cart, Config::XML_PATH_POSTNL_SETTINGS, 1))->toBeFalse()
+        ->and($resolver->fitsMailboxWeight($cart, Config::XML_PATH_POSTNL_SETTINGS, 2))->toBeTrue();
 });
 
-it('passes null through when no store was named, preserving ambient resolution', function () use ($mailboxOn) {
-    $resolver = createScopedResolver([null => $mailboxOn]);
+it('reads the package small maximum of the store it is asked about', function () {
+    $resolver   = createScopedResolver([
+        1 => ['package_small' => ['active' => '1', 'weight' => '500']],
+        2 => ['package_small' => ['active' => '1', 'weight' => '800']],
+    ]);
+    $candidates = PackageTypeCandidates::none()->with(PackageType::PACKAGE_SMALL_NAME);
+    $cart       = [quoteItemFor(1, 1.0, 700.0)];
 
-    expect($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, null))->toBe(1500.0);
+    expect($resolver->resolve($cart, 'postnl', 'NL', $candidates, 2))->toBe(PackageType::PACKAGE_SMALL_NAME)
+        ->and($resolver->resolve($cart, 'postnl', 'NL', $candidates, 1))->toBe(PackageType::PACKAGE_NAME);
 });
 
-it('reads mailbox settings per store, and keeps no maximum from the store before', function () use ($mailboxOn, $mailboxOff) {
-    $resolver = createScopedResolver([1 => $mailboxOff, 2 => $mailboxOn]);
+it('passes null through when no store was named, so Magento resolves the store', function () {
+    $resolver = createScopedResolver(['' => ['mailbox' => ['active' => '1', 'weight' => '1500']]]);
 
-    expect($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, 2))->toBe(1500.0)
-        ->and($resolver->maxMailboxWeight(SCOPED_POSTNL_PATH, 1))->toBe(0.0);
+    expect($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 1000.0)], Config::XML_PATH_POSTNL_SETTINGS, null))->toBeTrue();
 });

@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Service\Config;
 use Psr\Log\LoggerInterface;
 
 /**
- * Collapses print/weight_indication to a single default-scope row, because `weight` is global.
+ * Collapses print/weight_indication to at most one default-scope row, because `weight` is global.
  *
  * A unit that every store view reads is promoted to default before the scoped rows go: a wrong unit
  * is a factor of 1000. When the store views disagree, the rows are logged before they go.
