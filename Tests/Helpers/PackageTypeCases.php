@@ -194,19 +194,19 @@ function packageTypeCases(): array
             'expected'   => PackageType::PACKAGE_NAME,
         ]),
 
-        'a mailbox off at home but on abroad keeps a maximum weight of zero' => $case([
-            'items'      => [$item(1.0, 0.0, ['fit_in_mailbox' => '0'])],
+        'a mailbox off at home is off abroad, whatever the international toggle says' => $case([
+            'items'      => [$item(1.0, 0.0, ['fit_in_mailbox' => '1'])],
             'country'    => 'DE',
             'groups'     => ['mailbox' => ['active' => '0', 'international_active' => '1', 'weight' => '2000']],
             'candidates' => $mailboxOnly,
             'account'    => ['postnl_mailbox_international' => true],
-            'expected'   => PackageType::MAILBOX_NAME,
+            'expected'   => PackageType::PACKAGE_NAME,
         ]),
 
-        'that zero maximum weight refuses anything that weighs something' => $case([
-            'items'      => [$item(1.0, 1.0, ['fit_in_mailbox' => '0'])],
+        'a mailbox on at home stays off abroad without the international toggle' => $case([
+            'items'      => [$item(1.0, 1.0, ['fit_in_mailbox' => '1'])],
             'country'    => 'DE',
-            'groups'     => ['mailbox' => ['active' => '0', 'international_active' => '1', 'weight' => '2000']],
+            'groups'     => ['mailbox' => ['active' => '1', 'international_active' => '0', 'weight' => '2000']],
             'candidates' => $mailboxOnly,
             'account'    => ['postnl_mailbox_international' => true],
             'expected'   => PackageType::PACKAGE_NAME,
