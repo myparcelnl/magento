@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -116,6 +117,17 @@ it('renders the options the account reports, insurance excluded', function () {
         ->not->toContain(ShipmentOption::INSURANCE)
         ->and($block->getShipmentOptions(Carrier::DPD, PackageType::PACKAGE_NAME))
         ->toBe([ShipmentOption::SIGNATURE]);
+});
+
+it('renders an option only capabilities name, under a label read from its name', function () {
+    $block = createNewShipmentBlockWith(CapabilitySet::fromApiResults([
+        capabilityResult(['options' => ['requiresSignature' => [], 'noTracking' => []]]),
+    ]));
+
+    expect($block->getShipmentOptions(Carrier::POSTNL, PackageType::PACKAGE_NAME))
+        ->toBe([ShipmentOption::SIGNATURE, 'no_tracking'])
+        ->and((new NewShipmentForm())->labelFor('no_tracking'))->toBe('No tracking')
+        ->and((new NewShipmentForm())->labelFor(ShipmentOption::SIGNATURE))->toBe('Signature on receipt');
 });
 
 it('drops receipt code from a non-standard delivery even when the account has it', function () {

@@ -16,6 +16,7 @@ use Magento\Shipping\Model\ShipmentNotifier;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
@@ -185,7 +186,7 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         try {
-            $savedOrders = $orderCollection->save();
+            $savedOrders = $orderCollection->save(Config::API_FEATURE_FLAGS);
         } catch (Throwable $e) {
             // A timeout and an API error are the same exception here, so a refusal cannot be told apart.
             $this->reportUnconfirmed($sent, $e->getMessage());
