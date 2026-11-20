@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\CartShippingRules;
-use MyParcelNL\Magento\Service\Config;
 
-const CART_RULES_AGE_CHECK_PATH = Config::XML_PATH_POSTNL_SETTINGS . 'default_options/age_check_active';
+const CART_RULES_AGE_CHECK_PATH = 'myparcelnl_magento_postnl_settings/default_options/age_check_active';
 
 /**
  * A CartShippingRules over a config map and product attribute rows.

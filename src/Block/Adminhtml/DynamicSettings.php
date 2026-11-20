@@ -23,6 +23,7 @@ class DynamicSettings extends Template
     private Settings               $settings;
     private ObjectManagerInterface $objectManager;
     private Config                 $config;
+    private Json                   $json;
 
     private ?array $currentScope = null;
 
@@ -56,14 +57,20 @@ class DynamicSettings extends Template
         return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/dynamic_settings/style.css')->getUrl();
     }
 
-    /**
-     * Get all sections from the settings configuration.
-     *
-     * @return array
-     */
+    /** The form for the current scope's account. */
     public function getSections(): array
     {
-        return $this->settings->getSections();
+        [$scopeName, $scopeId] = $this->getCurrentScope();
+
+        return $this->settings->getSections($scopeName, $scopeId);
+    }
+
+    /** True when the current scope's capabilities could not be read, so no carrier shows. */
+    public function isPermissive(): bool
+    {
+        [$scopeName, $scopeId] = $this->getCurrentScope();
+
+        return $this->settings->isPermissive($scopeName, $scopeId);
     }
 
     /**
@@ -88,33 +95,6 @@ class DynamicSettings extends Template
         }
 
         return $this->currentScope;
-    }
-
-    /**
-     * @return array
-     */
-    public function getWebsites(): array
-    {
-        return $this->_storeManager->getWebsites();
-    }
-
-    /**
-     * @return array
-     */
-    public function getStores(): array
-    {
-        return $this->_storeManager->getStores();
-    }
-
-    /**
-     * Check if a field should be visible in the current scope.
-     *
-     * @param array $field
-     * @return bool
-     */
-    public function isFieldVisibleInCurrentScope(array $field): bool
-    {
-        return $this->settings->isFieldVisibleInScope($field, $this->getCurrentScopeName());
     }
 
     /**
@@ -143,16 +123,6 @@ class DynamicSettings extends Template
     }
 
     /**
-     * Get the save URL for the form.
-     *
-     * @return string
-     */
-    public function getSaveUrl(): string
-    {
-        return $this->getUrl('myparcel/settings/save');
-    }
-
-    /**
      * Get options for a select field.
      *
      * @param array $field
@@ -174,6 +144,32 @@ class DynamicSettings extends Template
         }
 
         return [];
+    }
+
+    /**
+     * The option a select shows as chosen.
+     *
+     * A path with no value at all shows "0" when it can: with nothing selected the browser shows the
+     * first option, usually Yes, and the next save would store it. Every reader takes a missing
+     * value as off.
+     *
+     * @param mixed $value
+     */
+    public function getSelectedValue($value, array $options): string
+    {
+        if (null !== $value) {
+            return (string) $value;
+        }
+
+        $values = [];
+
+        foreach ($options as $option) {
+            foreach (is_array($option['value'] ?? null) ? $option['value'] : [$option] as $choice) {
+                $values[] = (string) ($choice['value'] ?? '');
+            }
+        }
+
+        return in_array('', $values, true) || ! in_array('0', $values, true) ? '' : '0';
     }
 
     /**

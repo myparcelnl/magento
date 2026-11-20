@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
@@ -48,16 +47,16 @@ it('caches an answer with values the SDK does not know, and reads it back', func
 
     foreach ([$fresh, $cached] as $set) {
         expect($set->isPermissive())->toBeFalse()
-            ->and($set->carriers())->toBe([Carrier::POSTNL, 'hoopla'])
+            ->and($set->carriers())->toBe(['postnl', 'hoopla'])
             ->and($set->unknownValues())->toBe([
                 'carrier'      => ['HOOPLA'],
                 'packageType'  => ['HOVERCRATE'],
                 'deliveryType' => ['DRONE_DELIVERY'],
             ])
-            ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME])
+            ->and($set->packageTypesFor('postnl'))->toBe([PackageType::PACKAGE_NAME])
             // Not offered until an SDK update: the module cannot send it.
-            ->and($set->optionsFor(Carrier::POSTNL))->not->toContain('teleport')
-            ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBeTrue()
-            ->and($set->requiresFor(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBe([]);
+            ->and($set->optionsFor('postnl'))->not->toContain('teleport')
+            ->and($set->hasOption('postnl', null, ShipmentOption::SIGNATURE))->toBeTrue()
+            ->and($set->requiresFor('postnl', null, ShipmentOption::SIGNATURE))->toBe([]);
     }
 });

@@ -22,7 +22,6 @@ use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use MyParcelNL\Magento\Service\Text;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesPriceEuro;
-use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 use RuntimeException;
 
@@ -81,17 +80,17 @@ class OrderShipmentOptions
         return $this->deliveryOptions()->getCarrier();
     }
 
-    /** @throws RuntimeException on a carrier no module name covers */
+    /** @throws RuntimeException on a carrier the SDK does not know */
     public function carrierId(): int
     {
         $carrier = $this->carrierName();
-        $v2Name  = null === $carrier ? null : Carrier::toV2Name($carrier);
+        $id      = null === $carrier ? null : Carrier::idFor($carrier);
 
-        if (null === $v2Name) {
-            throw new RuntimeException((string) __('carrier "%1" is not one this module knows', (string) $carrier));
+        if (null === $id) {
+            throw new RuntimeException((string) __('carrier "%1" is not one the SDK knows', (string) $carrier));
         }
 
-        return SdkCarrier::toId($v2Name);
+        return $id;
     }
 
     public function resolved(): ResolvedOptions

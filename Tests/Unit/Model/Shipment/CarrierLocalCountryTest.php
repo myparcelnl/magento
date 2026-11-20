@@ -7,14 +7,12 @@ use MyParcelNL\Magento\Model\Shipment\CountryCode;
 
 /** The local country picks the street-splitting rules of a carrier. */
 it('answers BE for DPD and NL for every other carrier', function () {
-    expect(Carrier::localCountryCodeFor(Carrier::DPD))->toBe(CountryCode::CC_BE);
+    expect(Carrier::localCountryCodeFor('dpd'))->toBe(CountryCode::CC_BE);
 
-    foreach (array_keys(Carrier::V2_NAMES_MAP) as $carrier) {
-        if (Carrier::DPD === $carrier) {
-            continue;
+    foreach (legacyCarriers() as $carrier) {
+        if ('dpd' !== $carrier) {
+            expect(Carrier::localCountryCodeFor($carrier))->toBe(CountryCode::CC_NL, $carrier);
         }
-
-        expect(Carrier::localCountryCodeFor($carrier))->toBe(CountryCode::CC_NL);
     }
 });
 

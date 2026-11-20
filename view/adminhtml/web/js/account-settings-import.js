@@ -3,7 +3,8 @@ define(['jquery', 'mage/loader'], function ($) {
 
     /**
      * Bound via data-mage-init on the settings_button.phtml root div. config keys: ajaxUrl, buttonId,
-     * apiKeyFieldId, scopeName, scopeId, successLabel, failurePrefix, failureLabel, unsavedLabel.
+     * apiKeyFieldId, scopeName, scopeId, successLabel, reloadLabel, failurePrefix, failureLabel,
+     * unsavedLabel.
      *
      * The button is disabled while the api key field is disabled (the scope inherits the key) and while
      * the request runs. fetch() does not pass through loaderAjax, so the overlay is started by hand.
@@ -65,7 +66,15 @@ define(['jquery', 'mage/loader'], function ($) {
                         return;
                     }
 
-                    report('message-success', config.successLabel);
+                    if (!answer.changed) {
+                        report('message-success', config.successLabel);
+
+                        return;
+                    }
+
+                    // The carrier sections come from the imported contract, so only a reload shows them.
+                    report('message-success', config.reloadLabel);
+                    window.location.reload();
                 });
             }).catch(function () {
                 // A non-JSON body or a dropped connection: the log is the only place left to look.
