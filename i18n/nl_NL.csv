@@ -25,13 +25,13 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
-myparcelnl_magento_error_no_shipments_to_process,Geen MyParcel zendingen om te verwerken.
+No MyParcel shipments to process.,Geen MyParcel zendingen om te verwerken.
 package_small,Klein pakket
 Packet,Klein pakket
 Packet title,Klein pakket titel
 Parcel locker,Pakketautomaat
-show_total_price, Toon totaalprijs
-show_surcharge_price, Toon meerprijs
+Show total price,Toon totaalprijs
+Show surcharge,Toon meerprijs
 Version and support,Versie en support
 Settings,Instellingen
 General settings,Algemene instellingen
@@ -106,7 +106,7 @@ Receipt code,Ontvangstcode
 Receipt code fee,Ontvangstcode kosten
 Collect package,Pakket laten ophalen
 Digital stamp settings,Digitalepostzegel instellingen
-"Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
+"Fill in weight in grams, regardless of 'weight type' settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
 Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
@@ -120,7 +120,6 @@ Track number,Track nummer
 Track status,Track status
 Track action,Track actie
 MyParcel options,MyParcel opties
-Package,Pakket
 Insured up to:,Verzekeren tot:
 Download package label,Download pakket label
 Download small package label,Download klein pakket label
@@ -144,14 +143,13 @@ MyParcel Shipment Email Template for Guest,Sjabloon e-mail voor een MyParcel zen
 Action type,Actie
 Download label,Download label
 Open in new tab, Open in nieuw tabblad
-Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.",Versie %1 van de extensie is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving.
 "To read the instructions for the Magento extension, click %1 here %2.",Klik %1 hier %2 om de handleiding van de Magento extensie te bekijken.
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active account.,U dient een actief account te hebben om de extensie te kunnen configureren.
-During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.
+"During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.","Tijdens de overgangsfase kan de oude Magento MyParcel-extensie actief blijven. Zet wel PakjeGemak uit in de oude MyParcel-extensie."
 Magento &amp; 3rd party version compatibility,Magento & derde partijen ondersteuning
 We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento
 As of January 1st 2022 shipments to Belgium will be insured based on default export settings.,Zendingen naar Belgie worden per 1 januari 2022 verzekerd op basis van de default export instellingen.
@@ -197,7 +195,6 @@ Fit in mailbox,Past in brievenbus
 Methods,Verzendmethode
 The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
 Delivery title,Bezorg titel
-When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
@@ -205,14 +202,11 @@ Signature on receipt,Handtekening voor ontvangst
 Signature on receipt title,Handtekening voor ontvangst titel
 Signature on receipt fee,Handtekening voor ontvangst kosten
 Hide sender,Verberg afzender
-This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten. Ongeacht deze instelling, zendingen zwaarder dan het hier opgegeven gewicht zullen niet als brievenbuspakket worden verzonden."
-This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Pickup at PostNL location,Ophalen bij een PostNL locatie
 Pickup active,Ophalen actief
 Standard delivery Title,Standaard bezorg titel
-Signature on receipt title,Handtekening voor ontvangst titel
 Hide sender title,Afzender verbergen titel
 Printerless return,Retour zonder printer
 Frozen,Bevroren
@@ -259,7 +253,7 @@ Thursday,Donderdag
 Friday,Vrijdag
 Saturday,Zaterdag
 Sunday,Zondag
-Enable create label concept, when invoice is printed.
+Package,Pakket
 Mailbox,Brievenbuspakje
 Digital stamp,Digitale postzegel
 Small package,Klein pakket
@@ -271,69 +265,49 @@ No,Nee
 Yes,Ja
 
 error3212,{field} is verplicht.
+error3224,Ongeldige vervoerder.
 error3501,Dit adres is niet gevonden.
 error3505,Postcode is niet geldig voor het gekozen land.
-
 no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
 location_page, locatiewijzer
+error3506,Ongeldig bezorgtype.
+error3516,Land wordt niet ondersteund door vervoerder.
+error3517,Niet beschikbaar voor dit land.
+error3707,Ongeldig pakkettype.
+error3728,Geen bezorgopties gevonden.
+
 Without options,Zonder opties
 Options equal to shipment,Opties overnemen van heenzending
 Export to MyParcel, Exporteer naar MyParcel
 Already exported, Reeds geëxporteerd
 Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,Na het activeren van deze instelling wordt er bij het exporteren van elke zending automatisch een retour zending aangemaakt. Als je het label print wordt ook meteen het retour label geprint.
 Show details in summary, Toon details in overzicht
-"Where the shipping method is displayed, show the currently known details (yes) or the method title (no)."," ""Waar de verzendmethode wordt getoond"
+"Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Toon waar de verzendmethode wordt weergegeven de bekende details (ja) of de titel van de verzendmethode (nee)."
 
-Standard Delivery,Standaard bezorging
-Morning Delivery,Ochtendlevering
-Evening Delivery,Avondlevering
+Delivery at home or at work,Levering thuis of op het werk
+Delivery options,
+Back to overview,Terug naar overzicht
+Delivery,Bezorging
+Pickup,Ophalen
+Pickup location,Afhaallocatie
+Open map,Kaart openen
+Confirm,Bevestigen
+Standard delivery,Standaard bezorging
 Pickup locations,Ophalen bij een afhaallocatie
+List,Lijst
+Map,Kaart
 Signature,Handtekening voor ontvangst
-
-delivery_title,Levering thuis of op het werk
-header_delivery_options,
-compact_back_to_overview_title,Terug naar overzicht
-compact_delivery_title,Bezorging
-compact_pickup_title,Ophalen
-pop_up_map_title,Afhaallocatie
-pop_up_map_open_title,Kaart openen
-pop_up_map_confirm_title,Bevestigen
-standard_title,Standaard bezorging
-morning_title,Ochtendbezorging
-evening_title,Avondbezorging
-pickup_title,Ophalen bij een afhaallocatie
-same_day_title,Zelfde dag bezorging
-hide_sender_title,Afzender verbergen
-list_title,Lijst
-map_title,Kaart
-mailbox_title,Brievenbuspakje
-digital_stamp_title,Digitale postzegel
-packet_title,Klein pakket
-package_title,Pakket
-signature_title,Handtekening voor ontvangst
-receipt_code_title,Ontvangstcode
-priority_delivery_title,Prioriteitslevering
-only_recipient_title,Alleen ontvanger
-monday_delivery_title,Maandag bezorging
-saturday_delivery,Zaterdag bezorging
-saturday_delivery_title,Zaterdag bezorging
-load_more,Laad meer
-options_title,Opties
-no_delivery_options_available,Geen bezorgopties beschikbaar.
-delivery_moment_not_possible,{deliveryType} (datum/tijd keuze niet beschikbaar)
-error3224,Ongeldige vervoerder.
-error3506,Ongeldig bezorgtype.
-error3516,Land wordt niet ondersteund door vervoerder.
-error3517,Niet beschikbaar voor dit land.
-error3707,Ongeldig pakkettype.
-error3728,Geen bezorgopties gevonden.
+Saturday delivery,Zaterdag bezorging
+Load more,Laad meer
+Options,Opties
+No delivery options available.,Geen bezorgopties beschikbaar.
+{deliveryType} (date/time selection not available),{deliveryType} (datum/tijd keuze niet beschikbaar)
 Delivery costs,Bezorgkosten
 Use Free Shipping,Gebruik gratis verzending
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
 Rule name,Regel naam
 Select a condition...,Selecteer een voorwaarde...
 Carrier name,Vervoerder naam
-Country,Land
 Package type,Pakket type
 Maximum weight (in grams),Maximum gewicht (in gram)
 Country part of,Land onderdeel van
@@ -404,7 +378,6 @@ PostNL settings,PostNL instellingen
 Priority delivery fee,Prio levering kosten
 Priority delivery title,Prio levering titel
 Receipt code from price (€),Ontvangstcode vanaf prijs (€)
-Saturday delivery,Zaterdag bezorging
 Saturday delivery fee,Zaterdag bezorging kosten
 Signature from price (€),Handtekening voor ontvangst vanaf prijs (€)
 Small Package settings,Klein pakket instellingen

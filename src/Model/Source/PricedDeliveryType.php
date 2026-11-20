@@ -24,9 +24,9 @@ class PricedDeliveryType
     ];
 
     public const TITLES = [
-        AbstractConsignment::DELIVERY_TYPE_MORNING_NAME  => 'Morning Delivery',
-        AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME => 'Standard Delivery',
-        AbstractConsignment::DELIVERY_TYPE_EVENING_NAME  => 'Evening Delivery',
+        AbstractConsignment::DELIVERY_TYPE_MORNING_NAME  => 'Morning delivery',
+        AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME => 'Standard delivery',
+        AbstractConsignment::DELIVERY_TYPE_EVENING_NAME  => 'Evening delivery',
         AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME   => 'Pickup locations',
     ];
 }
