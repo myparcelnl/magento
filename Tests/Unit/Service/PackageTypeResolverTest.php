@@ -34,7 +34,6 @@ function packageTypeConfigFor(array|ArrayAccess $map): Config
  *
  * The table was written against the class this replaced and ran green on both, which is what makes
  * it a record of behaviour rather than of intent. See its own doc block.
- *
  */
 function runPackageTypeCaseOnResolver(array $case): string
 {

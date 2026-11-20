@@ -206,7 +206,7 @@ function packageTypeCases(): array
             'expected' => PackageType::DIGITAL_STAMP_NAME,
         ]),
 
-        'an inactive digital stamp group keeps a maximum weight of zero and is refused' => $case([
+        'an inactive digital stamp group takes digital stamp out of the candidates' => $case([
             'items'      => [$item(1.0, 0.0, ['digital_stamp' => '1', 'fit_in_mailbox' => '-1'])],
             'groups'     => ['digital_stamp' => ['active' => '0']],
             'candidates' => $noPackageSmall,

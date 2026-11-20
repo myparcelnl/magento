@@ -480,9 +480,9 @@ class Checkout
         $canHaveMailbox      = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::MAILBOX_NAME, $forced);
         $canHavePackageSmall = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::PACKAGE_SMALL_NAME, $forced);
 
-        // Abroad the international toggle decides, so a carrier switched off at home can still ship
-        // a mailbox. && short-circuits per entry, so a config key is not read once the capability
-        // has already said no.
+        // Abroad the international toggle makes the mailbox a candidate. A group switched off at
+        // home keeps a maximum weight of 0, so then only a cart without weight fits. && short-circuits
+        // per entry, so a config key is not read once the capability has already said no.
         $mailboxActiveKey = CountryCodes::CC_NL === $country ? 'mailbox/active' : 'mailbox/international_active';
 
         $candidates = PackageTypeCandidates::none();

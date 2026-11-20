@@ -23,8 +23,7 @@ use MyParcelNL\Magento\Service\Tax;
  * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
  * order, which never reaches a narrowed lookup.
  *
- * What used to be three setters on a shared package object is now one PackageTypeCandidates handed
- * to the resolver, so the cases below read that instead.
+ * The cases read the PackageTypeCandidates that checkPackageType() hands to the resolver.
  *
  * @return array{checkout: Checkout, packageTypes: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
  */

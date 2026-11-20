@@ -9,7 +9,7 @@ namespace MyParcelNL\Magento\Service;
  *
  * A trait rather than a fifth service: the three functions are identical for every caller, they
  * carry no state of their own, and a class to hold them would be heavier than what it holds. The
- * using class declares and injects `$attributes`, so nothing here adds state.
+ * trait declares `$attributes`; the using class assigns it in its constructor and must not declare it.
  */
 trait ReadsProductAttributes
 {
