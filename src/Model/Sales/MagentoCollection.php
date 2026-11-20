@@ -105,7 +105,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             'create_track_if_one_already_exist' => true,
             'request_type'                      => 'download',
             'positions'                         => null,
-            'same_day_delivery'                 => false,
         ];
 
     /**
@@ -162,16 +161,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         ];
 
         return $this;
-    }
-
-    /**
-     * Get all options
-     *
-     * @return array
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
     }
 
     /**
@@ -303,7 +292,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             );
         }
 
-        return $this->shipmentBuilders[$orderId]->build($magentoTrack, $this->options, $colloNumber);
+        return $this->shipmentBuilders[$orderId]->build($magentoTrack, $colloNumber);
     }
 
     /**

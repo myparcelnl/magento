@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
@@ -35,8 +33,7 @@ function pickupCheckoutData(): array
 it('sets the carrier id, so getCarrier() does not throw', function () {
     // getCarrier() throws when the carrier was never set, and nothing else in the module checks it.
     $order = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard']),
-        []
+        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'])
     );
 
     expect($order->getCarrierId())->toBe(SdkCarrier::toId('POSTNL'))
@@ -49,8 +46,7 @@ it('hands the fulfilment order the SDK shipment options', function () {
             'carrier'      => CarrierPostNL::NAME,
             'deliveryType' => 'standard',
             'packageType'  => 'mailbox',
-        ]),
-        []
+        ])
     );
 
     expect($order->getDeliveryOptions())->toBeInstanceOf(SdkShipmentOptions::class)
@@ -59,7 +55,7 @@ it('hands the fulfilment order the SDK shipment options', function () {
 
 it('maps the pickup location field for field', function () {
     $order = createFulfilmentOrderBuilder()
-        ->build(createFulfilmentMagentoOrder(pickupCheckoutData()), ['carrier' => CarrierDHLForYou::NAME]);
+        ->build(createFulfilmentMagentoOrder(pickupCheckoutData()));
 
     $pickup = $order->getPickupLocation();
 
@@ -75,7 +71,7 @@ it('maps the pickup location field for field', function () {
 
 it('leaves a pickup on the package type the checkout stored', function () {
     $order = createFulfilmentOrderBuilder()
-        ->build(createFulfilmentMagentoOrder(pickupCheckoutData()), ['carrier' => CarrierDHLForYou::NAME]);
+        ->build(createFulfilmentMagentoOrder(pickupCheckoutData()));
 
     expect($order->getDeliveryOptions()->getPackageType())->toBe(PackageType::MAILBOX);
 });
@@ -89,30 +85,7 @@ it('resolves the API key from the order\'s own store, not another store\'s', fun
         ['getStoreId' => 9]
     );
 
-    expect(fn () => $builder->build($order, []))->toThrow(LocalizedException::class);
-});
-
-it('keeps the checkout carrier when handed the collection\'s default options', function () {
-    // The order grid's PPS export passes MagentoCollection's constructor defaults straight through.
-    // A carrier literal in those defaults reads as an admin override and replaces the customer's.
-    $defaults = newInstanceWithoutConstructor(MagentoOrderCollection::class)->getOptions();
-
-    $order = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(['carrier' => CarrierDHLForYou::NAME, 'deliveryType' => 'standard']),
-        $defaults
-    );
-
-    expect($order->getCarrier()->getName())->toBe(CarrierDHLForYou::NAME);
-});
-
-it('keeps the checkout carrier when the modal says default', function () {
-    // The grid modal posts mypa_carrier=default unless the admin picks a carrier.
-    $order = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(['carrier' => CarrierDHLForYou::NAME, 'deliveryType' => 'standard']),
-        ['carrier' => DefaultOptions::DEFAULT_OPTION_VALUE]
-    );
-
-    expect($order->getCarrier()->getName())->toBe(CarrierDHLForYou::NAME);
+    expect(fn () => $builder->build($order))->toThrow(LocalizedException::class);
 });
 
 it('sends the dimensions a merchant saved, and the SDK default without them', function () {
@@ -121,13 +94,11 @@ it('sends the dimensions a merchant saved, and the SDK default without them', fu
             'carrier'            => CarrierPostNL::NAME,
             'deliveryType'       => 'standard',
             'physicalProperties' => ['length' => 40, 'width' => 30, 'height' => 20],
-        ]),
-        []
+        ])
     )->getPhysicalProperties();
 
     $default = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard']),
-        []
+        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'])
     )->getPhysicalProperties();
 
     expect([$saved->getLength(), $saved->getWidth(), $saved->getHeight()])->toBe([40, 30, 20])
