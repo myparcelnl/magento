@@ -52,6 +52,12 @@ it('reads one named row of the order, first by its item_id key, not every column
         ->and($select->order)->toBe('main_table.item_id ASC');
 });
 
+it('leaves the delivery date empty for a date before tomorrow', function () {
+    ['resolver' => $resolver] = createLabelDescriptionResolver(null, '%delivery_date%', [], '2020-01-01 00:00:00');
+
+    expect($resolver->getLabelDescription())->toBe('');
+});
+
 it('reads the row once, however often the description is asked for', function () {
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         null,

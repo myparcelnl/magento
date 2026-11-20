@@ -27,14 +27,6 @@ use Throwable;
  */
 class ShipmentOptionsResolver
 {
-    /**
-     * The checkboxes with a rule of their own; every other toggle in ShipmentOption::DEFINITIONS is
-     * taken as chosen. Add an entry only when an option needs one.
-     */
-    private const RULES = [
-        ShipmentOption::RECEIPT_CODE => 'hasReceiptCode',
-    ];
-
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
     private const PRODUCT_ID        = '%product_id%';
@@ -195,26 +187,14 @@ class ShipmentOptionsResolver
                 (int) $this->order->getStoreId(),
                 $this->cc,
                 $this->packageType,
-                $this->carrier
+                $this->carrier,
+                $this->deliveryOptions->getDeliveryType()
             );
         } catch (Throwable $e) {
             Logger::notice('Could not resolve the capabilities for this shipment', LogContext::of($e));
         }
 
         return $this->requestCapabilities;
-    }
-
-    /** Standard delivery only: no country or carrier gate, that is a capabilities fact. */
-    public function hasReceiptCode(): bool
-    {
-        if (! ShipmentOption::allowedForDeliveryType(
-            ShipmentOption::RECEIPT_CODE,
-            $this->deliveryOptions->getDeliveryType()
-        )) {
-            return false;
-        }
-
-        return $this->optionIsEnabled(ShipmentOption::RECEIPT_CODE);
     }
 
     public function hasSameDayDelivery(): bool
@@ -384,9 +364,7 @@ class ShipmentOptionsResolver
         ];
 
         foreach (ShipmentOption::having('toggle') as $option) {
-            $values[$option] = isset(self::RULES[$option])
-                ? $this->{self::RULES[$option]}()
-                : $this->optionIsEnabled($option);
+            $values[$option] = $this->optionIsEnabled($option);
         }
 
         $capabilities = $this->requestCapabilities();

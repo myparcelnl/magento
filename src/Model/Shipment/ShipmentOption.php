@@ -34,9 +34,10 @@ class ShipmentOption
      * The yes/no facts having() takes; a missing one is false. toggle: a yes/no option of the shipment,
      * resolved and sent on every export, stored on the order, and shown when capabilities cannot be
      * read. checkout: in the widget, with a fee. fromPrice(Tooltip): automated above an order total.
-     * mailbox: set in the mailbox group.
+     * mailbox: set in the mailbox group. keepAtCheckout: a forced cart option the checkout sends to
+     * capabilities as a filter; never a default such as signature, which the PostNL mailbox excludes.
      */
-    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox'];
+    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox', 'keepAtCheckout'];
 
     /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
     private const TEXTS = ['label', 'settingsLabel', 'tooltip'];
@@ -92,9 +93,10 @@ class ShipmentOption
                 'label'     => 'Collect package',
             ],
             self::AGE_CHECK          => [
-                'toggle'  => true,
-                'label'   => 'Age check 18+',
-                'tooltip' => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
+                'toggle'         => true,
+                'keepAtCheckout' => true,
+                'label'          => 'Age check 18+',
+                'tooltip'        => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
             ],
             self::HIDE_SENDER        => [
                 'toggle'  => true,
@@ -167,38 +169,6 @@ class ShipmentOption
     public static function labelFor(string $option): string
     {
         return self::fact($option, 'label') ?? ucfirst(str_replace('_', ' ', $option));
-    }
-
-    /**
-     * Options that rule out a package type when the merchant has forced them on. Which types can carry
-     * one is the capabilities answer, per carrier. Priority delivery is not here: it is a mailbox option.
-     *
-     * @var string[]
-     */
-    public const LIMIT_PACKAGE_TYPE = [self::AGE_CHECK];
-
-    /**
-     * Options the API accepts on some delivery types only. The module does not ask capabilities per
-     * delivery type yet; the checkout does not use this list, because it builds one config per carrier
-     * before the customer picks a delivery type.
-     *
-     * @var array<string,string[]>
-     */
-    public const LIMIT_DELIVERY_TYPE = [self::RECEIPT_CODE => [DeliveryType::STANDARD_NAME]];
-
-    /**
-     * Whether the option may be set alongside this delivery type. A missing delivery type counts as
-     * standard, so an order stored without one keeps working; an unknown one allows no limited option.
-     */
-    public static function allowedForDeliveryType(string $option, ?string $deliveryType): bool
-    {
-        $allowed = self::LIMIT_DELIVERY_TYPE[$option] ?? null;
-
-        if (null === $allowed) {
-            return true;
-        }
-
-        return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
     }
 
     /** A snake_case module name. Request input that is not one is dropped, never guessed at. */

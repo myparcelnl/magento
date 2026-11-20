@@ -84,9 +84,10 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
 4. **An option the package type cannot carry also narrows the package type at checkout.** The
    export drops an option the carrier does not offer for the shipment, as the PDK does
    (`ShipmentOptionsResolver::dropNotOffered()`), so the API never refuses a shipment for it. The
-   checkout first rules out a package type that cannot carry a forced option
-   (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
-   age check where a package type can carry it. An option dropped at export is logged.
+   checkout sends the forced `keepAtCheckout` options of `ShipmentOption::DEFINITIONS` to
+   capabilities as a filter, so a package type or delivery type that cannot carry them is not
+   offered, and an 18+ order keeps its age check. The PDK sends no options and drops the age check at export. An
+   option dropped at export is logged.
 5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
    rests on statement order in one method: PostNL receipt code requires insurance, which requires
    the signature that receipt code excludes.
@@ -151,7 +152,8 @@ Each workaround names what to delete once the fix lands.
 | 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
 | 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
-| 9 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
+| 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
+| 10 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
 
 Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
 the generated models, so it has no workaround for them; the numbers stay so references to the others
