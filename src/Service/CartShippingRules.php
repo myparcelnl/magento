@@ -8,7 +8,8 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use Throwable;
 
 /**
- * Tells what a cart's own items say about how it may ship: forced options, delivery options, drop-off delay.
+ * Tells what a cart's items and the carrier's settings say about how it may ship: forced options,
+ * delivery options, drop-off delay.
  *
  * Methods that read config take a carrier config path. With no active carrier, checkout passes the
  * PostNL path, so the path can belong to a carrier that is switched off. Holds no state of its own.

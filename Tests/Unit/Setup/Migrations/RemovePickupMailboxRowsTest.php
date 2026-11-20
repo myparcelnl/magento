@@ -47,9 +47,12 @@ it('leaves a row of another module that ends the same way', function () {
 it('is a no-op on a second run', function () {
     $harness = new MyParcelTokenLifecycleHarness();
     $harness->save('myparcelnl_magento_postnl_settings/mailbox/pickup_mailbox', '1', 'default', 0);
+    $harness->save('myparcelnl_magento_postnl_settings/mailbox/active', '1', 'default', 0);
 
     removePickupMailboxRows($harness)->run();
+    $afterFirstRun = $harness->rows;
     removePickupMailboxRows($harness)->run();
 
-    expect($harness->rows)->toBe([]);
+    expect($harness->rows)->toBe($afterFirstRun)
+        ->and($harness->rowAt('myparcelnl_magento_postnl_settings/mailbox/active'))->not->toBeNull();
 });

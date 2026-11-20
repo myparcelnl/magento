@@ -30,11 +30,9 @@ class WeightUnitNote extends Template implements NoteProviderInterface
     {
         $note = (string) __('MyParcel reads every product weight with this one unit, so this setting exists in default scope only.');
 
-        if ($this->productWeightIsGlobal()) {
-            return $note;
-        }
-
-        return $note . ' ' . __('Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.');
+        return $this->productWeightIsGlobal()
+            ? $note
+            : $note . ' ' . __('Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.');
     }
 
     /** Check whether product weight is global; true when the attribute cannot be read, so the screen never fails. */

@@ -302,7 +302,7 @@ class Checkout
     /** @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for. */
     private function getCapabilities(string $country, ?string $packageType = null): CapabilitySet
     {
-        return $this->capabilityLookup->forRequest((int) $this->quote->getStoreId(), $country, $packageType);
+        return $this->capabilityLookup->forRequest($this->storeId, $country, $packageType);
     }
 
     /**

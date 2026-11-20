@@ -56,7 +56,7 @@ Magento order -> builder (src/Service/Export/) -> SDK v11 Shipment or Fulfilment
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
-- **Package type** (`src/Service/PackageTypeResolver.php`) decides the package type (digital stamp, mailbox, package small) from weight, carrier config and the products in the cart. `Model\Quote\Checkout` first rules out what capabilities and forced options do not allow. `src/Service/CartShippingRules.php` answers what the cart's products force or forbid. Both services hold no state of their own; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
+- **Package type** (`src/Service/PackageTypeResolver.php`) decides the package type (digital stamp, mailbox, package small) from weight, carrier config and the products in the cart. `Model\Quote\Checkout` first rules out what capabilities and forced options do not allow. `src/Service/CartShippingRules.php` answers what the cart's products and the carrier's settings force or forbid. Both services hold no state of their own; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
 - **Insurance** is a range per carrier from the account's contract definitions (`ContractDefinitions::insuranceRangeFor()`, `Model\Shipment\Capabilities\InsuranceRange`). `Service\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API (`src/Model/Rest/`)
@@ -72,7 +72,7 @@ An endpoint that must accept an API access token follows [`docs/design/adding-a-
 Admin settings are in `etc/dynamic_settings.json`, a temporary solution until the capabilities endpoint replaces it. To add one:
 
 1. Add an entry with `id`, `path`, `type`, `label` and the three `showIn*` flags.
-2. For a custom widget, set `frontend_model` to a block in `src/Block/System/Config/Form/`.
+2. For a custom widget, set `frontend_model` to a block in `src/Block/System/Config/Form/`. For a note computed at render time under a plain control, set `note_model` to a block that implements `NoteProviderInterface`.
 3. Save with `Magento\Framework\App\Config\Storage\WriterInterface::save()`.
 4. To check whether a scope has its own value, use `Settings::hasOwnValue($path, $scope, $scopeId)`. It does not fall back to the parent scope.
 

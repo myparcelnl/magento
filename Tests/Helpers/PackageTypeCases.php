@@ -6,7 +6,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * One table of package-type decisions. The expected values record what the module did, so a change
+ * One table of package-type decisions. The expected values pin the resolver's behaviour, so a change
  * to one is a behaviour change.
  *
  * Each case:

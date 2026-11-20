@@ -95,7 +95,8 @@ it('names every row it removed when the scopes disagree, so support can reconstr
 
     unscopeWeightIndication($harness, $logger, [1 => 1, 7 => 1])->run();
 
-    $logger->shouldHaveReceived('notice')->twice();
+    $logger->shouldHaveReceived('notice')->with(Mockery::on(static fn(string $m): bool => str_contains($m, 'Removed "kilo" from websites 1;')))->once();
+    $logger->shouldHaveReceived('notice')->with(Mockery::on(static fn(string $m): bool => str_contains($m, 'Removed "gram" from stores 7;')))->once();
 });
 
 it('keeps the default when another website inherits it, so that website keeps its unit', function () {
