@@ -54,7 +54,8 @@ it('agrees with the SDK request mapper on every option wire key', function () {
 
 it('round-trips every stored option name through its wire key', function () {
     foreach (moduleOptionNames() as $moduleName) {
-        expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName);
+        expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName)
+            ->and(ShipmentOption::knowsV2Name(ShipmentOption::toV2Name($moduleName)))->toBeTrue();
     }
 });
 
@@ -62,6 +63,14 @@ it('takes the aliases from the SDK', function () {
     expect(ShipmentOption::toV2Name(ShipmentOption::RETURN))->toBe('returnOnFirstFailedDelivery')
         ->and(ShipmentOption::toV2Name(ShipmentOption::PRINTERLESS_RETURN))->toBe('printReturnLabelAtDropOff')
         ->and(ShipmentOption::fromV2Name('requiresSignature'))->toBe(ShipmentOption::SIGNATURE);
+});
+
+it('derives an option name in both directions for a wire key it has never seen', function () {
+    expect(ShipmentOption::fromV2Name('noTracking'))->toBe('no_tracking')
+        ->and(ShipmentOption::toV2Name('no_tracking'))->toBe('noTracking')
+        ->and(ShipmentOption::fromV2Name('requiresFoo'))->toBe('requires_foo')
+        ->and(ShipmentOption::toV2Name('requires_foo'))->toBe('requiresFoo')
+        ->and(ShipmentOption::knowsV2Name('noTracking'))->toBeFalse();
 });
 
 it('maps every package type to a v2 enum value the SDK allows, and back', function () {
@@ -97,6 +106,12 @@ it('maps every carrier to a v2 enum value the SDK allows', function () {
     }
 });
 
+it('derives a carrier name from any v2 name', function () {
+    expect(Carrier::fromV2Name('HOOPLA'))->toBe('hoopla')
+        ->and(Carrier::fromV2Name('UPS_EXPRESS_SAVER'))->toBe('upsexpresssaver')
+        ->and(Carrier::toV2Name('hoopla'))->toBeNull();
+});
+
 it('names every carrier the module has settings for', function () {
     expect(array_keys(Carrier::V2_NAMES_MAP))
         ->toBe(array_keys(Config::CARRIERS_XML_PATH_MAP));
@@ -117,10 +132,7 @@ it('takes every carrier name from the sdk registry', function () {
         ->and(Carrier::humanFor('nonexistent'))->toBe('nonexistent');
 });
 
-it('answers null for a value it does not know rather than inventing one', function () {
+it('answers null for a package or delivery type it does not know rather than inventing one', function () {
     expect(PackageType::fromV2Name('HOVERCRAFT'))->toBeNull()
-        ->and(DeliveryType::fromV2Name('TELEPORT_DELIVERY'))->toBeNull()
-        ->and(Carrier::fromV2Name('FUTURE_CARRIER'))->toBeNull()
-        ->and(ShipmentOption::fromV2Name('aBrandNewOption'))->toBeNull()
-        ->and(Carrier::toV2Name('nope'))->toBeNull();
+        ->and(DeliveryType::fromV2Name('TELEPORT_DELIVERY'))->toBeNull();
 });

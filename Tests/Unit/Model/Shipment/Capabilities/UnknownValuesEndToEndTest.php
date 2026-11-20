@@ -48,7 +48,7 @@ it('caches an answer with values the SDK does not know, and reads it back', func
 
     foreach ([$fresh, $cached] as $set) {
         expect($set->isPermissive())->toBeFalse()
-            ->and($set->carriers())->toBe([Carrier::POSTNL])
+            ->and($set->carriers())->toBe([Carrier::POSTNL, 'hoopla'])
             ->and($set->unknownValues())->toBe([
                 'carrier'      => ['HOOPLA'],
                 'packageType'  => ['HOVERCRATE'],
