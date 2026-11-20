@@ -168,7 +168,7 @@ it('answers the forced-option question per carrier', function () {
             capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']]),
             capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE', 'MAILBOX']]),
         ]),
-        'mailbox'    => CapabilitySet::fromApiResults([
+        'mailbox' => CapabilitySet::fromApiResults([
             capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresSignature' => []]]),
             capabilityResult([
                 'carrier'      => 'DPD',
@@ -230,12 +230,7 @@ it('does not offer a carrier that cannot carry a forced option on the resolved p
     // One package type serves the whole checkout, so DPD allowing an age check on a mailbox can
     // still land mailbox in front of a PostNL customer. PostNL is dropped instead of failing later.
     $capabilities = [
-        // isPickupAllowed() re-resolves the package type, so the agnostic request is reached too.
-        ''        => CapabilitySet::fromApiResults([
-            capabilityResult(['packageTypes' => ['PACKAGE']]),
-            capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE']]),
-        ]),
-        'mailbox'    => CapabilitySet::fromApiResults([
+        'mailbox' => CapabilitySet::fromApiResults([
             capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresSignature' => []]]),
             capabilityResult([
                 'carrier'      => 'DPD',

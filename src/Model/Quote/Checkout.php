@@ -279,7 +279,7 @@ class Checkout
                 'allowPriorityDelivery' => $canHavePriorityDelivery && $this->cartRules->allowsPriorityDelivery($items, $carrierPath, $this->storeId),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
-                'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $country, $hidesForProduct),
+                'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $packageType, $hidesForProduct),
                 'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->config->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
                 'allowExpressDelivery'  => $allowExpressDelivery,
@@ -574,10 +574,10 @@ class Checkout
         return max($productDelay, $configDelay);
     }
 
-    private function isPickupAllowed(string $carrier, string $country, bool $hidesForProduct): bool
+    private function isPickupAllowed(string $carrier, string $packageType, bool $hidesForProduct): bool
     {
         return ! $hidesForProduct
-               && PackageType::PACKAGE_NAME === $this->getPackageType($country)
+               && PackageType::PACKAGE_NAME === $packageType
                && $this->config->getBoolConfig($carrier, 'pickup/active');
     }
 
