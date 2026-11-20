@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\UrlInterface;
@@ -35,6 +36,26 @@ function mockStoreManagerWithBaseUrls(array $baseUrls): StoreManagerInterface
     $manager = Mockery::mock(StoreManagerInterface::class);
     $manager->shouldReceive('getStores')->andReturn($stores);
     return $manager;
+}
+
+/**
+ * The response Magento sends, recording the metadata the proxy sets on it in `metadata`.
+ *
+ * @return array{response: HttpResponse, metadata: ArrayObject<string,mixed>}
+ */
+function mockProxyResponse(): array
+{
+    $metadata = new ArrayObject();
+    $response = Mockery::mock(HttpResponse::class);
+    $response->shouldReceive('setMetadata')->andReturnUsing(
+        static function (string $key, $value) use ($metadata, &$response) {
+            $metadata[$key] = $value;
+
+            return $response;
+        }
+    );
+
+    return ['response' => $response, 'metadata' => $metadata];
 }
 
 /**
