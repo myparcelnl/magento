@@ -28,7 +28,7 @@
   ],
   "require": {
     "php": "^7.4 || ^8.0",
-    "guzzlehttp/guzzle": "^7.0",
+    "guzzlehttp/guzzle": "^7.4.5",
     "myparcelnl/sdk": "11.0.0-beta.36@beta",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1",
     "setasign/fpdi": "^2.6",

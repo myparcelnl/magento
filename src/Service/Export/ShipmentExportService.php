@@ -128,36 +128,47 @@ class ShipmentExportService
     /**
      * Fetch one merged label PDF for the whole batch, grouped per account.
      *
-     * A failing account never costs the other accounts their labels: its error is returned alongside
-     * whatever merged, so the caller can say why the PDF is empty or incomplete instead of guessing.
+     * A failing account or chunk does not cost the others their labels. Each failure's error comes
+     * back with the PDF, so the caller can tell why it is empty or incomplete.
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
      * @param int[]|null          $positions           the A4 positions, or null for A6
      *
-     * @return array{pdf: string, errors: string[]}
+     * @return array{pdf: string, errors: string[]} errors: one per failed account or chunk
      */
     public function fetchLabelPdf(array $shipmentIdsByApiKey, ?array $positions): array
     {
-        $pdfs = [];
+        $pdfs        = [];
+        $chunkErrors = [];
 
         $errors = $this->perKey(
             array_map([IdList::class, 'ints'], $shipmentIdsByApiKey),
             'fetch labels',
-            function (string $apiKey, array $shipmentIds) use (&$pdfs, $positions): void {
+            function (string $apiKey, array $shipmentIds) use (&$pdfs, &$chunkErrors, $positions): void {
+                // LabelHttpClient makes a non-PDF answer visible: the SDK discards the body it refused.
+                $service = $this->tagged($apiKey, function (string $key, $client) {
+                    return new ShipmentLabelsService($key, $client, $this->labelHttpClient);
+                });
+
                 // Chunked for the same reason the query is: every id goes into one path segment.
                 // CHUNK_SIZE is a multiple of four, so with all four A4 positions in use a chunk
                 // never splits a sheet.
                 foreach (array_chunk($shipmentIds, ShipmentQuery::CHUNK_SIZE) as $chunk) {
-                    // LabelHttpClient makes a non-PDF answer visible: the SDK discards the body it refused.
-                    $service = $this->tagged($apiKey, function (string $key, $client) {
-                        return new ShipmentLabelsService($key, $client, $this->labelHttpClient);
-                    });
-                    $service->setPdfOfLabels($chunk, $positions);
-
-                    $pdfs[] = $service->getLabelPdf();
+                    try {
+                        $pdfs[] = $service->setPdfOfLabels($chunk, $positions);
+                    } catch (Throwable $e) {
+                        Logger::warning('MyParcel export: could not fetch labels for one chunk', LogContext::of($e));
+                        $chunkErrors[] = (string) __(
+                            '%1 labels could not be fetched. %2',
+                            count($chunk),
+                            $e->getMessage()
+                        );
+                    }
                 }
             }
         );
+
+        $errors = array_merge($errors, $chunkErrors);
 
         $merged = $this->labelPdfMerger->merge($pdfs);
 
