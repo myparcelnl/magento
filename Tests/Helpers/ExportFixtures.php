@@ -105,7 +105,7 @@ function exportTrack(?int $existingShipmentId = null, ?int $trackEntityId = 1, ?
         [
             'getId'   => $trackEntityId,
             'getData' => static function (?string $key = null) use ($existingShipmentId) {
-                return 'myparcel_consignment_id' === $key ? $existingShipmentId : null;
+                return 'myparcel_shipment_id' === $key ? $existingShipmentId : null;
             },
         ]
     );

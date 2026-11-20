@@ -57,7 +57,7 @@ class ShipmentOptionsResolver
 
     private ?string $cc;
 
-    /** Null on the PPS path: a fulfilment order has no Magento shipment. */
+    /** Null on the Order v1 path: an Order v1 order has no Magento shipment. */
     private ?Shipment $shipment;
 
     /**
@@ -323,7 +323,7 @@ class ShipmentOptionsResolver
     /**
      * The row %product_id%, %product_name% and %product_qty% read from: the shipment's first item,
      * from memory because the New Shipment form builds the label before the shipment is saved. The
-     * PPS path has no shipment and reads the order's first item.
+     * Order v1 path has no shipment and reads the order's first item.
      */
     private function labelProductRows(): array
     {

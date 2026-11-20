@@ -5,10 +5,10 @@ declare(strict_types=1);
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 
 /**
- * Fixtures for the PPS export path. The object manager and the config come from
+ * Fixtures for the Order v1 export path. The object manager and the config come from
  * ShipmentBuilderMocks, which both export builders share; what is added here is the
  * ScopeConfigInterface the order date reads and an order item carrying a product.
  */
@@ -17,11 +17,11 @@ use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
  * Drives the real constructor and the real build(). $apiKeyStoreId null means every store resolves
  * to the key, as an inherited default does; pass one to make only that store resolve.
  */
-function createFulfilmentOrderBuilder(
+function createOrderV1Builder(
     ?string $apiKey = 'test-api-key',
     ?int    $apiKeyStoreId = null,
     array   $configValues = ['print/weight_indication' => 'gram']
-): FulfilmentOrderBuilder
+): OrderV1Builder
 {
     $objectManager = mockExportObjectManager(createExportConfig($apiKey, $apiKeyStoreId, $configValues));
 
@@ -29,14 +29,14 @@ function createFulfilmentOrderBuilder(
     $scopeConfig = mockScopeConfig();
     $objectManager->shouldReceive('create')->with(ScopeConfigInterface::class)->andReturn($scopeConfig);
 
-    return new FulfilmentOrderBuilder($objectManager);
+    return new OrderV1Builder($objectManager);
 }
 
 /**
- * An order the PPS builder can convert: a German destination, so age-check and customs never
+ * An order the Order v1 builder can convert: a German destination, so age-check and customs never
  * activate, with the same address billing and shipping unless one is overridden.
  */
-function createFulfilmentMagentoOrder(array $checkoutDeliveryOptions, array $overrides = []): Order
+function createOrderV1MagentoOrder(array $checkoutDeliveryOptions, array $overrides = []): Order
 {
     $address = createAddress([
         'getCountryId' => 'DE',

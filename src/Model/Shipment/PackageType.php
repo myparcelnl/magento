@@ -42,6 +42,15 @@ class PackageType
     public const PACKAGE_SMALL_NAME = 'package_small';
     public const ENVELOPE_NAME      = 'envelope';
 
+    /** One title per package type that the admin offers. Pallet and envelope have none. */
+    public const TITLES = [
+        self::PACKAGE_NAME       => 'Package',
+        self::MAILBOX_NAME       => 'Mailbox',
+        self::LETTER_NAME        => 'Letter',
+        self::DIGITAL_STAMP_NAME => 'Digital stamp',
+        self::PACKAGE_SMALL_NAME => 'Small package',
+    ];
+
     public const DEFAULT      = self::PACKAGE;
     public const DEFAULT_NAME = self::PACKAGE_NAME;
 

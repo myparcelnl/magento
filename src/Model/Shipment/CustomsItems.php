@@ -16,9 +16,9 @@ use MyParcelNL\Magento\Service\Weight;
 /**
  * The customs facts both export paths share: HS codes, countries of origin, and the line arithmetic.
  *
- * Each path keeps its own item source: a label declares its shipment items at the EUR base price, a
- * fulfilment order its order lines at the price paid in the order currency. Both lookups take every
- * product id at once, never one query per item.
+ * Each path keeps its own item source: a label declares its shipment items at the EUR base price,
+ * an Order v1 order its order lines at the price paid in the order currency. Both lookups take
+ * every product id at once, never one query per item.
  */
 class CustomsItems
 {
@@ -140,6 +140,7 @@ class CustomsItems
         return new \RuntimeException((string) __('customs item %1: %2', $product, $e->getMessage()), 0, $e);
     }
 
+    /** The product name, shortened to MAX_DESCRIPTION_LENGTH characters with `...` at the end. */
     public function description(string $name): string
     {
         return Text::limit($name, self::MAX_DESCRIPTION_LENGTH);

@@ -304,7 +304,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         if (! $this->builtShipments) {
             // Nothing built is not the same as nothing to do: a selection of orders that already
             // carry labels is a reprint, and warning there reads as a failure.
-            if (! $this->getMyparcelConsignmentIdsByApiKey()) {
+            if (! $this->getMyParcelShipmentIdsByApiKey()) {
                 $this->messageManager->addWarningMessage(__('No MyParcel shipments to process.'));
             }
 
@@ -339,7 +339,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         foreach ($this->getShipmentsCollection() as $shipment) {
             foreach ($tracks[(int) $shipment->getId()] ?? [] as $track) {
-                if (0 < (int) $track->getData('myparcel_consignment_id')) {
+                if (0 < (int) $track->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID)) {
                     $shipmentIds[] = (int) $shipment->getEntityId();
                     break;
                 }
@@ -357,7 +357,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function sendReturnLabelMails(): bool
     {
-        $idsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
+        $idsByApiKey = $this->getMyParcelShipmentIdsByApiKey();
         $lookup      = $this->exportService->fetchLatestWithErrors($idsByApiKey);
         $rows        = [];
         $reported    = false;
@@ -480,7 +480,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         foreach ($this->tracksByShipmentId() as $tracks) {
             foreach ($tracks as $track) {
-                $shipmentId           = (int) $track->getData('myparcel_consignment_id');
+                $shipmentId           = (int) $track->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
                 $trackOf[$shipmentId] = $trackOf[$shipmentId] ?? $track;
             }
         }
@@ -571,7 +571,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $magentoTracks = $tracks[(int) $shipment->getId()] ?? [];
 
             foreach ($magentoTracks as $magentoTrack) {
-                if ($magentoTrack->getData('myparcel_consignment_id')) {
+                if ($magentoTrack->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID)) {
                     continue;
                 }
 
@@ -668,7 +668,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     public function updateMagentoTrack(): self
     {
         $tracks = $this->tracksByShipmentId();
-        $latest = $this->exportService->fetchLatest($this->getMyparcelConsignmentIdsByApiKey($tracks));
+        $latest = $this->exportService->fetchLatest($this->getMyParcelShipmentIdsByApiKey($tracks));
 
         $claimedIds = [];
         $secondary  = [];
@@ -678,7 +678,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $parentSeen = [];
 
             foreach ($tracks[(int) $shipment->getId()] ?? [] as $magentoTrack) {
-                $shipmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                $shipmentId = (int) $magentoTrack->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
                 if (0 !== $shipmentId) {
                     // A second row on the same id is a multicollo collo that persist() parked here.
@@ -761,7 +761,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     ? $this->newMagentoTrack($entry['shipment'])
                     : array_shift($spare[$parentId]);
 
-                $magentoTrack->setData('myparcel_consignment_id', $colloId);
+                $magentoTrack->setData(Config::FIELD_MYPARCEL_SHIPMENT_ID, $colloId);
                 $this->writeShipmentToTrack($magentoTrack, $collo);
                 $this->trackRepository->save($magentoTrack);
                 $this->forgetTracks();
@@ -828,7 +828,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      *
      * @return array<string,int[]>
      */
-    public function getMyparcelConsignmentIdsByApiKey(?array $tracks = null): array
+    public function getMyParcelShipmentIdsByApiKey(?array $tracks = null): array
     {
         $tracks  = $tracks ?? $this->tracksByShipmentId();
         $grouped = [];
@@ -841,12 +841,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
 
             foreach ($tracks[(int) $shipment->getId()] ?? [] as $track) {
-                $consignmentId = (int) $track->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $track->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
-                if (0 < $consignmentId) {
+                if (0 < $myParcelShipmentId) {
                     // Keyed, not appended: a multicollo's colli share the parent's id until the
                     // query response names them, and asking for the same shipment twice is waste.
-                    $grouped[$apiKey][$consignmentId] = $consignmentId;
+                    $grouped[$apiKey][$myParcelShipmentId] = $myParcelShipmentId;
                 }
             }
         }

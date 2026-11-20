@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
-use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\OrderExportOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 
@@ -18,17 +18,17 @@ function labelDescriptionFor(string $description): string
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
-    $subject = createOrderShipmentOptions([
+    $subject = createOrderExportOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback([]),
-        'resolved'        => ResolvedOptions::of(['label_description' => $description]),
+        'chosen'        => ResolvedOptions::of(['label_description' => $description]),
     ]);
 
-    return (string) $subject->shipmentOptions()->getLabelDescription();
+    return (string) $subject->sdkShipmentOptions()->getLabelDescription();
 }
 
 it('leaves a description that already fits exactly alone', function () {
-    $exact = str_repeat('a', OrderShipmentOptions::LABEL_DESCRIPTION_MAX_LENGTH);
+    $exact = str_repeat('a', OrderExportOptions::LABEL_DESCRIPTION_MAX_LENGTH);
 
     expect(labelDescriptionFor($exact))->toBe($exact);
 });
@@ -37,7 +37,7 @@ it('uses all 45 characters when it truncates', function () {
     // Text::limit puts the ellipsis inside the 45 characters.
     $result = labelDescriptionFor(str_repeat('a', 200));
 
-    expect(mb_strlen($result))->toBe(OrderShipmentOptions::LABEL_DESCRIPTION_MAX_LENGTH);
+    expect(mb_strlen($result))->toBe(OrderExportOptions::LABEL_DESCRIPTION_MAX_LENGTH);
 });
 
 it('says it truncated rather than cutting silently', function () {

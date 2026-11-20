@@ -8,6 +8,9 @@ declare(strict_types=1);
  * The status cron selects on the track's own status, excludes nothing that failed before, and sorts
  * entity_id DESC. A row that throws on save gets the same place next tick, and every order behind it
  * stalls while the row stays broken.
+ *
+ * partialOrderCollection(), recordingExportService(), myParcelShipmentIdsStub() and apiShipment() live
+ * in Tests/Helpers/UpdateMagentoTrackFixtures.php; recordingTrack() in Tests/Helpers/ExportFixtures.php.
  */
 
 /**
@@ -22,24 +25,24 @@ function collectionWhoseFirstTrackCannotSave(): array
         public array $fetched = [];
     };
 
-    $track = static function (int $consignmentId, bool $throws) use ($saved) {
+    $track = static function (int $myParcelShipmentId, bool $throws) use ($saved) {
         return recordingTrack(
             [
                 'setTrackNumber' => static function (): void {
                 },
                 'setData'        => static function (): void {
                 },
-                'save'           => static function () use ($saved, $consignmentId, $throws): void {
+                'save'           => static function () use ($saved, $myParcelShipmentId, $throws): void {
                     if ($throws) {
                         throw new Exception('constraint violation on this row');
                     }
 
-                    $saved->saves[] = $consignmentId;
+                    $saved->saves[] = $myParcelShipmentId;
                 },
             ],
             [
-                'getData' => static function (?string $key = null) use ($consignmentId) {
-                    return 'myparcel_consignment_id' === $key ? $consignmentId : null;
+                'getData' => static function (?string $key = null) use ($myParcelShipmentId) {
+                    return 'myparcel_shipment_id' === $key ? $myParcelShipmentId : null;
                 },
             ]
         );
@@ -50,8 +53,8 @@ function collectionWhoseFirstTrackCannotSave(): array
 
     $collection->shouldReceive('tracksByShipmentId')
                ->andReturn([(int) $shipment->getId() => [$track(4242, true), $track(4243, false)]]);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
-               ->andReturnUsing(consignmentIdsStub([4242, 4243]));
+    $collection->shouldReceive('getMyParcelShipmentIdsByApiKey')
+               ->andReturnUsing(myParcelShipmentIdsStub([4242, 4243]));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
 
     setPrivateProperty($collection, 'exportService', recordingExportService([
@@ -106,7 +109,7 @@ it('carries on to the next collo when the track of one collo cannot be saved', f
                     throw new Exception('constraint violation on this row');
                 }
 
-                $saves[] = $saved->created[$key]['data']['myparcel_consignment_id'] ?? null;
+                $saves[] = $saved->created[$key]['data']['myparcel_shipment_id'] ?? null;
             },
         ]);
     });
