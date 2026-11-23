@@ -215,7 +215,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 
 - **Capability parity** is the least certain part. Where PDK and the OpenAPI spec disagree, an
   observed acceptance response wins.
-- **The loose-coupling trade** holds only while the API's error reaches the admin legibly. Anything
+- **Rule 1, "the API is the validator",** holds only while the API's error reaches the admin legibly. Anything
   that swallows or flattens a rejection breaks it. **The log is the deliberate exception**:
   `Rejection::shapeOf()` records the body's keys and field pointers and never its values, because
   the API names the field it refused in text that quotes what was sent: on an address, the
