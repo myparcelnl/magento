@@ -86,7 +86,7 @@ Use the `add-shipment-option` skill. It follows "Adding a shipment option" in
 
 These rules are specific to this module. A reviewer can not read them from the code.
 
-- `src/Facade/Facade.php` and `src/Facade/Logger.php` use the ObjectManager on purpose, as a static service locator. New code may call `Logger::notice()` and `Logger::error()`. Other new code uses constructor injection.
+- `src/Facade/Facade.php` and `src/Facade/Logger.php` use the ObjectManager on purpose, as a static service locator. New code may log through the static `Logger` facade, at any PSR-3 level. Other new code uses constructor injection.
 - About twenty older classes still call `ObjectManager::getInstance()`. That is known debt. Do not copy it, and do not report it in a review of a change that does not touch it.
 - An around plugin needs a docblock that says why a before or after plugin is not enough. `ProblemDetailsError` is an example: it skips `$proceed()` so that Magento does not render the exception.
 - Setup scripts check that a table or column exists before they change it (`isTableExists()`, `tableColumnExists()`). Data migrations go in `src/Setup/Migrations/`.
