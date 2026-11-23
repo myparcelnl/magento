@@ -104,7 +104,11 @@ class CapabilitySet
         return $carriers;
     }
 
-    /** @return string[] */
+    /**
+     * Get the module package type names the account offers for this carrier.
+     *
+     * @return string[]
+     */
     public function packageTypesFor(string $carrier): array
     {
         return $this->union($carrier, null, static function (ModelInterface $result): array {
@@ -112,7 +116,11 @@ class CapabilitySet
         });
     }
 
-    /** @return string[] */
+    /**
+     * Get the module delivery type names the account offers for this carrier and package type.
+     *
+     * @return string[]
+     */
     public function deliveryTypesFor(string $carrier, ?string $packageType = null): array
     {
         return $this->union($carrier, $packageType, static function (ModelInterface $result): array {
@@ -143,20 +151,20 @@ class CapabilitySet
         }));
     }
 
-    /** Permissive answers yes, for the same reason hasOption() does. */
+    /** Check whether the account offers this package type. Permissive answers yes, as hasOption() does. */
     public function hasPackageType(string $carrier, string $packageType): bool
     {
         return $this->permissive || in_array($packageType, $this->packageTypesFor($carrier), true);
     }
 
-    /** Permissive answers yes, for the same reason hasOption() does. */
+    /** Check whether the account offers this delivery type. Permissive answers yes, as hasOption() does. */
     public function hasDeliveryType(string $carrier, ?string $packageType, string $deliveryType): bool
     {
         return $this->permissive
                || in_array($deliveryType, $this->deliveryTypesFor($carrier, $packageType), true);
     }
 
-    /** Permissive answers yes: offer the option and let the API decide. */
+    /** Check whether the account offers this option. Permissive answers yes: offer it and let the API decide. */
     public function hasOption(string $carrier, ?string $packageType, string $option): bool
     {
         return $this->permissive || null !== $this->optionValue($carrier, $packageType, $option);
@@ -176,7 +184,10 @@ class CapabilitySet
         return null;
     }
 
-    /** Null when unknown, including permissive. A caller that must choose picks the safe branch. */
+    /**
+     * Get the highest collo count for this carrier and package type, or null when unknown (also when
+     * permissive). A caller that must choose picks the safe branch.
+     */
     public function colloMaxFor(string $carrier, ?string $packageType = null): ?int
     {
         $max = null;
