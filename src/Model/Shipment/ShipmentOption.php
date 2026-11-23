@@ -33,7 +33,8 @@ class ShipmentOption
     /**
      * The yes/no facts having() takes; a missing one is false. toggle: a yes/no option of the shipment,
      * resolved and sent on every export, stored on the order, and shown when capabilities cannot be
-     * read. checkout: in the widget, with a fee. mailbox: its fee is in the mailbox group.
+     * read. checkout: in the widget, with a fee. mailbox: its fee setting is in the mailbox group
+     * (mailbox/<name>_fee).
      */
     private const FLAGS = ['toggle', 'checkout', 'mailbox'];
 
@@ -46,7 +47,13 @@ class ShipmentOption
     /** @var array<string,string|null> toV2Name() per name */
     private static $v2Names = [];
 
-    /** What the module knows about an option, one row per option. The row order is the order of every option list. */
+    /**
+     * What the module knows about an option, one row per option. The row order is the order of every
+     * option list.
+     *
+     * The facts are the module's own: settings, fees, labels. Which carrier and package type offer an
+     * option comes from capabilities, never from a row.
+     */
     public const DEFINITIONS
         = [
             self::SIGNATURE          => ['toggle' => true, 'checkout' => true, 'label' => 'Signature on receipt'],
