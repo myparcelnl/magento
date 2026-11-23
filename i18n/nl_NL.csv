@@ -72,9 +72,9 @@ Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 Automate 'Insure shipments to Belgium',Automatiseer 'Verzeker zendingen naar België'
 Automate Priority delivery (mailbox),Automatiseer Prio levering (brievenbus)
 Automatically enable priority delivery for mailbox packages during export,Automatisch prioriteitslevering inschakelen voor brievenbuspakketten tijdens export
-Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
+Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandaglevering is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
 'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
-The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn handtekening voor ontvangst en alleen ontvanger inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en 's avonds.
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn handtekening voor ontvangst en alleen ontvanger inbegrepen. De leeftijd van 18+ is verder uitgesloten van de leveringsopties 's morgens en 's avonds.
 'Insurance € 500' operates above a certain order total amount.,'Verzekerd tot € 500' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag.
 Select automatically digital stamp packages based on weight,Selecteer automatisch digitale postzegelpakketten op basis van gewicht
 Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.,Prijs is afhankelijk van het gewicht. Zijn de gewichten correct ingevuld voor alle producten? Kies 'Geen standaardgewicht' om MyParcel het gewicht zelf te laten berekenen. Selecteer hier een standaardgewicht als de producten niet de juiste gewichten bevatten.
@@ -88,20 +88,20 @@ Enter a basic price for a mailbox. The regular price will not affect this price.
 Morning delivery,Ochtendlevering
 Evening delivery,Avondlevering
 Evening delivery fee,Avondlevering kosten
-Express delivery,Binnen 1 dag bezorgd
-Express delivery fee,Binnen 1 dag bezorgd kosten
-Express delivery active,Binnen 1 dag bezorgd ingeschakeld
-Same day delivery,Zelfde dag bezorgd
+Express delivery,Levering binnen 1 dag
+Express delivery fee,Levering binnen 1 dag kosten
+Express delivery active,Levering binnen 1 dag ingeschakeld
+Same day delivery,Levering op dezelfde dag
 Early morning delivery,Vroege ochtendlevering
 Morning delivery active,Ochtendlevering ingeschakeld
-If age check is active then the evening delivery is not possible,Als de leeftijdscontrole actief is dan is avondbezorging niet mogelijk
-If age check is active then the morning delivery is not possible,Als de leeftijdscontrole actief is dan is ochtendbezorging niet mogelijk
+If age check is active then the evening delivery is not possible,Als de leeftijdscontrole actief is dan is avondlevering niet mogelijk
+If age check is active then the morning delivery is not possible,Als de leeftijdscontrole actief is dan is ochtendlevering niet mogelijk
 Morning delivery fee,Ochtendlevering kosten
 Evening delivery active,Avondlevering ingeschakeld
 Monday delivery,Maandag levering
 Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Levering op maandag kan speciale voorwaarden vereisen in vergelijking met andere (week)dagen, waaronder maar niet beperkt tot kosten en laatste bestelmoment."
 Number of days,Aantal dagen
-Delivery enabled,Bezorging ingeschakeld
+Delivery enabled,Levering ingeschakeld
 Receipt code,Ontvangstcode
 Receipt code fee,Ontvangstcode kosten
 Collect package,Pakket laten ophalen
@@ -111,8 +111,8 @@ Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
 From price,Vanaf prijs
-Enable sameday delivery,Zelfde dag bezorgd inschakelen
-Sameday delivery fee,Zelfde dag bezorgd kosten
+Enable sameday delivery,Levering op dezelfde dag inschakelen
+Sameday delivery fee,Levering op dezelfde dag kosten
 Sameday cut-off time,Zelfde dag laatste bestelmoment
 Saturday cut-off time,Zaterdag laatste bestelmoment
 Sunday cut-off time,Zondag laatste bestelmoment
@@ -167,7 +167,7 @@ Installation and configuration instructions,Installatie en configuratie handleid
 Do you want to know what they are doing in the near future? Below you can find the schedule for Magento 2. Do you have any suggestions or ideas? They are always welcome. That way we will continue to improve the extension together.,Wil je weten waar ze de komende tijd mee bezig zijn? Hieronder vind je de planning voor Magento 2. Heb je zelf suggesties of ideeën? Ze zijn altijd welkom. Op die manier blijven we samen de extensie verbeteren.
 API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,API key is niet bekend. Ga naar de instellingen in de backoffice om een API key te maken. Vul de API key in bij de instellingen.
 Basic settings,Basis instellingen
-Delivery settings,Bezorging
+Delivery settings,Levering
 Titles,Titels
 day,dag
 days,dagen
@@ -191,12 +191,12 @@ Fit in digital stamp,Past in digitale postzegel
 HS code,HS code
 "HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs","HS Codes worden gebruikt voor MyParcel wereldzendingen, je kunt de juiste code vinden op de site van de Douane."
 Disable delivery options,Verzendopties uitschakelen
-With this option you can disable the delivery options if this product is in the cart.,Met deze optie kun je de bezorgopties uitschakelen als dit product in de winkelwagen zit.
+With this option you can disable the delivery options if this product is in the cart.,Met deze optie kun je de leveringsopties uitschakelen als dit product in de winkelwagen zit.
 Fit in mailbox,Past in brievenbus
 "Fill in the amount of products that fit in one mailbox package. Use 0 to automatically calculate based on weight, -1 if the article does not fit in a mailbox package. It will always be sent as a regular package if it's too heavy for a mailbox package.","Vul het aantal producten in dat in één brievenbuspakket past. Gebruik 0 om automatisch te berekenen op basis van gewicht, -1 wanneer het niet in een brievenbuspakket past. Het product wordt altijd als pakket verzonden als het gewicht te hoog is voor een brievenbuspakket."
 Methods,Verzendmethode
 The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
-Delivery title,Bezorg titel
+Delivery title,Leveringstitel
 When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
@@ -211,7 +211,7 @@ If both have been selected this price will be added to the regular shipping pric
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Pickup at PostNL location,Ophalen bij een PostNL locatie
 Pickup active,Ophalen actief
-Standard delivery Title,Standaard bezorg titel
+Standard delivery Title,Titel standaardlevering
 Signature on receipt title,Handtekening voor ontvangst titel
 Hide sender title,Afzender verbergen titel
 Printerless return,Retour zonder printer
@@ -229,7 +229,7 @@ Pickup list button text,Lijst ophalen knop tekst
 Pickup map button text,Kaart ophalen knop tekst
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
-Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.
+Show a delivery day in the checkout.,Laat een leverdag zien in de checkout.
 You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 Address details are not entered,Adresgegevens zijn niet ingevuld
 The times will be visible when nothing is filled in,De tijden zullen zichtbaar zijn wanneer niets is ingevuld
@@ -251,7 +251,7 @@ Country,Land
 Street,Straat
 Again,Opnieuw
 Postcode/city combination unknown,Postcode/plaats combinatie onbekend
-Deliver as quickly as possible,Zo snel mogelijk bezorgen
+Deliver as quickly as possible,Zo snel mogelijk leveren
 Date settings,Datum instellingen
 Monday,Maandag
 Tuesday,Dinsdag
@@ -281,7 +281,7 @@ Already exported, Reeds geëxporteerd
 Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no)."," ""Waar de verzendmethode wordt getoond"
 
-Standard Delivery,Standaard bezorging
+Standard Delivery,Standaardlevering
 Morning Delivery,Ochtendlevering
 Evening Delivery,Avondlevering
 Pickup locations,Ophalen bij een afhaallocatie
@@ -290,16 +290,16 @@ Signature,Handtekening voor ontvangst
 delivery_title,Levering thuis of op het werk
 header_delivery_options,
 compact_back_to_overview_title,Terug naar overzicht
-compact_delivery_title,Bezorging
+compact_delivery_title,Levering
 compact_pickup_title,Ophalen
 pop_up_map_title,Afhaallocatie
 pop_up_map_open_title,Kaart openen
 pop_up_map_confirm_title,Bevestigen
-standard_title,Standaard bezorging
-morning_title,Ochtendbezorging
-evening_title,Avondbezorging
+standard_title,Standaardlevering
+morning_title,Ochtendlevering
+evening_title,Avondlevering
 pickup_title,Ophalen bij een afhaallocatie
-same_day_title,Zelfde dag bezorging
+same_day_title,Levering op dezelfde dag
 hide_sender_title,Afzender verbergen
 list_title,Lijst
 map_title,Kaart
@@ -311,22 +311,22 @@ signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
 priority_delivery_title,Prio levering
 only_recipient_title,Alleen ontvanger
-monday_delivery_title,Maandag bezorging
-saturday_delivery,Zaterdag bezorging
-saturday_delivery_title,Zaterdag bezorging
+monday_delivery_title,Maandaglevering
+saturday_delivery,Zaterdaglevering
+saturday_delivery_title,Zaterdaglevering
 load_more,Laad meer
 options_title,Opties
-no_delivery_options_available,Geen bezorgopties beschikbaar.
+no_delivery_options_available,Geen leveringsopties beschikbaar.
 delivery_moment_not_possible,{deliveryType} (datum/tijd keuze niet beschikbaar)
 error3224,Ongeldige vervoerder.
-error3506,Ongeldig bezorgtype.
+error3506,Ongeldig leveringstype.
 error3516,Land wordt niet ondersteund door vervoerder.
 error3517,Niet beschikbaar voor dit land.
 error3707,Ongeldig pakkettype.
-error3728,Geen bezorgopties gevonden.
-Delivery costs,Bezorgkosten
+error3728,Geen leveringsopties gevonden.
+Delivery costs,Leveringskosten
 Use Free Shipping,Gebruik gratis verzending
-Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel leveringskosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
 Rule name,Regel naam
 Select a condition...,Selecteer een voorwaarde...
 Carrier name,Vervoerder naam
@@ -336,8 +336,8 @@ Maximum weight (in grams),Maximum gewicht (in gram)
 Country part of,Land onderdeel van
 Minimum order amount,Minimaal bestelbedrag
 Maximum order amount,Maximaal bestelbedrag
-Delivery type,Bezorgtype
-"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Het bestelbedrag is het subtotaal na korting, incl. btw en zonder verzendkosten. Zet de kosten per bezorgtype op 0 als de matrix de prijs per bezorgtype volledig bepaalt."
+Delivery type,Leveringstype
+"The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Het bestelbedrag is het subtotaal na korting, incl. btw en zonder verzendkosten. Zet de kosten per leveringstype op 0 als de matrix de prijs per leveringstype volledig bepaalt."
 No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
 Add rule,Regel toevoegen
 Price,Prijs
@@ -352,22 +352,22 @@ Select a condition,Selecteer een voorwaarde
 Show or hide JSON textarea,Toon of verberg JSON tekstvak
 Invalid JSON in textarea,Ongeldige JSON in tekstvak
 Compact view,Compacte weergave
-"When enabled, the delivery options widget is rendered in compact mode.","Wanneer ingeschakeld, wordt de bezorgopties-widget weergegeven in compacte modus."
+"When enabled, the delivery options widget is rendered in compact mode.","Wanneer ingeschakeld, wordt de leveringsopties-widget weergegeven in compacte modus."
 Pop-up map,Pop-up kaart
 "When enabled, the pickup location map is displayed in a pop-up.","Wanneer ingeschakeld, wordt de afhaalkaart in een pop-up weergegeven."
 Import MyParcel Backoffice settings,MyParcel Backoffice-instellingen importeren
 Import,Importeren
 Compact mode back to overview text,Compacte modus 'terug naar overzicht' tekst
-Compact mode delivery title,Compacte modus bezorgtitel
+Compact mode delivery title,Compacte modus leveringstitel
 Compact mode pickup title,Compacte modus afhaaltitel
 Pop-up map title,Titel pop-up kaart
 Pop-up map open button text,Tekst knop 'kaart openen' pop-up
 Pop-up map confirm button text,Tekst bevestigingsknop pop-up kaart
-Delivery options header,Bezorgopties koptekst
-Monday delivery title,Titel maandagbezorging
+Delivery options header,Leveringsopties koptekst
+Monday delivery title,Titel maandaglevering
 Receipt code title,Titel ontvangstcode
 Exclude parcel lockers,Pakketkluizen uitsluiten
-Price shown in delivery options,Prijs getoond in bezorgopties
+Price shown in delivery options,Prijs getoond in leveringsopties
 Automate 'Only recipient',Automatiseer 'Alleen ontvanger'
 Automate 'Hide sender',Automatiseer 'Verberg afzender'
 Automate Small Package,Automatiseer Klein pakket
@@ -375,7 +375,7 @@ DHL Europlus settings,DHL Europlus instellingen
 DHL For You settings,DHL For You instellingen
 DHL Parcel Connect settings,DHL Parcel Connect instellingen
 DPD settings,DPD instellingen
-Delivery fee,Bezorgkosten
+Delivery fee,Leveringskosten
 Empty package weight,Leeg pakket gewicht
 Fresh food from price (€),Verse producten vanaf prijs (€)
 Frozen from price (€),Bevroren vanaf prijs (€)
@@ -401,8 +401,8 @@ PostNL settings,PostNL instellingen
 Priority delivery fee,Prio levering kosten
 Priority delivery title,Prio levering titel
 Receipt code from price (€),Ontvangstcode vanaf prijs (€)
-Saturday delivery,Zaterdag bezorging
-Saturday delivery fee,Zaterdag bezorging kosten
+Saturday delivery,Zaterdaglevering
+Saturday delivery fee,Zaterdaglevering kosten
 Signature from price (€),Handtekening voor ontvangst vanaf prijs (€)
 Small Package settings,Klein pakket instellingen
 Small Package weight,Klein pakket gewicht
@@ -418,7 +418,7 @@ Activating the 'hide sender' option will remove the name and address of the send
 Amount of days in the future customers can choose from in the checkout.,Aantal toekomstige dagen waaruit klanten kunnen kiezen in de checkout.
 Automatically select package type 'Small Package' for orders under 2000 grams. Package type will be 'Small Package' when a product has setting 'Fit in mailbox' set to 0 and the weight is under 2000 grams.,Selecteer automatisch pakkettype 'Klein pakket' voor bestellingen onder 2000 gram. Het pakkettype wordt 'Klein pakket' als een product de instelling 'Past in brievenbus' op 0 heeft en het gewicht onder 2000 gram is.
 Clicking this button will fetch settings from the MyParcel Backoffice and overwrite the current settings.,Door op deze knop te klikken worden de instellingen van de MyParcel Backoffice opgehaald en worden de huidige instellingen overschreven.
-Leave empty to hide the header above the delivery options.,Laat leeg om de koptekst boven de bezorgopties te verbergen.
+Leave empty to hide the header above the delivery options.,Laat leeg om de koptekst boven de leveringsopties te verbergen.
 "Only available for certain contracts. If this is not in your contract, the setting has no effect.","Alleen beschikbaar voor bepaalde contracten. Als dit niet in uw contract staat, heeft de instelling geen effect."
 Shipments heavier than the weight specified here will not be of package type 'Small Package'.,Zendingen die zwaarder zijn dan het hier opgegeven gewicht worden niet als 'Klein pakket' verzonden.
 The minimum amount from when fresh food is active.,Het minimale bedrag vanaf wanneer verse producten actief is.
@@ -427,7 +427,7 @@ The minimum amount from when insurance is active.,Het minimale bedrag vanaf wann
 The minimum amount from when only recipient is active.,Het minimale bedrag vanaf wanneer alleen ontvanger actief is.
 The minimum amount from when receipt code is active.,Het minimale bedrag vanaf wanneer ontvangstcode actief is.
 The minimum amount from when signature is active.,Het minimale bedrag vanaf wanneer handtekening voor ontvangst actief is.
-This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Dit bepaalt hoe de bezorgkosten aan de klant worden getoond via de bezorgopties. De prijs kan worden weergegeven als totaal voor elke bezorgoptie of als toeslag bovenop de normale verzendkosten.
+This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Dit bepaalt hoe de leveringskosten aan de klant worden getoond via de leveringsopties. De prijs kan worden weergegeven als totaal voor elke leveringsoptie of als toeslag bovenop de normale verzendkosten.
 This setting applies to domestic shipments only,Deze instelling geldt alleen voor binnenlandse zendingen
 This will be added to or subtracted from the regular shipping price,Dit wordt opgeteld bij of afgetrokken van de normale verzendkosten
 Use percentage of total order amount for insurance.,Gebruik percentage van het totale orderbedrag voor verzekering.
@@ -540,10 +540,10 @@ this order is a pickup but carries no pickup location,"deze bestelling wordt opg
 "MyParcel export error","MyParcel exportfout"
 "MyParcel refused the last export: %1","MyParcel heeft de laatste export geweigerd: %1"
 "The changes apply to all %1 selected orders. A field set to Keep does not change.","De wijzigingen gelden voor alle %1 geselecteerde bestellingen. Een veld op Niet wijzigen verandert niet."
-"The pickup location belongs to the current carrier. With another carrier, the order ships as a home delivery.","Het afhaalpunt hoort bij de huidige vervoerder. Met een andere vervoerder wordt de bestelling thuisbezorgd."
+"The pickup location belongs to the current carrier. With another carrier, the order ships as a home delivery.","Het afhaalpunt hoort bij de huidige vervoerder. Met een andere vervoerder wordt de bestelling thuis geleverd."
 "Select orders of one MyParcel account. The selected orders belong to more than one.","Selecteer bestellingen van één MyParcel account. De geselecteerde bestellingen horen bij meer dan één account."
 "%1: %2 is not available for this account.","%1: %2 is niet beschikbaar voor dit account."
-"%1: the pickup location of this order cannot be read. Choose a carrier to ship it as a home delivery.","%1: het afhaalpunt van deze bestelling is niet leesbaar. Kies een vervoerder om de bestelling thuis te laten bezorgen."
+"%1: the pickup location of this order cannot be read. Choose a carrier to ship it as a home delivery.","%1: het afhaalpunt van deze bestelling is niet leesbaar. Kies een vervoerder om de bestelling thuis te laten leveren."
 "The MyParcel options could not be processed. Please check the log.","De MyParcel opties konden niet worden verwerkt. Controleer het log."
 "The MyParcel options could not be saved.","De MyParcel opties konden niet worden opgeslagen."
 "The MyParcel options could not be loaded.","De MyParcel opties konden niet worden geladen."
@@ -551,15 +551,15 @@ this order is a pickup but carries no pickup location,"deze bestelling wordt opg
 "Print label","Label printen"
 "Send return label","Retourlabel versturen"
 "Export error","Exportfout"
-"Delivery date","Bezorgdatum"
-"No delivery date","Geen bezorgdatum"
+"Delivery date","Leverdatum"
+"No delivery date","Geen leverdatum"
 "Dimensions (cm)","Afmetingen (cm)"
 "Length","Lengte"
 "Width","Breedte"
 "Height","Hoogte"
 "Set to","Instellen op"
 "Remove","Verwijderen"
-"%1: the delivery date must be tomorrow or later.","%1: de bezorgdatum moet morgen of later zijn."
+"%1: the delivery date must be tomorrow or later.","%1: de leverdatum moet morgen of later zijn."
 "Drop-off day","Verzenddag"
 "Send to MyParcel again","Opnieuw naar MyParcel sturen"
 "These orders were already sent to MyParcel before, and are sent again: %1","Deze bestellingen zijn al eerder naar MyParcel gestuurd en worden opnieuw gestuurd: %1"
