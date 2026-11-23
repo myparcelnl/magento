@@ -13,12 +13,13 @@ namespace MyParcelNL\Magento\Model\Shipment;
  */
 trait MapsV2Names
 {
+    /** Get the v2 name for a module name, or null when the module does not map it. */
     public static function toV2Name(string $name): ?string
     {
         return self::V2_NAMES_MAP[$name] ?? null;
     }
 
-    /** Null for a v2 name the module does not know; the caller leaves it out rather than inventing one. */
+    /** Get the module name for a v2 name, or null when the module does not know it; the caller leaves it out. */
     public static function fromV2Name(string $v2Name): ?string
     {
         $name = array_search($v2Name, self::V2_NAMES_MAP, true);
