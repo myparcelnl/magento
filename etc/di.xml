@@ -101,6 +101,13 @@
             <argument name="capabilityLookup" xsi:type="object" shared="false">MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup</argument>
         </arguments>
     </type>
+    <!-- The HTTP client of the capabilities and contract definitions requests. Its timeouts are set per request. -->
+    <virtualType name="MyParcelNL\Magento\Model\Shipment\Capabilities\HttpClient" type="GuzzleHttp\Client"/>
+    <type name="MyParcelNL\Magento\Model\Shipment\Capabilities\Client">
+        <arguments>
+            <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Model\Shipment\Capabilities\HttpClient</argument>
+        </arguments>
+    </type>
     <!-- The HTTP client of the label and return requests, with the SDK's request timeout. -->
     <virtualType name="MyParcelNL\Magento\Service\Export\HttpClient" type="GuzzleHttp\Client">
         <arguments>
