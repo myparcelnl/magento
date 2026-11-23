@@ -90,6 +90,7 @@
         <arguments>
             <argument name="defaultBaseUrl" xsi:type="string">https://myparcel.me/track-trace/</argument>
             <argument name="baseUrlsByProposition" xsi:type="array">
+                <!-- 3 is AccountDefsPlatformId::BELGIE -->
                 <item name="3" xsi:type="string">https://sendmyparcel.me/track-trace/</item>
             </argument>
         </arguments>
