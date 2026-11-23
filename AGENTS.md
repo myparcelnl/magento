@@ -91,7 +91,7 @@ These rules are specific to this module. A reviewer can not read them from the c
 - An around plugin needs a docblock that says why a before or after plugin is not enough. `ProblemDetailsError` is an example: it skips `$proceed()` so that Magento does not render the exception.
 - Setup scripts check that a table or column exists before they change it (`isTableExists()`, `tableColumnExists()`). Data migrations go in `src/Setup/Migrations/`.
 - Every external host that the frontend loads needs an entry in `etc/csp_whitelist.xml`.
-- User-facing strings use `__()`. The translations are in `i18n/`: da_DK, de_DE, en_US, fr_FR, it_IT, nl_NL and pl_PL.
+- User-facing strings use `__()`, with a translation in every file in `i18n/`.
 
 ## Documentation
 
