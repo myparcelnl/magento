@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Framework\DataObject;
-use MyParcelNL\Magento\Model\Shipment\OrderCustomsDeclarationBuilder;
+use MyParcelNL\Magento\Service\Export\OrderCustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 
 /** The PPS customs path: each line at product weight and at the price paid in the order's currency. */

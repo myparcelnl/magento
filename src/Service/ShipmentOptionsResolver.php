@@ -11,7 +11,7 @@ use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;

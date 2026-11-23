@@ -25,12 +25,12 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
-use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
+use MyParcelNL\Magento\Service\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -62,6 +62,8 @@ class NewShipment extends AbstractItems
 
     private CapabilitiesLookup $capabilityLookup;
 
+    private DigitalStampWeight $digitalStampWeight;
+
     private Weight $weightService;
 
     private Config $configService;
@@ -84,7 +86,8 @@ class NewShipment extends AbstractItems
         StockConfigurationInterface $stockConfiguration,
         Registry                    $registry,
         ObjectManagerInterface      $objectManager,
-        CapabilitiesLookup          $capabilityLookup
+        CapabilitiesLookup          $capabilityLookup,
+        DigitalStampWeight          $digitalStampWeight
     )
     {
         $this->order         = $registry->registry('current_shipment')->getOrder();
@@ -92,7 +95,8 @@ class NewShipment extends AbstractItems
         $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
 
-        $this->capabilityLookup = $capabilityLookup;
+        $this->capabilityLookup   = $capabilityLookup;
+        $this->digitalStampWeight = $digitalStampWeight;
 
         $this->defaultOptions = new DefaultOptions($this->order);
 
@@ -353,7 +357,7 @@ class NewShipment extends AbstractItems
      */
     public function getDigitalStampWeightOptions(): array
     {
-        $selected = DigitalStampWeight::valueFor($this->getDigitalStampWeight());
+        $selected = $this->digitalStampWeight->valueFor($this->getDigitalStampWeight());
 
         return array_map(
             static function (array $option) use ($selected): array {
@@ -364,7 +368,7 @@ class NewShipment extends AbstractItems
                     'selected' => $option['value'] === $selected,
                 ];
             },
-            DigitalStampWeight::options()
+            $this->digitalStampWeight->options()
         );
     }
 

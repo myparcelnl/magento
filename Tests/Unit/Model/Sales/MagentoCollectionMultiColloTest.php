@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesProvider;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;

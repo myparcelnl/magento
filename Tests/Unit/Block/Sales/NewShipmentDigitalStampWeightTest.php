@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Block\Sales\NewShipment;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\DigitalStampWeight;
 
 /*
  * The weight buckets the New Shipment form offers, and the admin setting that must offer the
@@ -55,7 +55,7 @@ it('offers the no-standard-weight option first and never selected', function () 
 });
 
 it('offers the admin setting and the form the identical set of weights', function () {
-    $setting = new DigitalStampWeightOptions(Mockery::mock(Config::class));
+    $setting = new DigitalStampWeightOptions(Mockery::mock(Config::class), new DigitalStampWeight());
 
     expect(array_column($setting->toOptionArray(), 'value'))
         ->toBe(array_column(createNewShipmentBlockWeighing(0)->getDigitalStampWeightOptions(), 'value'));

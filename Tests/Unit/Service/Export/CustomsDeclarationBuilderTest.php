@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
+use MyParcelNL\Magento\Service\Export\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;

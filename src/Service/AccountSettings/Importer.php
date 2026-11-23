@@ -6,7 +6,7 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
+use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Magento\Service\LogContext;

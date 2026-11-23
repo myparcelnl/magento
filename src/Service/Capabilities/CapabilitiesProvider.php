@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
+namespace MyParcelNL\Magento\Service\Capabilities;
 
 use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use Throwable;
@@ -19,7 +20,7 @@ use Throwable;
  *   import clean the capabilities cache type, and only then is it fetched again.
  * - A failure is remembered for FAILURE_LIFETIME_SECONDS, and is read after the success entry.
  */
-class Repository
+class CapabilitiesProvider
 {
     private const CACHE_ID_PREFIX   = 'myparcel_capabilities_';
     private const FAILURE_ID_PREFIX = 'myparcel_capabilities_failed_';

@@ -24,7 +24,7 @@ use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
-use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
 use MyParcelNL\Magento\Service\OrderGridColumns;

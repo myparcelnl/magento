@@ -9,12 +9,12 @@ use GuzzleHttp\Middleware;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesResponseOptionsInsuranceOptionV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Client as CapabilitiesClient;
+use MyParcelNL\Magento\Service\Capabilities\Client as CapabilitiesClient;
 use Magento\Framework\Lock\LockManagerInterface;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesProvider;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
@@ -153,7 +153,7 @@ function failCapabilitiesBackendIfAsked(object $store, string $call): void
  * A Repository over an in-memory cache double, so cache hits and misses are observable.
  *
  * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
- * @return array{repository: CapabilitiesRepository, history: array, store: object}
+ * @return array{repository: CapabilitiesProvider, history: array, store: object}
  */
 function makeCapabilitiesRepository(array $responses = []): array
 {
@@ -202,14 +202,14 @@ function makeCapabilitiesRepository(array $responses = []): array
     });
 
     return [
-        'repository' => new CapabilitiesRepository($client['client'], $cache, new Fingerprint(), $lockManager),
+        'repository' => new CapabilitiesProvider($client['client'], $cache, new Fingerprint(), $lockManager),
         'history'    => &$client['history'],
         'store'      => $store,
     ];
 }
 
 /** A real CapabilitiesLookup over $repository, for stores whose API key is $apiKey. */
-function capabilitiesLookupOver(CapabilitiesRepository $repository, string $apiKey = CAPABILITIES_TEST_API_KEY): CapabilitiesLookup
+function capabilitiesLookupOver(CapabilitiesProvider $repository, string $apiKey = CAPABILITIES_TEST_API_KEY): CapabilitiesLookup
 {
     $apiProvider = new MyParcelNL\Magento\Service\Export\ShipmentApiProvider(
         createConfig(['api/key' => $apiKey]),
@@ -331,7 +331,7 @@ function capabilityLookupWith($answers, string $country = 'NL'): CapabilitiesLoo
         $seeded[CAPABILITIES_TEST_API_KEY . '|' . $country . '|' . $packageType . '|'] = $set;
     }
 
-    $lookup = capabilitiesLookupOver(newInstanceWithoutConstructor(CapabilitiesRepository::class));
+    $lookup = capabilitiesLookupOver(newInstanceWithoutConstructor(CapabilitiesProvider::class));
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;

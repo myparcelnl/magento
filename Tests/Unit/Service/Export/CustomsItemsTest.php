@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
-use MyParcelNL\Magento\Model\Shipment\CustomsItems;
+use MyParcelNL\Magento\Service\Export\CustomsItems;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
