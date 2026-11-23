@@ -450,15 +450,6 @@
               "showInStore": true
             },
             {
-              "id": "same_day_title",
-              "path": "myparcelnl_magento_general/delivery_titles/same_day_title",
-              "type": "text",
-              "label": "Same day title",
-              "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true
-            },
-            {
               "id": "pickup_title",
               "path": "myparcelnl_magento_general/delivery_titles/pickup_title",
               "type": "text",
