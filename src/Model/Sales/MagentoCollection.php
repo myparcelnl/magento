@@ -106,7 +106,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             'create_track_if_one_already_exist' => true,
             'request_type'                      => 'download',
             'positions'                         => null,
-            'same_day_delivery'                 => false,
         ];
 
     /**

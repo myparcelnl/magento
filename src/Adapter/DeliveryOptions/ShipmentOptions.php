@@ -23,7 +23,7 @@ class ShipmentOptions
     public const LABEL_DESCRIPTION = 'label_description';
 
     /** The stored shipment options that are not toggles. */
-    private const OTHER_OPTIONS = [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY];
+    private const OTHER_OPTIONS = [ShipmentOption::INSURANCE];
 
     /** @var array<string,mixed> every keys() entry; null where nothing was stored */
     private array $values = [];

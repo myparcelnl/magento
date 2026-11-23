@@ -119,9 +119,6 @@ class ShipmentOption
                 'mailbox' => true,
                 'label'   => 'Priority delivery',
             ],
-            self::SAME_DAY_DELIVERY  => [
-                'label' => 'Same day delivery',
-            ],
             self::PRINTERLESS_RETURN => [
                 'label'  => 'Printerless return',
             ],

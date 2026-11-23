@@ -220,11 +220,6 @@ class ShipmentOptionsResolver
         return $this->optionIsEnabled(ShipmentOption::RECEIPT_CODE);
     }
 
-    public function hasSameDayDelivery(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::SAME_DAY_DELIVERY);
-    }
-
     /**
      * Get what the products say about the age check, or null when they say nothing. Read by
      * DefaultOptions::hasOptionSet() before the checkout's choice and the carrier setting.
@@ -393,7 +388,6 @@ class ShipmentOptionsResolver
         $values = [
             ShipmentOption::INSURANCE          => $this->getInsurance(),
             ShipmentOptions::LABEL_DESCRIPTION => $this->getLabelDescription(),
-            ShipmentOption::SAME_DAY_DELIVERY  => $this->hasSameDayDelivery(),
         ];
 
         foreach (ShipmentOption::having('toggle') as $option) {

@@ -93,7 +93,6 @@ it('flattens the options an admin posts and leaves the rest unsaid', function ()
         'age_check'         => false,
         'only_recipient'    => false,
         'return'            => false,
-        'same_day_delivery' => null,
         'large_format'      => false,
         'label_description' => null,
         'hide_sender'       => false,
