@@ -9,8 +9,8 @@ use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\ProductAttributes;
-use MyParcelNL\Magento\Service\Text;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Support\Str;
 
 /**
  * The customs facts both export paths share: HS codes, countries of origin, and the line arithmetic.
@@ -96,7 +96,7 @@ class CustomsItems
 
     public function description(string $name): string
     {
-        return Text::limit($name, self::MAX_DESCRIPTION_LENGTH);
+        return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
     }
 
     /** The HS code as digits only, cut to its parent code at MAX_CLASSIFICATION_LENGTH digits. */

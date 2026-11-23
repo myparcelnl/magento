@@ -19,11 +19,11 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
-use MyParcelNL\Magento\Service\Text;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesPriceEuro;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 use MyParcelNL\Sdk\Services\CountryCodes;
+use MyParcelNL\Sdk\Support\Str;
 use RuntimeException;
 
 /**
@@ -171,7 +171,7 @@ class OrderShipmentOptions
         $options = (new SdkShipmentOptions())
             ->setPackageType($packageType)
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
-            ->setLabelDescription(Text::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
+            ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
             ->setSameDayDelivery($this->flag($resolved->option(ShipmentOption::SAME_DAY_DELIVERY)));
 
         foreach (ShipmentOption::having('toggle') as $option) {
