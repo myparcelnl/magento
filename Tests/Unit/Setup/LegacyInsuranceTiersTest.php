@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Shipment\Carrier;
-use MyParcelNL\Magento\Setup\Migrations\LegacyInsuranceTiers;
+use MyParcelNL\Magento\Setup\LegacyInsuranceTiers;
 
 /**
  * The rules UpgradeData depends on: snapping a stored amount up to a tier, and which frozen list a
