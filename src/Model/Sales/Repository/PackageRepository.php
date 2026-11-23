@@ -446,7 +446,7 @@ class PackageRepository extends Package
      *
      * @return null|int
      */
-    protected function getAttributesProductsOptions($product, string $column): ?int
+    private function getAttributesProductsOptions($product, string $column): ?int
     {
         $productId = self::productIdOf($product);
 

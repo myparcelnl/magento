@@ -112,9 +112,11 @@ function createConvertibleShipmentBuilder(
  * Each filtered id comes back as a product that answers $value for every attribute. An empty string
  * is a product that says nothing: the "no opinion" tier.
  *
- * @param array<class-string, mixed> $alsoBind extra bindings resolved from the same singleton
+ * @param string|array<string,string|int> $value      one value for every attribute, or column => value
+ *                                                    (column without `myparcel_`; a missing one is '')
+ * @param array<class-string, mixed>      $alsoBind   extra bindings resolved from the same singleton
  */
-function mockAttributeValueLookup(string $value, array $alsoBind = []): void
+function mockAttributeValueLookup($value, array $alsoBind = []): void
 {
     $filtered = [];
 
@@ -134,7 +136,11 @@ function mockAttributeValueLookup(string $value, array $alsoBind = []): void
             foreach ($filtered as $id) {
                 $product = Mockery::mock();
                 $product->shouldReceive('getId')->andReturn($id);
-                $product->shouldReceive('getData')->andReturn($value);
+                $product->shouldReceive('getData')->andReturnUsing(
+                    static function (string $key) use ($value) {
+                        return is_array($value) ? (string) ($value[substr($key, strlen('myparcel_'))] ?? '') : $value;
+                    }
+                );
                 $products[] = $product;
             }
 
