@@ -77,24 +77,33 @@ class ContractDefinitions
         );
     }
 
+    /**
+     * Get the contract definition items stored for this API key, or null when none are stored.
+     *
+     * @return array<int, array<string, mixed>>|null
+     */
+    public function storedItems(string $apiKey): ?array
+    {
+        return $this->itemsAt($this->fingerprint->of($apiKey));
+    }
+
     private function read(string $fingerprint): CapabilitySet
     {
+        $items = $this->itemsAt($fingerprint);
+
+        return null === $items ? CapabilitySet::permissive() : CapabilitySet::fromContractDefinitionItems($items);
+    }
+
+    /** @return array<int, array<string, mixed>>|null */
+    private function itemsAt(string $fingerprint): ?array
+    {
         // Always default scope, whatever scope the api key itself is configured at.
-        $stored = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint);
-
-        if (! is_string($stored) || '' === $stored) {
-            return CapabilitySet::permissive();
-        }
-
-        $decoded = json_decode($stored, true);
+        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint);
+        $decoded = is_string($stored) ? json_decode($stored, true) : null;
         $items   = is_array($decoded) ? ($decoded['contract_definitions'] ?? null) : null;
 
         // An empty list is "we could not find out", not "this account has no carriers". An account
         // with no contract at all cannot ship, so permissive is both safer and no less true.
-        if (! is_array($items) || [] === $items) {
-            return CapabilitySet::permissive();
-        }
-
-        return CapabilitySet::fromContractDefinitionItems($items);
+        return is_array($items) && [] !== $items ? $items : null;
     }
 }

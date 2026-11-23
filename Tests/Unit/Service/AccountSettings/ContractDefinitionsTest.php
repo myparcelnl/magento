@@ -92,3 +92,10 @@ it('narrows contract definitions by the package types each item lists', function
     expect($set->hasOption(Carrier::POSTNL, PackageType::PACKAGE_NAME, ShipmentOption::INSURANCE))->toBeTrue()
         ->and($set->hasOption(Carrier::POSTNL, PackageType::MAILBOX_NAME, ShipmentOption::INSURANCE))->toBeFalse();
 });
+
+it('gives the stored items the import keeps when a new fetch failed', function () {
+    $reader = contractDefinitionsFor([settingsPathFor('live-key') => accountSettingsRow([contractDefinitionItem()])]);
+
+    expect($reader->storedItems('live-key'))->toBe([contractDefinitionItem()])
+        ->and($reader->storedItems('other-key'))->toBeNull();
+});
