@@ -25,12 +25,12 @@ status_38,Inactive - Delivered - Package picked up
 status_39,Inactive - Return shipment delivered
 status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
-error3212, {field} is required.
-error3224, Invalid carrier.
-error3501, Address not found.
-error3505, Postal code is invalid for the current country.
-error3506, Invalid delivery type.
-error3516, Country is not supported by carrier.
-error3517, Not available for this country.
-error3707, Invalid package type.
-error3728, No delivery options found.
+error3212,{field} is required.
+error3224,Invalid carrier.
+error3501,Address not found.
+error3505,Postal code is invalid for the current country.
+error3506,Invalid delivery type.
+error3516,Country is not supported by carrier.
+error3517,Not available for this country.
+error3707,Invalid package type.
+error3728,No delivery options found.

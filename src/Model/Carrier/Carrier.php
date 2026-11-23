@@ -73,7 +73,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         CarrierTrunkrs::class,
     ];
 
-    private const PACKAGE_TYPE_TITLES = [
+    public const PACKAGE_TYPE_TITLES = [
         'package'       => 'Package',
         'mailbox'       => 'Mailbox',
         'digital_stamp' => 'Digital stamp',
@@ -215,12 +215,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             return $this->config->getMagentoCarrierConfig('name');
         }
 
-        try {
-            $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
-        } catch (\Throwable $e) {
-            $carrierHuman = $carrierName;
-        }
-
+        $carrierHuman      = self::getCarrierHuman($carrierName);
         $deliveryTypeTitle = PricedDeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
@@ -234,6 +229,16 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         }
 
         return trim(ob_get_clean());
+    }
+
+    /** Display name of a carrier, or the name itself when the SDK does not know it. */
+    public static function getCarrierHuman(string $carrierName): string
+    {
+        try {
+            return CarrierFactory::createFromName($carrierName)->getHuman();
+        } catch (\Throwable $e) {
+            return $carrierName;
+        }
     }
 
     public function processAdditionalValidation(DataObject $request): bool

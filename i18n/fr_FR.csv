@@ -25,7 +25,7 @@ status_38,Inactif - Envoi retiré au point de collecte
 status_39,Inactif - Envoi retour livré
 status_40,Inactif - Envoi retour au point de collecte
 status_99,Inactif - Statut inconnu
-No MyParcel shipments to process., Non-pas d' envois MyParcel à traiter.
+No MyParcel shipments to process.,Aucun envoi MyParcel à traiter.
 Packet,Petit colis
 Packet title,Titre petit paquet
 Parcel locker,Casier de colis
@@ -141,7 +141,7 @@ MyParcel Shipment Email Template for Guest,Modèle d'e-mail pour un envoi MyParc
 "Use Shipment email template when ""Default"" option is selected.","Utilisez le modèle d'envoi lorsque l'option ""par défaut"" a été sélectionnée."
 Action type,Action
 Download label,Téléchargez l'étiquette
-Open in new tab, Ouvrir une nouvel onglet
+Open in new tab,Ouvrir une nouvel onglet
 Print position,Position d'impression
 MyParcel version,Version de MyParcel
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","La version %1 de l'extension est installée sur votre boutique en ligne. Actuellement, la dernière version stable est la version %2. Si vous rencontrez des problèmes, nous vous conseillons d'installer la dernière version stable dans votre environnement Magento."
@@ -207,9 +207,9 @@ Pickup at PostNL location,Collecte dans un point postnl
 Pickup active,Collecte active
 Standard delivery Title,Titre de livraison standard
 Hide sender title,Titre de masquer l'expéditeur
-Printerless return, Retour sans imprimante
-Frozen, Congelé
-Fresh food, Produits frais
+Printerless return,Retour sans imprimante
+Frozen,Congelé
+Fresh food,Produits frais
 Priority delivery,Livraison prioritaire
 Morning title,Titre de livraison du matin
 Evening title,Titre de livraison du soir
@@ -283,22 +283,23 @@ Show details in summary,Afficher les détails dans le résumé
 
 Delivery at home or at work,Livraison à domicile ou au travail
 Delivery options,
-Back to overview, Retour à l'aperçu
-Delivery, Livraison
-Pickup, Retrait
-Pickup location, Point de retrait
-Open map, Ouvrir la carte
-Confirm, Confirmer
+Back to overview,Retour à l'aperçu
+Delivery,Livraison
+Pickup,Retrait
+Pickup location,Point de retrait
+%1 location:,Point de retrait %1 :
+Open map,Ouvrir la carte
+Confirm,Confirmer
 Standard delivery,Livraison standard
-Pickup locations, Points de collecte
-List, Liste
-Map, Carte
-Signature, Signature à réception
-Saturday delivery, Livraison le samedi
-Load more, Charger plus
-Options, Options
-No delivery options available., Aucune option de livraison disponible.
-{deliveryType} (date/time selection not available)," ""{deliveryType} (sélection de date/heure non disponible)"""
+Pickup locations,Points de collecte
+List,Liste
+Map,Carte
+Signature,Signature à réception
+Saturday delivery,Livraison le samedi
+Load more,Charger plus
+Options,Options
+No delivery options available.,Aucune option de livraison disponible.
+{deliveryType} (date/time selection not available),{deliveryType} (sélection de date/heure non disponible)
 Delivery costs,Frais de livraison
 Use Free Shipping,Utiliser la livraison gratuite
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.

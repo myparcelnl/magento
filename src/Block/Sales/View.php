@@ -23,6 +23,8 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
@@ -75,10 +77,12 @@ class View extends AbstractOrder
     {
         ob_start();
 
-        echo __("{$deliveryOptions->getCarrier()} location:"), ' ';
+        echo __('%1 location:', Carrier::getCarrierHuman((string) $deliveryOptions->getCarrier())), ' ';
 
-        if ('pickup' !== $deliveryOptions->getDeliveryType()) {
-            echo __($deliveryOptions->getDeliveryType()), ', ';
+        $deliveryType = $deliveryOptions->getDeliveryType();
+
+        if ('pickup' !== $deliveryType) {
+            echo __(PricedDeliveryType::TITLES[$deliveryType] ?? $deliveryType), ', ';
         }
 
         $pickupLocation = $deliveryOptions->getPickupLocation();
@@ -100,8 +104,10 @@ class View extends AbstractOrder
     {
         ob_start();
 
-        if ($deliveryOptions->getPackageType()) {
-            echo __($deliveryOptions->getPackageType()), ' ';
+        $packageType = $deliveryOptions->getPackageType();
+
+        if ($packageType) {
+            echo __(Carrier::PACKAGE_TYPE_TITLES[$packageType] ?? $packageType), ' ';
         }
 
         $date = new DateTime($deliveryOptions->getDate() ?? '');

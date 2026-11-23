@@ -26,7 +26,6 @@ status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
 No MyParcel shipments to process.,Geen MyParcel zendingen om te verwerken.
-package_small,Klein pakket
 Packet,Klein pakket
 Packet title,Klein pakket titel
 Parcel locker,Pakketautomaat
@@ -82,8 +81,8 @@ Enter a basic price for a digital stamp. The regular price will not affect this 
 Mailbox settings,Brievenbuspakket instellingen
 Automate mailbox,Automatiseer brievenbuspakket
 Select automatically mailbox packages based on weight or volume,Selecteer automatisch mailboxpakketten op basis van gewicht of volume
-Mailbox weight, Brievenbuspakket gewicht
-Mailbox fee, Brievenbuspakket kosten
+Mailbox weight,Brievenbuspakket gewicht
+Mailbox fee,Brievenbuspakket kosten
 Enter a basic price for a mailbox. The regular price will not affect this price.,Voer een basisprijs in voor een mailbox. De normale prijs heeft geen invloed op deze prijs.
 Morning delivery,Ochtendlevering
 Evening delivery,Avondlevering
@@ -142,7 +141,7 @@ MyParcel Shipment Email Template for Guest,Sjabloon e-mail voor een MyParcel zen
 "Use Shipment email template when ""Default"" option is selected.","Gebruik Verzending template als er gekozen is voor ""Gebruik systeemwaarde""."
 Action type,Actie
 Download label,Download label
-Open in new tab, Open in nieuw tabblad
+Open in new tab,Open in nieuw tabblad
 Print position,Printpositie
 MyParcel version,MyParcel versie
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.",Versie %1 van de extensie is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving.
@@ -184,7 +183,7 @@ Drop-off delay,Vertraging
 No delay,Geen vertraging
 "This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.","Stel hier het aantal dagen in die je nodig hebt om het product (te ontvangen,) te verpakken en aan te bieden, vanaf het moment dat de bestelling is geplaatst."
 Age check 18+,Leeftijdscheck 18+
-The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery., De leeftijdscheck is bedoeld voor pakketzendingen waarbij de ontvanger moet kunnen aantonen dat hij/zij 18+ is. Deze optie kan niet worden gecombineerd met ochtend- of avondlevering.
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery.,De leeftijdscheck is bedoeld voor pakketzendingen waarbij de ontvanger moet kunnen aantonen dat hij/zij 18+ is. Deze optie kan niet worden gecombineerd met ochtend- of avondlevering.
 Fit in digital stamp,Past in digitale postzegel
 HS code,HS code
 "HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs","HS Codes worden gebruikt voor MyParcel wereldzendingen, je kunt de juiste code vinden op de site van de Douane."
@@ -268,8 +267,6 @@ error3212,{field} is verplicht.
 error3224,Ongeldige vervoerder.
 error3501,Dit adres is niet gevonden.
 error3505,Postcode is niet geldig voor het gekozen land.
-no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
-location_page, locatiewijzer
 error3506,Ongeldig bezorgtype.
 error3516,Land wordt niet ondersteund door vervoerder.
 error3517,Niet beschikbaar voor dit land.
@@ -278,10 +275,10 @@ error3728,Geen bezorgopties gevonden.
 
 Without options,Zonder opties
 Options equal to shipment,Opties overnemen van heenzending
-Export to MyParcel, Exporteer naar MyParcel
-Already exported, Reeds geëxporteerd
+Export to MyParcel,Exporteer naar MyParcel
+Already exported,Reeds geëxporteerd
 Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,Na het activeren van deze instelling wordt er bij het exporteren van elke zending automatisch een retour zending aangemaakt. Als je het label print wordt ook meteen het retour label geprint.
-Show details in summary, Toon details in overzicht
+Show details in summary,Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Toon waar de verzendmethode wordt weergegeven de bekende details (ja) of de titel van de verzendmethode (nee)."
 
 Delivery at home or at work,Levering thuis of op het werk
@@ -290,6 +287,7 @@ Back to overview,Terug naar overzicht
 Delivery,Bezorging
 Pickup,Ophalen
 Pickup location,Afhaallocatie
+%1 location:,%1-afhaallocatie:
 Open map,Kaart openen
 Confirm,Bevestigen
 Standard delivery,Standaard bezorging
