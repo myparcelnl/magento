@@ -20,11 +20,11 @@ maps these names to ids and to v2 names; INT-1563 replaces the module maps with 
 **Carriers are the exception.** `MyParcelNL\Sdk\Model\Carrier\` survived beta.22, so
 `Model\Shipment\Carrier` takes each name from the SDK class that owns it
 (`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
-stays the module's own is *which* carriers it supports (the eight it has admin settings for,
-against the SDK's thirteen), `V2_NAMES_MAP` until INT-1563, and that DPD is the one carrier with BE as local country. An account's real set comes from
+stays the module's own is *which* carriers it supports (the ones in `Config::CARRIERS_XML_PATH_MAP`,
+a subset of the SDK's), `V2_NAMES_MAP` until INT-1563, and that DPD is the one carrier with BE as local country. An account's real set comes from
 capabilities, never from either list.
 
-Two features went with the deleted stack and are module code now:
+These features went with the deleted stack and are module code now:
 
 - **Multi-account batch export.** `MyParcelCollection` grouped consignments by API key and split the
   calls per account. In v11 the key is a constructor argument on each service, so the module groups
@@ -36,7 +36,7 @@ Two features went with the deleted stack and are module code now:
 
 `myparcelnl/pdk` made the same migration first and is the reference where the SDK is silent.
 
-Three rules run through the result:
+These rules run through the result:
 
 1. **The API is the validator.** Capabilities inform what the UI offers. They never gate an export.
 2. **A stored value the module does not recognise is kept and sent**, or fails its own shipment
@@ -67,7 +67,7 @@ that.
 
 ## Deliberate divergences from `myparcelnl/pdk`
 
-Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
+All deliberate. A reader who finds them should treat them as decisions, not omissions.
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
    private `hydrateModel()`. The mapper builds typed generated models through typed setters, so the keys
@@ -89,7 +89,7 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
 
 ## Vocabulary per boundary
 
-Four vocabularies for the same carrier, package type, delivery type and option names. Hand each
+The module uses several vocabularies for the same carrier, package type, delivery type and option names. Hand each
 boundary the one it expects.
 
 | Boundary | Vocabulary | Established by |
@@ -120,7 +120,7 @@ Merging them needs a test for that difference first.
 
 ## Money scales
 
-Three coexist, and each mistake is a factor of 100 or 10,000 on a merchant's insured value.
+The money scales coexist, and each mistake is a factor of 100 or 10,000 on a merchant's insured value.
 
 | Scale | Where | Established by |
 |---|---|---|
