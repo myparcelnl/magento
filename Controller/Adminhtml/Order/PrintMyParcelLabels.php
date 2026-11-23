@@ -52,6 +52,7 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
         $this->labelPositions            = $labelPositions;
     }
 
+    /** Download the label PDF of the requested shipments, merged across accounts. */
     public function execute(): ResultInterface
     {
         $shipments = $this->requestedShipments();

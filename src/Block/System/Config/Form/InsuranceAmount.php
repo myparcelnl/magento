@@ -42,6 +42,7 @@ class InsuranceAmount extends Template implements NoteProviderInterface
         $this->config              = $config;
     }
 
+    /** Get the config path of the field this block renders. */
     public function getPath(): string
     {
         $field = (array) $this->getData('field');
@@ -49,22 +50,29 @@ class InsuranceAmount extends Template implements NoteProviderInterface
         return (string) ($field['path'] ?? '');
     }
 
+    /** Get the HTML id of the field, from its config path. */
     public function getFieldHtmlId(): string
     {
         return str_replace('/', '_', $this->getPath());
     }
 
+    /** Get the form name of the field, as config[<path>]. */
     public function getFieldName(): string
     {
         return sprintf('config[%s]', $this->getPath());
     }
 
-    /** @return array{0: string, 1: int} */
+    /**
+     * Get the scope name and id the admin is editing.
+     *
+     * @return array{0: string, 1: int}
+     */
     public function getCurrentScope(): array
     {
         return $this->settings->getCurrentScopeFromRequest($this->getRequest());
     }
 
+    /** Get the value stored at the current scope, or ''. */
     public function getValue(): string
     {
         [$scopeName, $scopeId] = $this->getCurrentScope();
@@ -80,7 +88,7 @@ class InsuranceAmount extends Template implements NoteProviderInterface
         return ! $this->settings->hasOwnValue($this->getPath(), $scopeName, $scopeId);
     }
 
-    /** Null when no bound could be resolved; the field then validates as a plain number. */
+    /** Get the insurance range of the carrier, or null when none resolves; the field then validates as a plain number. */
     public function getRange(): ?InsuranceRange
     {
         if (! $this->resolved) {

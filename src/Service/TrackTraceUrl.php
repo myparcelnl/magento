@@ -30,6 +30,7 @@ class TrackTraceUrl
         $this->baseUrlsByProposition = $baseUrlsByProposition;
     }
 
+    /** Build the consumer portal link for one barcode, on the host of the account's proposition. */
     public function create(
         string  $barcode,
         string  $postalCode,
