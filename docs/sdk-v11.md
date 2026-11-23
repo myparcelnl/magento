@@ -24,12 +24,12 @@ stays the module's own is *which* carriers it supports (the eight it has admin s
 against the SDK's thirteen), `V2_NAMES_MAP` until INT-1563, and that DPD is the one carrier with BE as local country. An account's real set comes from
 capabilities, never from either list.
 
-Two capabilities went with the deleted stack and are module code now:
+Two features went with the deleted stack and are module code now:
 
 - **Multi-account batch export.** `MyParcelCollection` grouped consignments by API key and split the
   calls per account. In v11 the key is a constructor argument on each service, so the module groups
   (`Service\Export\ShipmentExportService`, `ShipmentApiProvider`, `LabelPdfMerger`).
-- **Capability probes.** The admin form and the checkout asked a throwaway consignment which package
+- **Option probes.** The admin form and the checkout asked a throwaway consignment which package
   types, options and insurance tiers exist. Those answers were the same for every merchant. They now
   come from the capabilities and contract-definitions endpoints, per account
   (`Model\Shipment\Capabilities\`).
