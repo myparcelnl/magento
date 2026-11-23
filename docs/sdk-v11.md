@@ -70,8 +70,8 @@ that.
 Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
-   private `hydrateModel()`. The mapper builds typed generated models through typed setters, so wire
-   keys come from each model's own `attributeMap`. It also maps module option names to the V2 names
+   private `hydrateModel()`. The mapper builds typed generated models through typed setters, so the keys
+   in the request body come from each model's own `attributeMap`. It also maps module option names to the V2 names
    (`signature → setRequiresSignature`, `only_recipient → setRecipientOnlyDelivery`,
    `age_check → setRequiresAgeVerification`, `receipt_code → setRequiresReceiptCode`,
    `large_format → setOversizedPackage`, `collect → setScheduledCollection`,
