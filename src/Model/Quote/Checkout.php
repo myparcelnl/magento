@@ -212,7 +212,6 @@ class Checkout
 
             $basePrice = $basePrices[DeliveryType::DEFAULT_NAME];
 
-            $canHaveSameDay          = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
             $canHaveExpress          = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
             $canHaveSignature        = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
             $canHaveReceiptCode      = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
@@ -223,7 +222,6 @@ class Checkout
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
             // only PostNL has the Monday settings, and capabilities do not report Monday delivery
             $mondayFee           = $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice;
-            $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
             $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
             $receiptCodeFee      = $canHaveReceiptCode ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $quote) : 0;
             $priorityDeliveryFee = $canHavePriorityDelivery ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'mailbox/priority_delivery_fee'), $quote) : 0;
@@ -275,7 +273,8 @@ class Checkout
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $country),
                 'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
-                'allowSameDayDelivery'  => $canHaveSameDay && $this->config->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
+                // No admin field switches it on and the export has no same day time check (INT-1464).
+                'allowSameDayDelivery'  => false,
                 'allowExpressDelivery'  => $allowExpressDelivery,
 
                 'dropOffDays' => $this->getDropOffDays($carrierPath),
@@ -285,7 +284,6 @@ class Checkout
                 'priceOnlyRecipient'    => $onlyRecipientFee,
                 'pricePriorityDelivery' => $priorityDeliveryFee,
                 'priceMondayDelivery'   => $mondayFee,
-                'priceSameDayDelivery'  => $sameDayFee,
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
@@ -363,16 +361,11 @@ class Checkout
     {
         $dropOffDays = [];
         for ($weekday = 0; $weekday < 7; $weekday++) {
-            $cutoffTimeSameDay = $this->config->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday");
-            $sameDayTimeEntry  = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
             if ($this->config->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object) array_merge(
-                    [
-                        'weekday'    => $weekday,
-                        'cutoffTime' => $this->config->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                    ],
-                    $sameDayTimeEntry
-                );
+                $dropOffDays[] = (object) [
+                    'weekday'    => $weekday,
+                    'cutoffTime' => $this->config->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
+                ];
             }
         }
 
@@ -394,7 +387,6 @@ class Checkout
             'deliveryMorningTitle'  => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('Morning Delivery'),
             'deliveryEveningTitle'  => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('Evening Delivery'),
             'deliveryPickupTitle'   => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('Pickup locations'),
-            'deliverySameDayTitle'  => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('Same day Delivery'),
 
             'priorityDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('Priority delivery'),
             'mondayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/monday_delivery_title') ?: __('Monday delivery'),

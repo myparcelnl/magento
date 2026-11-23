@@ -92,7 +92,6 @@ Express delivery fee,Livré en un jour - prix
 Express delivery active,Livré en un jour actif
 Same day delivery,Livraison le jour même
 Early morning delivery,Livraison tôt le matin
-Same day title,Titre le jour même
 Morning delivery active,Livraison du matin active
 If age check is active then the evening delivery is not possible,"Si le contrôle d'âge est actif, la livraison du soir n'est pas possible"
 If age check is active then the morning delivery is not possible,"Si le contrôle d'âge est actif, la livraison du matin n'est pas possible"
@@ -295,7 +294,6 @@ Standard Delivery, Livraison standard
 Morning Delivery, Livraison le matin
 Evening Delivery, Livraison en soirée
 Pickup locations, Points de collecte
-Same day Delivery, Livraison le jour même
 Hide Sender, Masquer l'expéditeur
 List, Liste
 Map, Carte

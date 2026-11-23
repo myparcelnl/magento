@@ -92,7 +92,6 @@ Express delivery fee,Koszt dostawy ekspresowej
 Express delivery active,Dostawa ekspresowa aktywna
 Same day delivery,Dostawa tego samego dnia
 Early morning delivery,Dostawa wczesnym rankiem
-Same day title,Tytuł dostawy tego samego dnia
 Morning delivery active,Dostawa poranna aktywna
 If age check is active then the evening delivery is not possible,"Jeśli weryfikacja wieku jest aktywna, dostawa wieczorna nie jest możliwa"
 If age check is active then the morning delivery is not possible,"Jeśli weryfikacja wieku jest aktywna, dostawa poranna nie jest możliwa"
@@ -295,7 +294,6 @@ Standard Delivery,Dostawa standardowa
 Morning Delivery,Dostawa poranna
 Evening Delivery,Dostawa wieczorna
 Pickup locations,Odbiór w punkcie odbioru
-Same day Delivery,Dostawa tego samego dnia
 Hide Sender,Ukryj nadawcę
 List,Lista
 Map,Mapa
