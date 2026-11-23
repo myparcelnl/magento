@@ -33,6 +33,7 @@ class Importer
     private LoggerInterface      $logger;
     private Client               $client;
     private UserAgent            $userAgent;
+    private ContractDefinitions  $contractDefinitions;
 
     public function __construct(
         WriterInterface      $configWriter,
@@ -40,14 +41,16 @@ class Importer
         Fingerprint          $fingerprint,
         LoggerInterface      $logger,
         Client               $client,
-        UserAgent            $userAgent
+        UserAgent            $userAgent,
+        ContractDefinitions  $contractDefinitions
     ) {
         $this->configWriter = $configWriter;
         $this->scopeConfig  = $scopeConfig;
         $this->fingerprint  = $fingerprint;
         $this->logger       = $logger;
         $this->client       = $client;
-        $this->userAgent    = $userAgent;
+        $this->userAgent           = $userAgent;
+        $this->contractDefinitions = $contractDefinitions;
     }
 
     /**
@@ -111,19 +114,9 @@ class Importer
                 'shop'                 => $shop,
                 'account'              => $account,
                 // A failed fetch keeps the stored list rather than replacing it with nothing.
-                'contract_definitions' => $this->fetchContractDefinitions($apiKey) ?? $this->storedContractDefinitions($apiKey),
+                'contract_definitions' => $this->fetchContractDefinitions($apiKey) ?? $this->contractDefinitions->storedItems($apiKey),
             ]
         );
-    }
-
-    /** @return array<int, array<string, mixed>>|null the stored list, or null when none is stored */
-    private function storedContractDefinitions(string $apiKey): ?array
-    {
-        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey));
-        $decoded = is_string($stored) ? json_decode($stored, true) : null;
-        $items   = is_array($decoded) ? ($decoded['contract_definitions'] ?? null) : null;
-
-        return is_array($items) && [] !== $items ? $items : null;
     }
 
     /**

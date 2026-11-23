@@ -56,7 +56,8 @@ function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface
         new Fingerprint(),
         $logger ?? Mockery::spy(LoggerInterface::class),
         $client ?? Mockery::spy(Client::class),
-        createUserAgent()
+        createUserAgent(),
+        contractDefinitionsFor($rowsByPath)
     );
 }
 

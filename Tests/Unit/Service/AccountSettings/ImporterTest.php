@@ -98,18 +98,6 @@ it('answers unknown when the call is refused, rather than failing the import', f
     expect($definitions)->toBeNull();
 });
 
-it('keeps the stored contract definitions when a new fetch failed', function () {
-    $row = json_encode(['contract_definitions' => [contractDefinitionItem()]]);
-
-    $stored = invokePrivateMethod(
-        importerFor([settingsPathFor('live-key') => $row]),
-        'storedContractDefinitions',
-        ['live-key']
-    );
-
-    expect($stored)->toBe([contractDefinitionItem()]);
-});
-
 it('leaves contract definitions out when none are known, so the next save imports them again', function () {
     $settings = new Collection([
         'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
