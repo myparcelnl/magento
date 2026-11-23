@@ -3,7 +3,7 @@
 ## Adding a shipment option
 
 The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. If the SDK
-does not know the option, update the SDK first. The wire key comes from the SDK's
+does not know the option, update the SDK first. The key in the request body comes from the SDK's
 `ShipmentOptionMapper`; the module keeps no alias.
 
 Which carrier offers the option for which package type comes from capabilities. Add code only for
