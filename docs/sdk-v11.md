@@ -40,7 +40,10 @@ These rules run through the result:
 
 1. **The API is the validator.** Capabilities inform what the UI offers. They never gate an export.
 2. **A stored value the module does not recognise is kept and sent**, or fails its own shipment
-   naming the order. It is never replaced with a value the module does recognise.
+   naming the order. It is never replaced with a value the module does recognise. For an unknown
+   package type the bulk export refuses the order and the New Shipment form preselects nothing, so
+   the admin chooses. Only the checkout price, where nobody can choose, falls back to package and
+   logs a warning.
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
