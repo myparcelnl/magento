@@ -217,17 +217,51 @@ components:
     ShipmentOptions:
       type: object
       description: |
-        Shipment options. Each yes/no option that is on is a key of the Order
-        API's `ShipmentOptionsCommon` schema with an empty object `{}`
-        (ADR-0013); an option that is off is omitted. Which options occur comes
-        from the delivery options stored on the order, so this schema does not
-        list them. `insurance` and `customLabelText` carry a value; `insurance`
-        diverges from the Order API on purpose: it uses an integer-micro amount
-        (Magento convention) instead of the Money object format.
-      additionalProperties:
-        type: object
-        maxProperties: 0
+        Shipment options. Each yes/no option that is on is an empty object `{}`
+        (ADR-0013); an option that is off is omitted. The yes/no options are the
+        Order API's `ShipmentOptionsCommon` properties, as in the PDK spec.
+        `insurance` diverges from the Order API on purpose: it uses an
+        integer-micro amount (Magento convention) instead of the Money object
+        format.
       properties:
+        additionalInsurance:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/additionalInsurance"
+        deliverAtPostalPoint:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/deliverAtPostalPoint"
+        freshFood:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/freshFood"
+        frozen:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/frozen"
+        hideSender:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/hideSender"
+        noTracking:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/noTracking"
+        oversizedPackage:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/oversizedPackage"
+        printReturnLabelAtDropOff:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/printReturnLabelAtDropOff"
+        priorityDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/priorityDelivery"
+        recipientOnlyDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/recipientOnlyDelivery"
+        requiresAgeVerification:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresAgeVerification"
+        requiresCashOnDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresCashOnDelivery"
+        requiresReceiptCode:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresReceiptCode"
+        requiresSignature:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresSignature"
+        returnContributionFee:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/returnContributionFee"
+        returnOnFirstFailedDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/returnOnFirstFailedDelivery"
+        sameDayDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/sameDayDelivery"
+        saturdayDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/saturdayDelivery"
+        scheduledCollection:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/scheduledCollection"
         insurance:
           type: object
           description: Insurance details. Integer-micro amount (1 EUR = 1 000 000 units).
