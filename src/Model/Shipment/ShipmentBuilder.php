@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPickup;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
+use MyParcelNL\Sdk\Services\CountryService;
 
 /**
  * Turns one Magento shipment track into a v11 Shipment, paired with its track and API key.
@@ -104,7 +105,7 @@ class ShipmentBuilder
             $shipment->setPickup($this->pickup($deliveryOptions));
         }
 
-        if (CountryCode::isRow((string) $address->getCountryId())) {
+        if ((new CountryService())->isRow((string) $address->getCountryId())) {
             $shipment->setCustomsDeclaration(
                 $this->customsBuilder->build($magentoShipment, $weight, $incrementId)
             );

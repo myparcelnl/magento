@@ -21,12 +21,12 @@ namespace MyParcelNL\Magento\Model\Sales\Repository;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * Class PackageRepository
@@ -140,7 +140,7 @@ class PackageRepository extends Package
      */
     public function fitInMailbox(string $carrierName): bool
     {
-        $mailboxAllowedToCountry = CountryCode::CC_NL === $this->getCurrentCountry();
+        $mailboxAllowedToCountry = CountryCodes::CC_NL === $this->getCurrentCountry();
         if (! $mailboxAllowedToCountry && CarrierPostNL::NAME === $carrierName) {
             $account = (new AccountSettings((string) $this->getGeneralConfig('api/key', $this->getStoreId())))->getAccount();
             if ($account) {
@@ -162,7 +162,7 @@ class PackageRepository extends Package
         $orderWeight               = (new Weight($this))->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
-        return $this->getCurrentCountry() === CountryCode::CC_NL
+        return $this->getCurrentCountry() === CountryCodes::CC_NL
             && $this->isDigitalStampActive()
             && $orderWeight <= $maximumDigitalStampWeight;
     }

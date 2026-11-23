@@ -23,6 +23,7 @@ use MyParcelNL\Magento\Service\Text;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesPriceEuro;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
+use MyParcelNL\Sdk\Services\CountryCodes;
 use RuntimeException;
 
 /**
@@ -269,7 +270,7 @@ class OrderShipmentOptions
 
     private function deliveryDate(DeliveryOptions $deliveryOptions, int $packageType, $address): ?string
     {
-        if (PackageType::PACKAGE_SMALL === $packageType && CountryCode::CC_NL !== $address->getCountryId()) {
+        if (PackageType::PACKAGE_SMALL === $packageType && CountryCodes::CC_NL !== $address->getCountryId()) {
             return null;
         }
 

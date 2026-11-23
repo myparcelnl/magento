@@ -12,7 +12,6 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -98,7 +97,7 @@ class Checkout
         ) {
             $this->setFreeShippingAvailability($this->quote, $forAddress);
         } else {
-            $country = $this->quote->getShippingAddress()->getCountryId() ?? $this->config->getConfigValue('general/country/default') ?? CountryCode::CC_NL;
+            $country = $this->quote->getShippingAddress()->getCountryId() ?? $this->config->getConfigValue('general/country/default') ?? CountryCodes::CC_NL;
         }
 
         $packageType = $this->getPackageType($country);
@@ -480,7 +479,7 @@ class Checkout
         $this->package->setPackageSmallSettings($carrierPath);
 
         if ($canHaveMailbox) {
-            if (CountryCode::CC_NL === $country) {
+            if (CountryCodes::CC_NL === $country) {
                 $this->package->setMailboxActive($this->config->getBoolConfig($carrierPath, 'mailbox/active'));
             } else {
                 $this->package->setMailboxActive($this->config->getBoolConfig($carrierPath, 'mailbox/international_active'));

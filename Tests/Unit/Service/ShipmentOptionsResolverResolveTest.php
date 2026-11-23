@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * resolve() is the builder's single source of shipment options, and the builder
@@ -14,14 +14,14 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
  * else. These tests are what make it a contract.
  */
 it('resolves every option to a non-null value', function () {
-    $resolved = createShipmentOptions(CountryCode::CC_NL, CarrierPostNL::NAME, [])->resolve()->toArray();
+    $resolved = createShipmentOptions(CountryCodes::CC_NL, CarrierPostNL::NAME, [])->resolve()->toArray();
 
     expect($resolved)->not->toContain(null)
         ->and(array_keys($resolved))->toHaveCount(14);
 });
 
 it('types every resolved option as the setters expect', function () {
-    $resolved = createShipmentOptions(CountryCode::CC_NL, CarrierPostNL::NAME, [])->resolve();
+    $resolved = createShipmentOptions(CountryCodes::CC_NL, CarrierPostNL::NAME, [])->resolve();
     $values   = $resolved->toArray();
 
     expect($resolved->getInsurance())->toBeInt()
