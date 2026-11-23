@@ -31,6 +31,16 @@ function createConfig(
 
             return $values[$code] ?? null;
         });
+    // As in Config, a full general path reads the same value as its getGeneralConfig() code.
+    $config->shouldReceive('getConfigValue')
+        ->andReturnUsing(function (string $path, $storeId = null) use ($config) {
+            if (0 !== strpos($path, Config::XML_PATH_GENERAL)) {
+                return null;
+            }
+
+            return $config->getGeneralConfig(substr($path, strlen(Config::XML_PATH_GENERAL)), $storeId);
+        })
+        ->byDefault();
     $config->shouldReceive('getCarrierConfig')
         ->andReturnUsing(function (string $carrier, string $code = '') use ($carrierValues) {
             return $carrierValues[$carrier][$code] ?? [];

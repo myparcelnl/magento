@@ -48,7 +48,7 @@ class ShipmentApiProvider
     /** Get the store's resolved key, or null for a caller that skips a keyless store. */
     public function apiKeyForStoreOrNull(?int $storeId): ?string
     {
-        $apiKey = (string) $this->config->getGeneralConfig('api/key', $storeId);
+        $apiKey = (string) $this->config->getConfigValue(Config::XML_PATH_API_KEY, $storeId);
 
         return '' === $apiKey ? null : $apiKey;
     }
