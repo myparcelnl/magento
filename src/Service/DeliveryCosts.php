@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -97,7 +96,7 @@ class DeliveryCosts
 
         $carrierName = $carrierName ?? $defaultOptions->getCarrierName();
         $packageType = PackageType::NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
-        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCode::CC_NL;
+        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCodes::CC_NL;
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
                        + $this->weight->getQuoteWeightInGrams($quote);
 

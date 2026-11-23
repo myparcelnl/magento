@@ -7,10 +7,10 @@ namespace MyParcelNL\Magento\Service\TrackTrace;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * Reads the MyParcel track & trace links for a page of orders in one query. Manual tracks are left out.
@@ -238,7 +238,7 @@ class LinkResolver
             $postcode,
             // an order without a country on its shipping address counts as Dutch: the portal needs
             // a country to resolve the barcode
-            (string) ($row['country_id'] ?? '') ?: CountryCode::CC_NL,
+            (string) ($row['country_id'] ?? '') ?: CountryCodes::CC_NL,
             $this->proposition->forStore(isset($row['store_id']) ? (int) $row['store_id'] : null)
         );
     }

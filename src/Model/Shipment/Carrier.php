@@ -13,6 +13,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
 use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
+use MyParcelNL\Sdk\Services\CountryCodes;
 use Throwable;
 
 /**
@@ -48,12 +49,12 @@ class Carrier
         ];
 
     /** The carriers whose local country is not NL. */
-    private const LOCAL_COUNTRY_MAP = [self::DPD => CountryCode::CC_BE];
+    private const LOCAL_COUNTRY_MAP = [self::DPD => CountryCodes::CC_BE];
 
     /** Get the carrier's local country: BE for DPD, NL for every other carrier. */
     public static function localCountryCodeFor(?string $name): string
     {
-        return self::LOCAL_COUNTRY_MAP[$name] ?? CountryCode::CC_NL;
+        return self::LOCAL_COUNTRY_MAP[$name] ?? CountryCodes::CC_NL;
     }
 
     /** The carrier's label, from the SDK. Its own name back for one the SDK does not know. */

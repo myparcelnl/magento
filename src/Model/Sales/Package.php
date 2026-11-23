@@ -18,8 +18,8 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 class Package extends Config implements PackageInterface
 {
@@ -71,7 +71,7 @@ class Package extends Config implements PackageInterface
     /**
      * @var string
      */
-    private $currentCountry = CountryCode::CC_NL;
+    private $currentCountry = CountryCodes::CC_NL;
 
     /**
      * Null resolves against the ambient store, which is only right in a storefront request.

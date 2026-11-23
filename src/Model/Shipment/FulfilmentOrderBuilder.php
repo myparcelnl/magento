@@ -20,6 +20,7 @@ use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
+use MyParcelNL\Sdk\Services\CountryService;
 use MyParcelNL\Sdk\Support\Collection;
 use RuntimeException;
 
@@ -78,7 +79,7 @@ class FulfilmentOrderBuilder
             $order->setPickupLocation($this->pickupLocation($deliveryOptions));
         }
 
-        if (CountryCode::isRow((string) $shippingRecipient->getCc())) {
+        if ((new CountryService())->isRow((string) $shippingRecipient->getCc())) {
             $order->setCustomsDeclaration(
                 $this->objectManager->get(OrderCustomsDeclarationBuilder::class)->build($magentoOrder)
             );

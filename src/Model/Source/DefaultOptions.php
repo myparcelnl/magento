@@ -23,12 +23,13 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
+use MyParcelNL\Sdk\Services\CountryCodes;
+use MyParcelNL\Sdk\Services\CountryService;
 use Throwable;
 
 class DefaultOptions
@@ -158,17 +159,17 @@ class DefaultOptions
     public function getDefaultInsurance(string $carrier): int
     {
         $shippingAddress = $this->quote->getShippingAddress();
-        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCode::CC_NL;
+        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCodes::CC_NL;
 
-        if (CountryCode::CC_NL === $shippingCountry) {
+        if (CountryCodes::CC_NL === $shippingCountry) {
             return $this->getInsurance($carrier, InsuranceAmountSetting::LOCAL);
         }
 
-        if (CountryCode::CC_BE === $shippingCountry) {
+        if (CountryCodes::CC_BE === $shippingCountry) {
             return $this->getInsurance($carrier, InsuranceAmountSetting::BELGIUM);
         }
 
-        if (CountryCode::isEu($shippingCountry)) {
+        if ((new CountryService())->isEu($shippingCountry)) {
             return $this->getInsurance($carrier, InsuranceAmountSetting::EU);
         }
 
