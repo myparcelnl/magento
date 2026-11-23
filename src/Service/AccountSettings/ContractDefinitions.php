@@ -63,9 +63,9 @@ class ContractDefinitions
     }
 
     /**
-     * Get the advisory insurance bound for one carrier, or null when none resolves. It has no zone.
-     * The settings form and the save observer both use it, so the form and the save check agree.
-     * The bound is the one of a package; a carrier without a package contract gets its first bound.
+     * Get the insurance range of one carrier from the contract, or null when none resolves.
+     * The range has no zone, so the export checks the amount again for each destination.
+     * It is the range of a package; a carrier without a package contract gets its first range.
      */
     public function insuranceRangeFor(string $carrier, string $scopeName, ?int $scopeId): ?InsuranceRange
     {
