@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Setup\Migrations;
+namespace MyParcelNL\Magento\Setup;
 
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 
