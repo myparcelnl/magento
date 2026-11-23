@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
+use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use Psr\Log\LoggerInterface;
@@ -37,6 +40,24 @@ function contractDefinitionsFor(array $rowsByPath, array $scopedValues = []): Co
     $scopeConfig = mockScopeConfig($rowsByPath);
 
     return new ContractDefinitions($scopeConfig, new Fingerprint(), createConfig([], [], [], $scopedValues));
+}
+
+/**
+ * An Importer over the given stored rows. importFor() itself has no seam: it instantiates the SDK
+ * account web service directly, so tests reach hasSettingsFor() and the contract-definitions halves.
+ *
+ * @param array<string, string> $rowsByPath
+ */
+function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface $logger = null): Importer
+{
+    return new Importer(
+        Mockery::spy(WriterInterface::class),
+        mockScopeConfig($rowsByPath),
+        new Fingerprint(),
+        $logger ?? Mockery::spy(LoggerInterface::class),
+        $client ?? Mockery::spy(Client::class),
+        createUserAgent()
+    );
 }
 
 /**

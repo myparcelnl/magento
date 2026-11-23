@@ -2,35 +2,12 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
-use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Sdk\Model\Account\Account;
 use MyParcelNL\Sdk\Model\Account\Shop;
 use MyParcelNL\Sdk\Support\Collection;
 use Psr\Log\LoggerInterface;
-
-/**
- * importFor() itself has no seam: it instantiates the SDK account web service directly. What is
- * reachable is hasSettingsFor(), and the two halves the contract-definitions work owns.
- *
- * @param array<string, string> $rowsByPath
- */
-function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface $logger = null): Importer
-{
-    $scopeConfig = mockScopeConfig($rowsByPath);
-
-    return new Importer(
-        Mockery::spy(WriterInterface::class),
-        $scopeConfig,
-        new Fingerprint(),
-        $logger ?? Mockery::spy(LoggerInterface::class),
-        $client ?? Mockery::spy(Client::class),
-        createUserAgent()
-    );
-}
 
 /**
  * A client answering one unfiltered call with the given items, whatever carriers they name.
