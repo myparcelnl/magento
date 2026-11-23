@@ -9,9 +9,6 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
  * A forced option is one the order gets whatever the shopper picks: set on a product, or on in the
  * carrier's export settings.
  *
- * The product tier is stubbed rather than driven: reading it means an EAV query, which
- * getAttributesProductsOptions() owns and which is not what these cases are about.
- *
  * @param array<string,mixed> $config      config path => value
  * @param array<string,int>   $perProduct  option => value one product carries
  */
@@ -21,8 +18,7 @@ function createForcedOptionsRepository(array $config, array $perProduct = []): P
 
     $repository->shouldReceive('getConfigValue')
         ->andReturnUsing(static fn(string $path) => $config[$path] ?? null);
-    $repository->shouldReceive('getAttributesProductsOptions')
-        ->andReturnUsing(static fn($product, string $option) => $perProduct[$option] ?? null);
+    mockAttributeValueLookup($perProduct);
 
     return $repository;
 }
