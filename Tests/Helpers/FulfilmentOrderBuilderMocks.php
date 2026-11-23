@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
 
 /**
  * Fixtures for the PPS export path. The object manager and the config come from

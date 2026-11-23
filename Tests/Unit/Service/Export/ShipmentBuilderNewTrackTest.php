@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 
 it('gives a new track the order id and the parent id that TrackRepository::save() checks', function () {
     $track = Mockery::mock(Track::class);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment;
+namespace MyParcelNL\Magento\Service\Export;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
@@ -11,9 +11,11 @@ use Magento\Sales\Model\Order\Shipment as MagentoShipment;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier as MagentoCarrier;
+use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPickup;
@@ -37,6 +39,7 @@ class ShipmentBuilder
     private ShipmentApiProvider       $apiProvider;
     private ShipmentValidator         $validator;
     private CustomsDeclarationBuilder $customsBuilder;
+    private RecipientFields           $recipientFields;
 
     /** @var array<string,OrderShipmentOptions> by shipment and option set; a multicollo order asks per collo */
     private array $shipmentOptions = [];
@@ -48,6 +51,7 @@ class ShipmentBuilder
         $this->apiProvider    = $objectManager->get(ShipmentApiProvider::class);
         $this->validator      = $objectManager->get(ShipmentValidator::class);
         $this->customsBuilder = $objectManager->get(CustomsDeclarationBuilder::class);
+        $this->recipientFields = $objectManager->get(RecipientFields::class);
         $this->defaultOptions = new DefaultOptions($order);
     }
 
@@ -161,13 +165,13 @@ class ShipmentBuilder
 
         return array_filter([
             'cc'            => (string) $address->getCountryId(),
-            'postal_code'   => RecipientFields::postalCode($address),
+            'postal_code'   => $this->recipientFields->postalCode($address),
             'city'          => (string) $address->getCity(),
             'street'        => $street->getStreet(),
             'number'        => (string) $street->getNumber(),
             'number_suffix' => (string) $street->getNumberSuffix(),
             'box_number'    => (string) $street->getBoxNumber(),
-            'person'        => RecipientFields::person($address),
+            'person'        => $this->recipientFields->person($address),
             'company'       => (string) $address->getCompany(),
             'email'         => (string) $address->getEmail(),
             'phone'         => (string) $address->getTelephone(),

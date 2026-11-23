@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\ShipmentValidator;
+use MyParcelNL\Magento\Service\Export\ShipmentValidator;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclaration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;

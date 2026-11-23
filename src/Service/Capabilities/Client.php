@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
+namespace MyParcelNL\Magento\Service\Capabilities;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\RequestOptions;

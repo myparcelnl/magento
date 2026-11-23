@@ -15,7 +15,7 @@ use Magento\Sales\Model\ResourceModel\Order\Status\History\Collection as OrderSt
 use Magento\Shipping\Model\ShipmentNotifier;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;

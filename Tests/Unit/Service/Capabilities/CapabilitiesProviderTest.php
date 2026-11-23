@@ -5,7 +5,7 @@ declare(strict_types=1);
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesProvider;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -24,7 +24,7 @@ function capabilitiesOk(?array $results = null): GuzzleResponse
  */
 function capabilitiesCacheIdPrefixes(): array
 {
-    $class = new ReflectionClass(CapabilitiesRepository::class);
+    $class = new ReflectionClass(CapabilitiesProvider::class);
 
     return [$class->getConstant('CACHE_ID_PREFIX'), $class->getConstant('FAILURE_ID_PREFIX')];
 }

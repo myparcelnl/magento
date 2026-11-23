@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Service\Hash\Fingerprint;
  * Reads an account's contract definitions out of the stored account settings row.
  *
  * The answer is per carrier and has no country. Never read it as a per-destination answer:
- * for a concrete shipment, ask Capabilities\Repository. Makes no API call. A missing or
+ * for a concrete shipment, ask Capabilities\CapabilitiesProvider. Makes no API call. A missing or
  * unparseable row answers permissive, so a merchant can still configure insurance.
  */
 class ContractDefinitions

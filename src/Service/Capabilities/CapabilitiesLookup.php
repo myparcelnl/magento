@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
+namespace MyParcelNL\Magento\Service\Capabilities;
 
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
@@ -21,14 +22,14 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  */
 class CapabilitiesLookup
 {
-    private Repository $repository;
+    private CapabilitiesProvider $repository;
 
     private ShipmentApiProvider $apiProvider;
 
     /** @var array<string,CapabilitySet> keyed by API key, country, package type and carrier */
     private array $answers = [];
 
-    public function __construct(Repository $repository, ShipmentApiProvider $apiProvider)
+    public function __construct(CapabilitiesProvider $repository, ShipmentApiProvider $apiProvider)
     {
         $this->repository  = $repository;
         $this->apiProvider = $apiProvider;

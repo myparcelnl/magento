@@ -16,8 +16,8 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\DigitalStampWeight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
@@ -28,12 +28,15 @@ class DigitalStampWeightOptions implements OptionSourceInterface
 {
     static private $config;
 
+    private DigitalStampWeight $digitalStampWeight;
+
     /**
      * @param $config Config
      */
-    public function __construct(Config $config)
+    public function __construct(Config $config, DigitalStampWeight $digitalStampWeight)
     {
-        self::$config = $config;
+        self::$config             = $config;
+        $this->digitalStampWeight = $digitalStampWeight;
     }
 
     /**
@@ -59,7 +62,7 @@ class DigitalStampWeightOptions implements OptionSourceInterface
             static function (array $option): array {
                 return ['value' => $option['value'], 'label' => $option['label']];
             },
-            DigitalStampWeight::options()
+            $this->digitalStampWeight->options()
         );
     }
 }

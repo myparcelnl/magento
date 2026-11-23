@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Weight;
 
 /** weightInGrams() returns the weight, so these tests read the return value, not the built object. */

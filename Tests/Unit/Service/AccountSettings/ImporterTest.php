@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
+use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Account\Account;
 use MyParcelNL\Sdk\Model\Account\Shop;

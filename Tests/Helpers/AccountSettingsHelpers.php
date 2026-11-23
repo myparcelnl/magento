@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
+use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;

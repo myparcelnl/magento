@@ -47,7 +47,7 @@ These rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
-**When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
+**When capabilities cannot be had, the module offers everything.** `Capabilities\CapabilitiesProvider` answers
 a permissive set when a store has no API key, a request will not serialise, the same request failed
 within the last 60 seconds, a fetch fails, the cache or lock backend throws, or another process is
 already fetching the same request. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
@@ -65,7 +65,7 @@ delivery type reads as a plain string (`EnumFallback`), but a model that holds o
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
 render pays is one connect timeout per *distinct* request it asks: `CapabilitiesLookup` memoises per
-store, country, package type and carrier, and the Repository memoises per request body on top of
+store, country, package type and carrier, and `CapabilitiesProvider` memoises per request body on top of
 that.
 
 ## Deliberate divergences from `myparcelnl/pdk`

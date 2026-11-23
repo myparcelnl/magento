@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment;
+namespace MyParcelNL\Magento\Service\Export;
 
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;

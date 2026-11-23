@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Shipment\Carrier;
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\RecipientFields;
 use MyParcelNL\Sdk\Model\Recipient;
 
 /**
@@ -25,8 +26,11 @@ function recipientForAddress(
         $orderOverrides
     ));
 
+    $builder = newInstanceWithoutConstructor(FulfilmentOrderBuilder::class);
+    setPrivateProperty($builder, 'recipientFields', new RecipientFields());
+
     return invokePrivateMethod(
-        newInstanceWithoutConstructor(FulfilmentOrderBuilder::class),
+        $builder,
         'shippingRecipient',
         [$order, $carrier]
     );

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
-use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
+use MyParcelNL\Magento\Service\Export\OrderShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 

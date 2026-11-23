@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment;
+namespace MyParcelNL\Magento\Service;
 
 /**
  * The digital stamp weight ranges, and the weight to send for each.
@@ -18,7 +18,7 @@ class DigitalStampWeight
     /**
      * @return array<int,array{max:int|null,value:int,label:\Magento\Framework\Phrase}>
      */
-    public static function options(): array
+    public function options(): array
     {
         return [
             ['max' => null, 'value' => self::NO_STANDARD_WEIGHT, 'label' => __('No standard weight')],
@@ -30,9 +30,9 @@ class DigitalStampWeight
     }
 
     /** Get the weight to send for this many grams, or null when it is heavier than any range. */
-    public static function valueFor(int $grams): ?int
+    public function valueFor(int $grams): ?int
     {
-        foreach (self::options() as $option) {
+        foreach ($this->options() as $option) {
             if (null !== $option['max'] && $grams <= $option['max']) {
                 return $option['value'];
             }

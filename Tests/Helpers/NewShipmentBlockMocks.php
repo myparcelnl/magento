@@ -5,6 +5,7 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Block\Sales\NewShipment;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\DigitalStampWeight;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
@@ -31,6 +32,7 @@ function createNewShipmentBlockWith($capabilities, array $orderOverrides = []): 
         (int) $order->getStoreId()
     ));
     setPrivateProperty($block, 'form', new NewShipmentForm());
+    setPrivateProperty($block, 'digitalStampWeight', new DigitalStampWeight());
 
     // getFormCarriers() reaches these whenever an answer reports insurance, which a permissive answer
     // always does.

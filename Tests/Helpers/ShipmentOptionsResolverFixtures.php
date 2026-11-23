@@ -7,8 +7,8 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesProvider;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -25,7 +25,7 @@ function createShipmentOptions(
     array                   $options,
     bool                    $defaultOptionSet = false,
     ?array                  $storedDeliveryOptions = null,
-    ?CapabilitiesRepository $capabilities = null,
+    ?CapabilitiesProvider $capabilities = null,
     ?DefaultOptions         $defaultOptions = null,
     ?string                 $exportedPackageType = null
 ): ShipmentOptionsResolver

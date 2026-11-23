@@ -46,12 +46,12 @@ CI runs Pest on PHP 8.1 to 8.4. PHP 7.4 and 8.0 are in `composer.json` but are n
 ## Architecture
 
 ```
-Magento order -> builder (src/Model/Shipment/) -> SDK v11 Shipment or Fulfilment Order -> MyParcel API
+Magento order -> builder (src/Service/Export/) -> SDK v11 Shipment or Fulfilment Order -> MyParcel API
       ^                                                                                |
       +------------------------------ Track & Trace update -----------------------------+
 ```
 
-- **Builders** (`src/Model/Shipment/`, `src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order.
+- **Builders** (`src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order. `src/Model/Shipment/` holds the definitions (carriers, package types, delivery types, options) and value objects; services go in `src/Service/`, capabilities in `src/Service/Capabilities/`.
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) send orders and shipments to the SDK in batches. A new SDK call goes through them: controller or observer, then collection, then builder, then SDK.
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.

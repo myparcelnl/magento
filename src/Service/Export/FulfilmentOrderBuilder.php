@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Shipment;
+namespace MyParcelNL\Magento\Service\Export;
 
 use DateTime;
 use DateTimeZone;
@@ -13,8 +13,8 @@ use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
@@ -38,12 +38,14 @@ class FulfilmentOrderBuilder
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
     private ShipmentApiProvider    $apiProvider;
+    private RecipientFields        $recipientFields;
 
     public function __construct(ObjectManagerInterface $objectManager)
     {
         $this->objectManager = $objectManager;
         $this->weight        = $objectManager->get(Weight::class);
         $this->apiProvider   = $objectManager->get(ShipmentApiProvider::class);
+        $this->recipientFields = $objectManager->get(RecipientFields::class);
     }
 
     /**
@@ -126,9 +128,9 @@ class FulfilmentOrderBuilder
             ->setCity($address->getCity())
             ->setCompany($address->getCompany())
             ->setEmail($address->getEmail())
-            ->setPerson(RecipientFields::person($address))
+            ->setPerson($this->recipientFields->person($address))
             ->setPhone($address->getTelephone())
-            ->setPostalCode(RecipientFields::postalCode($address));
+            ->setPostalCode($this->recipientFields->postalCode($address));
     }
 
     /**

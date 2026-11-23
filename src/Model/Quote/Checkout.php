@@ -10,7 +10,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
