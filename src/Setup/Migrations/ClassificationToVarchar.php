@@ -33,6 +33,7 @@ class ClassificationToVarchar
         $this->metadataPool       = $metadataPool;
     }
 
+    /** Move the stored HS codes of myparcel_classification from the int table to the varchar table. */
     public function run(EavSetup $eavSetup): void
     {
         $attributeId = (int) $eavSetup->getAttributeId(Product::ENTITY, self::ATTRIBUTE_CODE);

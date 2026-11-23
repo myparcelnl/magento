@@ -42,6 +42,7 @@ abstract class LabelExportAction extends Action implements HttpPostActionInterfa
         $this->response = $response;
     }
 
+    /** Run the export and answer the grid with JSON, never with a redirect. */
     public function execute(): ResultInterface
     {
         $labels = null;

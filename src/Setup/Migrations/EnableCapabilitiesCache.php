@@ -30,6 +30,7 @@ class EnableCapabilitiesCache
         $this->deploymentConfig = $deploymentConfig;
     }
 
+    /** Enable the capabilities cache type when env.php does not mention it. */
     public function run(): void
     {
         try {
