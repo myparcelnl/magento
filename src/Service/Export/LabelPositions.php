@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Service\Export;
 
 use MyParcelNL\Magento\Model\Source\PaperType;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentLabelPrintingPosition as Quadrant;
 
 /**
  * Holds the A4 label positions, and the paper size that follows from them.
@@ -17,7 +18,12 @@ use MyParcelNL\Magento\Service\Config;
 class LabelPositions
 {
     /** A whole A4 sheet in the modal's checkbox order. Keep it equal to _getLabelPosition() in mass-action.js. */
-    public const A4_SHEET = [2, 4, 1, 3];
+    public const A4_SHEET = [
+        Quadrant::TOP_RIGHT_QUADRANT,
+        Quadrant::BOTTOM_RIGHT_QUADRANT,
+        Quadrant::TOP_LEFT_QUADRANT,
+        Quadrant::BOTTOM_LEFT_QUADRANT,
+    ];
 
     private Config $config;
 

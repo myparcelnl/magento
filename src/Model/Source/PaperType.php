@@ -15,12 +15,13 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 
 class PaperType implements OptionSourceInterface
 {
     /** The stored values. LabelPositions turns A4 into slots; anything else prints A6. */
-    public const A4 = 'A4';
-    public const A6 = 'A6';
+    public const A4 = ShipmentParametersPaperSize::A4;
+    public const A6 = ShipmentParametersPaperSize::A6;
 
     /**
      * Options getter

@@ -8,6 +8,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
@@ -18,8 +19,6 @@ use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
  */
 class OrderCustomsDeclarationBuilder
 {
-    private const CURRENCY_EURO = 'EUR';
-
     private CustomsItems $items;
 
     public function __construct(ObjectManagerInterface $objectManager, Config $config, Weight $weight)
@@ -53,7 +52,7 @@ class OrderCustomsDeclarationBuilder
         $productIds      = array_map(static fn(array $line): int => (int) $line['product']->getId(), $lines);
         $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
         $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
-        $currency        = $order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO;
+        $currency        = $order->getOrderCurrency()->getCode() ?? RefTypesMoney::CURRENCY_EUR;
 
         foreach ($lines as $line) {
             $product   = $line['product'];
