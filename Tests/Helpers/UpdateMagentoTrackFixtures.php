@@ -130,7 +130,7 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
         ]
     );
 
-    return [refreshingCollection([$track], [$consignmentId], $latest, $saved), $saved];
+    return [buildRefreshCollection([$track], [$consignmentId], $latest, $saved), $saved];
 }
 
 /**
@@ -177,7 +177,7 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
         );
     }
 
-    return [refreshingCollection($existing, $consignmentIds, $latest, $saved), $saved];
+    return [buildRefreshCollection($existing, $consignmentIds, $latest, $saved), $saved];
 }
 
 /**
@@ -186,7 +186,7 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
  *
  * @param int[] $consignmentIds
  */
-function refreshingCollection(array $existing, array $consignmentIds, array $latest, object $saved): MagentoOrderCollection
+function buildRefreshCollection(array $existing, array $consignmentIds, array $latest, object $saved): MagentoOrderCollection
 {
     $shipment = createShipment();
 
