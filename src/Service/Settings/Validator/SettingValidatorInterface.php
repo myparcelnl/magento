@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Settings\Validator;
+namespace MyParcelNL\Magento\Service\Settings\Validator;
 
 use Magento\Framework\Phrase;
 

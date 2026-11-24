@@ -34,14 +34,14 @@ function unknownValuesResults(): array
 it('caches an answer with values the SDK does not know, and reads it back', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r       = makeCapabilitiesRepository([new GuzzleResponse(200, [], capabilitiesBody(unknownValuesResults()))]);
+    $r       = makeCapabilitiesProvider([new GuzzleResponse(200, [], capabilitiesBody(unknownValuesResults()))]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $fresh = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $fresh = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     // Drop the per-request memo, so the second read comes from the cache entry.
-    setPrivateProperty($r['repository'], 'memo', []);
-    $cached = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    setPrivateProperty($r['provider'], 'memo', []);
+    $cached = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     $cacheEntries = array_values(array_filter($r['store']->entries, static function (string $entry): bool {
         return '1' !== $entry;

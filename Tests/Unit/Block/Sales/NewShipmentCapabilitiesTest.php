@@ -191,8 +191,8 @@ it('floors the form at the minimum when the contract requires insurance', functi
 });
 
 it('asks nothing for an order with no shipping address rather than inventing a country', function () {
-    // Nothing seeded and no repository behind the lookup: an order with a country would fatal on
-    // reaching the repository, and that is the assertion.
+    // Nothing seeded and no provider behind the lookup: an order with a country would fatal on
+    // reaching the provider, and that is the assertion.
     $block = createNewShipmentBlockWith([], ['getShippingAddress' => null]);
 
     expect($block->getCountry())->toBe('')

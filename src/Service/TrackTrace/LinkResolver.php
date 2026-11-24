@@ -8,7 +8,6 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Service\IdList;
-use MyParcelNL\Magento\Service\TrackTraceUrl;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**

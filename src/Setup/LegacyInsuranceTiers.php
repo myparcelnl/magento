@@ -21,7 +21,6 @@ class LegacyInsuranceTiers
     private const FROM_100  = [100, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000];
     private const FROM_500  = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000];
     private const FIFTY_500 = [50, 500];
-    private const TEN_K     = [10000];
 
     /** A zone absent from a carrier's entry gets an empty list, and snap() leaves the amount untouched. */
     private const TIERS = [
@@ -41,13 +40,6 @@ class LegacyInsuranceTiers
         ],
         Carrier::DHL_PARCEL_CONNECT => [
             self::ZONE_EU => self::FROM_500,
-        ],
-        Carrier::UPS_STANDARD      => [
-            self::ZONE_LOCAL => self::FROM_100,
-        ],
-        Carrier::GLS               => [
-            self::ZONE_LOCAL => self::TEN_K,
-            self::ZONE_EU    => self::TEN_K,
         ],
     ];
 

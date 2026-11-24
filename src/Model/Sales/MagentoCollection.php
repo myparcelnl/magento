@@ -34,7 +34,6 @@ use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Model\Source\PaperType;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
@@ -47,6 +46,7 @@ use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesCarrierReturns;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\Shipment as SdkShipment;
 use MyParcelNL\Sdk\Services\MultiCollo\MultiColloShipmentService;
@@ -171,7 +171,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         if (null === $paperSize) {
             $this->options['positions'] = $this->labelPositions->configured();
-        } elseif (PaperType::A4 !== $paperSize) {
+        } elseif (ShipmentParametersPaperSize::A4 !== $paperSize) {
             $this->options['positions'] = null;
         }
 

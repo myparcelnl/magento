@@ -10,7 +10,7 @@ use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
-use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
+use MyParcelNL\Magento\Service\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Observer\ConfigChange;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;

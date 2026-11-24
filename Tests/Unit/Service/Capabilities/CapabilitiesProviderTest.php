@@ -17,7 +17,7 @@ function capabilitiesOk(?array $results = null): GuzzleResponse
 }
 
 /**
- * The Repository's own id prefixes, read off the class so a rename cannot quietly stop these tests
+ * The CapabilitiesProvider's own id prefixes, read off the class so a rename cannot quietly stop these tests
  * from asserting anything.
  *
  * @return array{0: string, 1: string} success prefix, failure prefix
@@ -32,11 +32,11 @@ function capabilitiesCacheIdPrefixes(): array
 it('fetches once and serves the cache after that', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r       = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r       = makeCapabilitiesProvider([capabilitiesOk()]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $first  = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
-    $second = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $first  = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $second = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     expect($first->carriers())->toBe([Carrier::POSTNL])
         ->and($second->carriers())->toBe([Carrier::POSTNL])
@@ -46,11 +46,11 @@ it('fetches once and serves the cache after that', function () {
 it('misses the cache when any request field changes', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r = makeCapabilitiesRepository([capabilitiesOk(), capabilitiesOk(), capabilitiesOk()]);
+    $r = makeCapabilitiesProvider([capabilitiesOk(), capabilitiesOk(), capabilitiesOk()]);
 
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('BE'));
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL')
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('BE'));
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL')
         ->withPackageType(PackageType::toV2Name(PackageType::MAILBOX_NAME)));
 
     expect($r['history'])->toHaveCount(3)
@@ -62,11 +62,11 @@ it('keeps two accounts apart, and never serves one from the other', function () 
 
     $dpdOnly = capabilityResult(['carrier' => 'DPD', 'options' => ['requiresSignature' => []]]);
 
-    $r = makeCapabilitiesRepository([capabilitiesOk(), capabilitiesOk([$dpdOnly])]);
+    $r = makeCapabilitiesProvider([capabilitiesOk(), capabilitiesOk([$dpdOnly])]);
 
     $request = CapabilitiesRequest::forCountry('NL');
-    $first   = $r['repository']->forApiKey('key-one', $request);
-    $second  = $r['repository']->forApiKey('key-two', $request);
+    $first   = $r['provider']->forApiKey('key-one', $request);
+    $second  = $r['provider']->forApiKey('key-two', $request);
 
     expect($first->carriers())->toBe([Carrier::POSTNL])
         ->and($second->carriers())->toBe([Carrier::DPD])
@@ -76,8 +76,8 @@ it('keeps two accounts apart, and never serves one from the other', function () 
 it('never writes the api key anywhere, in the cache id or the tags', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r = makeCapabilitiesRepository([capabilitiesOk()]);
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     $written = json_encode([array_keys($r['store']->entries), $r['store']->savedTags]);
 
@@ -93,9 +93,9 @@ it('logs a failure with a fingerprint prefix, never the key', function () {
                    && false !== strpos($message, 'Capabilities lookup failed');
         }));
 
-    $r = makeCapabilitiesRepository([new GuzzleResponse(500, [], '')]);
+    $r = makeCapabilitiesProvider([new GuzzleResponse(500, [], '')]);
 
-    expect($r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue();
+    expect($r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue();
 });
 
 it('fails open on a 500, a timeout and an undecodable body', function () {
@@ -108,8 +108,8 @@ it('fails open on a 500, a timeout and an undecodable body', function () {
     ];
 
     foreach ($faults as $index => $fault) {
-        $r   = makeCapabilitiesRepository([$fault]);
-        $set = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+        $r   = makeCapabilitiesProvider([$fault]);
+        $set = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
         expect($set->isPermissive())->toBeTrue()
             ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::AGE_CHECK))->toBeTrue();
@@ -119,16 +119,16 @@ it('fails open on a 500, a timeout and an undecodable body', function () {
 it('serves the cached answer without a new request', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r       = makeCapabilitiesRepository([capabilitiesOk(), new GuzzleResponse(500, [], '')]);
+    $r       = makeCapabilitiesProvider([capabilitiesOk(), new GuzzleResponse(500, [], '')]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
-    // A second Repository over the same cache: no memo, so it must come from the entry.
-    $again = makeCapabilitiesRepository([new GuzzleResponse(500, [], '')]);
+    // A second CapabilitiesProvider over the same cache: no memo, so it must come from the entry.
+    $again = makeCapabilitiesProvider([new GuzzleResponse(500, [], '')]);
     $again['store']->entries = $r['store']->entries;
 
-    $set = $again['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $set = $again['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     expect($set->isPermissive())->toBeFalse()
         ->and($set->carriers())->toBe([Carrier::POSTNL])
@@ -138,8 +138,8 @@ it('serves the cached answer without a new request', function () {
 it('writes the entry with no expiry', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r = makeCapabilitiesRepository([capabilitiesOk()]);
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     expect(array_values($r['store']->savedTags)[0]['lifeTime'])->toBeNull();
 });
@@ -149,14 +149,14 @@ it('logs each kind of unrecognised value once per fetch, and no option, which th
     $logger->shouldReceive('notice')->once()->with(Mockery::pattern('/packageType value\(s\).*HOVERCRAFT/'));
     $logger->shouldReceive('notice')->never()->with(Mockery::pattern('/option value/'));
 
-    $r = makeCapabilitiesRepository([capabilitiesOk([
+    $r = makeCapabilitiesProvider([capabilitiesOk([
         capabilityResult([
             'packageTypes' => ['PACKAGE', 'HOVERCRAFT'],
             'options'      => ['aBrandNewOption' => []],
         ]),
     ])]);
 
-    $set = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $set = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     // Logged, and still usable: the recognised half of the response survives the unknown half.
     expect($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME]);
@@ -167,10 +167,10 @@ it('logs each kind of unrecognised value once per fetch, and no option, which th
 it('remembers a failed request briefly, so a reload does not repeat the burst', function () {
     mockLoggerFacade()->shouldReceive('warning');
 
-    $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
+    $r       = makeCapabilitiesProvider([new GuzzleResponse(429, [], '')]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     [, $failurePrefix] = capabilitiesCacheIdPrefixes();
 
@@ -188,16 +188,16 @@ it('does not call again while a failure is remembered', function () {
     mockLoggerFacade()->shouldReceive('warning')->once();
 
     // One queued response: a second call would exhaust the handler and fail loudly.
-    $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
+    $r       = makeCapabilitiesProvider([new GuzzleResponse(429, [], '')]);
     $request = CapabilitiesRequest::forCountry('NL');
 
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
-    // A fresh Repository over the same cache: no memo, so only the failure entry can stop the call.
-    $again = makeCapabilitiesRepository([]);
+    // A fresh CapabilitiesProvider over the same cache: no memo, so only the failure entry can stop the call.
+    $again = makeCapabilitiesProvider([]);
     $again['store']->entries = $r['store']->entries;
 
-    expect($again['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request)->isPermissive())->toBeTrue()
+    expect($again['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request)->isPermissive())->toBeTrue()
         ->and($again['history'])->toHaveCount(0);
 });
 
@@ -208,10 +208,10 @@ it('prefers a previous good answer over a recent failure', function () {
     $request = CapabilitiesRequest::forCountry('NL');
 
     // A store holding both a success and a failure entry for the same request.
-    $ok = makeCapabilitiesRepository([capabilitiesOk()]);
-    $ok['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $ok = makeCapabilitiesProvider([capabilitiesOk()]);
+    $ok['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
-    // The double stores ids exactly as the Repository passes them, so lower case and unprefixed by
+    // The double stores ids exactly as the CapabilitiesProvider passes them, so lower case and unprefixed by
     // Magento. Add a failure marker beside the success entry for the same request.
     [$okPrefix, $failurePrefix] = capabilitiesCacheIdPrefixes();
 
@@ -221,10 +221,10 @@ it('prefers a previous good answer over a recent failure', function () {
         $entries[$failurePrefix . substr($id, strlen($okPrefix))] = '1';
     }
 
-    $both = makeCapabilitiesRepository([]);
+    $both = makeCapabilitiesProvider([]);
     $both['store']->entries = $entries;
 
-    $set = $both['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+    $set = $both['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
 
     expect($set->isPermissive())->toBeFalse()
         ->and($set->carriers())->toBe([Carrier::POSTNL])
@@ -236,21 +236,21 @@ it('prefers a previous good answer over a recent failure', function () {
  * the holder would queue them all behind one API call, so the rest answer as a failure would.
  */
 it('does not call out for a request another request is already fetching', function () {
-    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
     $r['store']->lockHeld = true;
 
-    $set = $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $set = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     expect($r['history'])->toHaveCount(0)
         ->and($set->isPermissive())->toBeTrue();
 });
 
 it('releases the fetch lock once it has the answer', function () {
-    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
 
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
     expect($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
 });
@@ -260,10 +260,10 @@ it('fails open when the cache or the lock backend throws', function (string $cal
     $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/Capabilities lookup failed.*refused the ' . $call . '/'));
     $logger->shouldReceive('notice')->byDefault();
 
-    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
     $r['store']->throwOn = $call;
 
-    expect($r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
+    expect($r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
         // Releases the lock it took, and only that one.
         ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
 })->with(['load', 'lock', 'save']);

@@ -22,16 +22,16 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
  */
 class CapabilitiesLookup
 {
-    private CapabilitiesProvider $repository;
+    private CapabilitiesProvider $provider;
 
     private ShipmentApiProvider $apiProvider;
 
     /** @var array<string,CapabilitySet> keyed by API key, country, package type and carrier */
     private array $answers = [];
 
-    public function __construct(CapabilitiesProvider $repository, ShipmentApiProvider $apiProvider)
+    public function __construct(CapabilitiesProvider $provider, ShipmentApiProvider $apiProvider)
     {
-        $this->repository  = $repository;
+        $this->provider    = $provider;
         $this->apiProvider = $apiProvider;
     }
 
@@ -117,7 +117,7 @@ class CapabilitiesLookup
             $request = $request->withCarrier($v2Carrier);
         }
 
-        return $this->answers[$memoKey] = $this->repository->forApiKey($apiKey, $request);
+        return $this->answers[$memoKey] = $this->provider->forApiKey($apiKey, $request);
     }
 
     /** Check whether one of the answers of this instance was a fallback, not the account's own. */

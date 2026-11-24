@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Settings\Validator\InsuranceAmount;
+use MyParcelNL\Magento\Service\Settings\Validator\InsuranceAmount;
 
 const VALIDATOR_INSURANCE_PATH = 'myparcelnl_magento_postnl_settings/default_options/insurance_local_amount';
 

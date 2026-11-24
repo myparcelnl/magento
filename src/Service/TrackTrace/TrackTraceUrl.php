@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Service;
+namespace MyParcelNL\Magento\Service\TrackTrace;
 
 /**
  * The fallback track & trace URL, for a shipment stored before the module read the link from the API.

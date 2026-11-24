@@ -14,18 +14,18 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  * The constructor is skipped: it builds half a dozen services, while canUseMultiCollo() reads only
  * the shipment, the API key it is handed, and the capabilities lookup.
  *
- * A real CapabilitiesLookup over the stubbed repository, so the request this builds is the one asserted.
+ * A real CapabilitiesLookup over the stubbed provider, so the request this builds is the one asserted.
  *
  * @param \GuzzleHttp\Psr7\Response[] $responses
  */
 function createCollectionAnswering(array $responses): array
 {
-    $repository = makeCapabilitiesRepository($responses);
+    $provider = makeCapabilitiesProvider($responses);
 
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
-    setPrivateProperty($collection, 'capabilityLookup', capabilitiesLookupOver($repository['repository']));
+    setPrivateProperty($collection, 'capabilityLookup', capabilitiesLookupOver($provider['provider']));
 
-    return ['collection' => $collection, 'history' => &$repository['history']];
+    return ['collection' => $collection, 'history' => &$provider['history']];
 }
 
 /**
