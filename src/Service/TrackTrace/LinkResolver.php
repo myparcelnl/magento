@@ -14,10 +14,9 @@ use MyParcelNL\Sdk\Services\CountryCodes;
  * Reads the MyParcel track & trace links for a page of orders. Manual tracks are left out. An order
  * without a MyParcel track falls back to the barcodes the status cron wrote to its order row.
  *
- * The link the API issued is stored on the track; TrackTraceUrl only fills in for shipments exported
- * before that was so, and its host depends on the account's proposition, hence the store id in the
- * rows. That lookup is made only when a row actually needs the fallback, so an install with nothing
- * but fresh exports never reads account settings while rendering a grid.
+ * A link the API issued is stored on the track. TrackTraceUrl builds one for a track without it and
+ * for an order-row barcode. Its host follows the account's proposition, hence the store id in the
+ * rows; that lookup is made only for a row that needs it.
  */
 class LinkResolver
 {

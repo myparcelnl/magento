@@ -81,3 +81,13 @@ it('reads a price that the database gives as a string', function () {
     expect($line->getPrice())->toBe(1999)
         ->and($line->getVat())->toBe(420);
 });
+
+it('builds the line of a product that was deleted from the catalog', function () {
+    // getProduct() is null then; the row keeps the sku. The SDK sends an unknown size as null.
+    [$order] = buildBatch([[createOrderItem(['product' => null, 'sku' => 'OLD-MUG'])]]);
+    $product = $order->getOrderLines()->first()->getProduct();
+
+    expect($product->getSku())->toBe('OLD-MUG')
+        ->and($product->getWeight())->toBeNull()
+        ->and($product->getHeight())->toBeNull();
+});

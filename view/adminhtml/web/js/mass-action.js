@@ -434,7 +434,6 @@ define(
                  */
                 _runExport: function (url, tab, params) {
                     var parentThis = this;
-                    var failed = false;
                     var body = new URLSearchParams(params || {});
 
                     // Admin POSTs are rejected without it.
@@ -453,7 +452,7 @@ define(
                             return response.json();
                         })
                         .then(function (answer) {
-                            failed = messages.render(answer.messages);
+                            messages.render(answer.messages);
 
                             if (!answer.labels) {
                                 if (tab) {
@@ -463,9 +462,7 @@ define(
                                 return null;
                             }
 
-                            return downloadLabels(answer.labels, tab, parentThis.options['label_warning_header']).then(function (delivered) {
-                                failed = failed || !delivered;
-                            });
+                            return downloadLabels(answer.labels, tab, parentThis.options['label_warning_header']);
                         })
                         .catch(function () {
                             // A dropped connection, or an error page where JSON was expected. The
@@ -474,11 +471,10 @@ define(
                                 tab.close();
                             }
 
-                            failed = true;
                             messages.error($.mage.__('No answer arrived from the server. The MyParcel export may have run: check the shipping status before you export again.'));
                         })
                         .finally(function () {
-                            parentThis._refresh(failed);
+                            parentThis._refresh();
                             $('body').trigger('processStop');
                         });
                 },
@@ -490,12 +486,12 @@ define(
                  * cached rows and the export appears to have changed nothing.
                  *
                  * A single order or shipment page has no grid, so it reloads instead, and the
-                 * messages come back after the reload. Not after a failure: the page still shows
-                 * the state the message is about.
+                 * messages come back after the reload. Also after a failure: the server may have
+                 * exported before its answer was lost.
                  *
                  * @protected
                  */
-                _refresh: function (failed) {
+                _refresh: function () {
                     // The messages sit at the top of the page, and an export is started from a row
                     // that can be well below the fold.
                     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -508,10 +504,8 @@ define(
                         return;
                     }
 
-                    if (!failed) {
-                        messages.keepForReload();
-                        window.location.reload();
-                    }
+                    messages.keepForReload();
+                    window.location.reload();
                 }
             };
 

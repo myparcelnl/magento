@@ -53,19 +53,16 @@ class MagentoShipmentCollection extends MagentoCollection
     }
 
     /**
-     * Create new Magento Track and save order
+     * Add a MyParcel track to each shipment that needs one, and save the shipments.
      *
      * @return $this
      * @throws \Exception
      */
     public function setMagentoTrack(): self
     {
-        /**
-         * @var Order          $order
-         * @var Order\Shipment $shipment
-         */
         $withTrack = $this->shipmentIdsWithAnyTrack();
 
+        /** @var Order\Shipment $shipment */
         foreach ($this->getShipmentsCollection() as $shipment) {
             if (! isset($withTrack[(int) $shipment->getId()]) ||
                 $this->getOption('create_track_if_one_already_exist')
@@ -90,15 +87,13 @@ class MagentoShipmentCollection extends MagentoCollection
      */
     public function sendTrackEmailFromShipments()
     {
-        /**
-         * @var \Magento\Sales\Model\Order\Shipment $shipment
-         */
         if ($this->trackSender->isEnabled() == false) {
             return $this;
         }
 
         $tracks = $this->tracksByShipmentId();
 
+        /** @var Order\Shipment $shipment */
         foreach ($this->shipments as $shipment) {
             if ($shipment->getEmailSent() != null || ! self::hasRealBarcode($tracks[(int) $shipment->getId()] ?? [])) {
                 continue;

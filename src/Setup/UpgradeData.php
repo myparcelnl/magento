@@ -306,10 +306,7 @@ class UpgradeData implements UpgradeDataInterface
                         'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                         'label'   => 'HS code',
                         'input'   => 'text',
-                        // Text, because a merchant types dots (6109.10) and leading zeros, and an int
-                        // clamps above 2147483647. ClassificationToVarchar sets the length limit.
-                        'type'    => 'varchar',
-                        'default' => '',
+                        'default' => '0',
                     ]
                 )
             );
@@ -663,9 +660,7 @@ class UpgradeData implements UpgradeDataInterface
                             'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                             'label'   => 'HS code',
                             'input'   => 'text',
-                            // See the note on the first definition of this attribute.
-                            'type'    => 'varchar',
-                            'default' => '',
+                            'default' => '0',
                         ]
                     )
                 );

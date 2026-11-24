@@ -310,8 +310,8 @@ function assertFlatInsuranceShape(array $results): void
 }
 
 /**
- * A CapabilitiesLookup that already holds its answers. Reaching the provider fatals: that is the
- * assertion that the code asked only the requests the test seeded.
+ * A CapabilitiesLookup that already holds its answers. Reaching the provider fails the test: that is
+ * the assertion that the code asked only the requests the test seeded.
  *
  * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
  * single CapabilitySet to seed every request at once, for a test the request distinction is not about.
@@ -331,7 +331,10 @@ function capabilityLookupWith($answers, string $country = 'NL'): CapabilitiesLoo
         $seeded[CAPABILITIES_TEST_API_KEY . '|' . $country . '|' . $packageType . '|'] = $set;
     }
 
-    $lookup = capabilitiesLookupOver(newInstanceWithoutConstructor(CapabilitiesProvider::class));
+    $provider = Mockery::mock(CapabilitiesProvider::class);
+    $provider->shouldNotReceive('forApiKey');
+
+    $lookup = capabilitiesLookupOver($provider);
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;

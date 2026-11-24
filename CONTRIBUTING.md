@@ -34,7 +34,7 @@ form.
 
 ### The New Shipment form
 
-The form shows the `label` of the option's row. Add its translation to every file in `i18n/`.
+The form shows the `label` of the option's row. Add its translation to every locale file in `i18n/` except `en_US.csv`.
 
 ### An option in the checkout
 
@@ -58,7 +58,7 @@ steps in this order:
    `version_compare($context->getVersion(), '<next release>', '<')`, that calls
    `$eavSetup->addAttribute()` for `myparcel_<name>`. Do not change an older step: an installed shop
    does not run it again. Do not change `setup_version` by hand; the release does that.
-2. **Translate it.** Add the label and the note to every file in `i18n/`.
+2. **Translate it.** Add the label and the note to every locale file in `i18n/` except `en_US.csv`.
 3. **Name it for the readers.** Add the name without the `myparcel_` prefix to
    `Service\ProductAttributes::ATTRIBUTES`, so that one load reads it with the others.
 4. **Read it where it applies.** For the shipment, read it in `ShipmentOptionsResolver`, as

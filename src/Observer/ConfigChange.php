@@ -15,12 +15,12 @@ use Magento\Framework\Phrase;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
-use MyParcelNL\Magento\Service\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\Settings;
+use MyParcelNL\Magento\Service\Settings\Validator\SettingValidatorInterface;
 use Throwable;
 
 class ConfigChange implements ObserverInterface

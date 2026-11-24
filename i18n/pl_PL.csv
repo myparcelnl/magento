@@ -448,7 +448,7 @@ No standard weight,Brak standardowej wagi
 Create MyParcel consignment,Utwórz przesyłkę MyParcel
 Export Entire Order,Eksportuj całe zamówienie
 Label amount:,Liczba etykiet:
-Letter,Bez opłaty
+Letter,List
 Return if no answer,Zwróć w razie braku odpowiedzi
 24 hour priority,Dostawa priorytetowa
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Gdy ta opcja jest włączona, pole wyboru Dostawa priorytetowa jest wyświetlane w kasie, gdy ten produkt znajduje się w koszyku, nawet jeśli ogólne ustawienie dostawy priorytetowej jest wyłączone."

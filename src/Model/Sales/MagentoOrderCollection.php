@@ -102,18 +102,18 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Create new Magento Track and save order
+     * Add a MyParcel track to each shipment that needs one.
      *
      * @return $this
      * @throws Exception
      */
     public function setMagentoTrack(): MagentoOrderCollection
     {
+        $withTrack = $this->shipmentIdsWithAnyTrack();
+
         /**
          * @var Shipment $shipment
          */
-        $withTrack = $this->shipmentIdsWithAnyTrack();
-
         foreach ($this->getShipmentsCollection() as $shipment) {
             $i = 1;
 

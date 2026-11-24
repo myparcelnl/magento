@@ -32,6 +32,7 @@ class OrderCustomsDeclarationBuilder
         $totalWeight        = 0;
         $lines              = [];
 
+        /** @var \Magento\Sales\Model\Order\Item $item getItems() declares the interface */
         foreach ($order->getItems() as $item) {
             if (! CustomsItems::isShippedRow($item)) {
                 continue;

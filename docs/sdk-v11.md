@@ -8,6 +8,9 @@ describes.
 API through the SDK's `Fulfilment` classes, and the back office makes the shipments. The code also
 calls this mode "fulfilment" and "Order v1".
 
+**Proposition** is the MyParcel brand an account belongs to, such as MyParcel or SendMyParcel. The
+module reads its id from the stored account settings (`Service\TrackTrace\AccountProposition`).
+
 ## Why the module owns its shipment domain layer
 
 The module was pinned at `myparcelnl/sdk` `11.0.0-beta.15` because **beta.22 deleted the legacy
@@ -66,7 +69,7 @@ delivery type reads as a plain string (`EnumFallback`), but a model that holds o
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
 render pays is one connect timeout per *distinct* request it asks: `CapabilitiesLookup` memoises per
-store, country, package type and carrier, and `CapabilitiesProvider` memoises per request body on top of
+API key, country, package type and carrier, and `CapabilitiesProvider` memoises per request body on top of
 that.
 
 ## Deliberate divergences from `myparcelnl/pdk`
@@ -75,11 +78,8 @@ All deliberate. A reader who finds them should treat them as decisions, not omis
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
    private `hydrateModel()`. The mapper builds typed generated models through typed setters, so the keys
-   in the request body come from each model's own `attributeMap`. It also maps module option names to the V2 names
-   (`signature → setRequiresSignature`, `only_recipient → setRecipientOnlyDelivery`,
-   `age_check → setRequiresAgeVerification`, `receipt_code → setRequiresReceiptCode`,
-   `large_format → setOversizedPackage`, `collect → setScheduledCollection`,
-   `return → setReturnOnFirstFailedDelivery`, `printerless_return → setPrintReturnLabelAtDropOff`),
+   in the request body come from each model's own `attributeMap`. It also maps module option names to the V2
+   names, through the aliases of the SDK's `ShipmentOptionMapper::aliases()` (`V2NameMapTest` pins them),
    and it normalises `null` to an empty object, because `null` means "enabled, unconfigured" while
    `false` and `0` are meaningful.
 2. **`filterSupportedCapabilities()` is not ported.** A module allow-list is the mechanism by
@@ -165,7 +165,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   and the [TARIC extraction notes](https://circabc.europa.eu/d/d/versionStore/version2Store/1d467c48-210b-43e7-82e0-d37639c2d991/Explanation%20for%20the%20Taric%20database%20extractions)
   give additional codes 4 characters.
 - **10 sent:** 10 digits is TARIC and the UK, US and Canadian tariffs. The Order API takes an `hsCode`
-  of at most 10 characters, the SDK cuts to 10, and the UPU ITMATT check accepts 6, 8 or 10
+  of 6 to 12 characters (`CustomsDeclarationGroupsInner`), the SDK cuts to 10, and the UPU ITMATT check accepts 6, 8 or 10
   ([ITMATT notes](https://www.upu.int/getmedia/51b0b239-ea60-4c79-84d2-fc688ac482de/complianceWithUpuStandardsExplanatoryNotesITMATTEn.pdf)).
   The Core API declares no maximum.
 - **What the cut loses:** national tariffs reach 13 digits, China the longest, 12 in the Gulf

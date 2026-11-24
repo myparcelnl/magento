@@ -294,7 +294,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         /* @var Collection $collection */
         $collection = $this->objectManager->create(self::PATH_ORDER_TRACK_COLLECTION);
-        $collection->addAttributeToFilter('parent_id', ['in' => $shipmentIds]);
+        $collection->addAttributeToFilter('parent_id', ['in' => $shipmentIds])
+                   ->addFieldToSelect('parent_id');
 
         $withTrack = [];
 
