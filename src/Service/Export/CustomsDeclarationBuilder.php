@@ -54,7 +54,7 @@ class CustomsDeclarationBuilder
                 $item->getSku(),
                 (int) $item->getQty(),
                 (float) $item->getWeight(),
-                // The Core API takes EUR only, so the base price; the order may be in another currency.
+                // The Core API takes EUR only, so the base price, assumed EUR. See 'Open risks' in docs/sdk-v11.md.
                 (float) $item->getOrderItem()->getBasePrice(),
                 (string) ($classifications[$productId] ?? ''),
                 (string) ($countries[$productId] ?? '')

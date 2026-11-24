@@ -144,3 +144,8 @@ it('normalises a camelCase pickup location in fromCheckoutData() and fromOrderFa
         ->and($viaFallback->getPickupLocation()->getLocationCode())->toBe('216877')
         ->and($viaConstructor->toArray())->toBe($viaFactory->toArray());
 });
+
+it('gives no date when nothing is stored', function () {
+    // An empty string is a date to Dating::convertDeliveryDate(), which then answers tomorrow.
+    expect(DeliveryOptions::defaults()->getDate())->toBeNull();
+});

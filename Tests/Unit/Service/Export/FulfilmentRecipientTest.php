@@ -71,6 +71,11 @@ it('maps each shipping address field onto the recipient', function () {
     expect($recipient->getPhone())->toBe('+1 555 0100');
 });
 
+it('sends a two-letter region code as the region, as a label sends it as the state', function () {
+    expect(recipientForAddress(['getCountryId' => 'US', 'getRegionCode' => 'CA'])->getRegion())->toBe('CA')
+        ->and(recipientForAddress(['getCountryId' => 'NL', 'getRegionCode' => 'NH-X'])->getRegion())->toBeNull();
+});
+
 it('keeps the full street verbatim for a destination with no split rule', function () {
     $recipient = recipientForAddress(['getCountryId' => 'US', 'street' => '742 Evergreen Terrace']);
 

@@ -26,9 +26,12 @@ class OrderLineOptionsFromOrderAdapter extends OrderLine
     protected function prepareItemData($magentoOrderItem): array
     {
         $magentoItemData = $magentoOrderItem->getData();
+        $quantity        = (float) $magentoItemData['qty_ordered'];
 
+        // price is per unit and tax_amount is per row; the SDK wants every amount per unit.
         $price = DeliveryCosts::getPriceInCents((float) $magentoItemData['price']);
-        $vat   = DeliveryCosts::getPriceInCents((float) $magentoItemData['tax_amount']);
+        $tax   = (float) $magentoItemData['tax_amount'];
+        $vat   = DeliveryCosts::getPriceInCents($quantity > 0.0 ? $tax / $quantity : $tax);
 
         return [
             'price'           => $price,

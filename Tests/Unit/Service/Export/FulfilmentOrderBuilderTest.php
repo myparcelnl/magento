@@ -114,3 +114,20 @@ it('keeps the checkout carrier when the modal says default', function () {
 
     expect($order->getCarrier()->getName())->toBe(CarrierDHLForYou::NAME);
 });
+
+it('weighs the rows a label ships, as the customs declaration does', function () {
+    // A configurable's child row repeats the parent's weight; a virtual row has none to ship.
+    $parent  = createOrderItem(['item_id' => 1, 'weight' => 200.0]);
+    $child   = createOrderItem(['item_id' => 2, 'weight' => 200.0, 'parent_item' => $parent, 'is_dummy' => true]);
+    $virtual = createOrderItem(['item_id' => 3, 'weight' => 50.0, 'is_virtual' => true]);
+
+    $order = createFulfilmentOrderBuilder()->build(
+        createFulfilmentMagentoOrder(
+            ['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'],
+            ['getItems' => [$parent, $child, $virtual]]
+        ),
+        []
+    );
+
+    expect($order->getWeight())->toBe(200);
+});

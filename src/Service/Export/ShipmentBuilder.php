@@ -161,8 +161,6 @@ class ShipmentBuilder
             (string) $address->getCountryId()
         );
 
-        $regionCode = $address->getRegionCode();
-
         return array_filter([
             'cc'            => (string) $address->getCountryId(),
             'postal_code'   => $this->recipientFields->postalCode($address),
@@ -175,7 +173,7 @@ class ShipmentBuilder
             'company'       => (string) $address->getCompany(),
             'email'         => (string) $address->getEmail(),
             'phone'         => (string) $address->getTelephone(),
-            'state'         => $regionCode && 2 === strlen($regionCode) ? $regionCode : null,
+            'state'         => $this->recipientFields->state($address),
         ], static fn($value): bool => null !== $value && '' !== $value);
     }
 

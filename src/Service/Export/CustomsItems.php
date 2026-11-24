@@ -15,9 +15,9 @@ use MyParcelNL\Sdk\Support\Str;
 /**
  * The customs facts both export paths share: HS codes, countries of origin, and the line arithmetic.
  *
- * Each path keeps its own item source: a label declares its shipment items at the EUR base price, a
- * fulfilment order its order lines at the price paid in the order currency. Both lookups take every
- * product id at once, never one query per item.
+ * Each path keeps its own item source: a label declares its shipment items at the base price
+ * (assumed EUR), a fulfilment order its order lines at the price paid in the order currency. Both
+ * lookups take every product id at once, never one query per item.
  */
 class CustomsItems
 {
@@ -84,6 +84,17 @@ class CustomsItems
 
         // A product that no longer exists still needs a country on its customs item.
         return $countries + array_fill_keys($productIds, $fallback);
+    }
+
+    /**
+     * Whether an order row is one a label ships. getQtyToShip() is 0 for a dummy row, such as the
+     * child of a configurable or the parent of a bundle shipped separately.
+     *
+     * @param \Magento\Sales\Model\Order\Item $orderItem
+     */
+    public static function isShippedRow($orderItem): bool
+    {
+        return ! $orderItem->isDummy(true) && ! $orderItem->getIsVirtual();
     }
 
     /** The SDK's refusal of a customs item, with the product named so the merchant can find it. */

@@ -63,6 +63,17 @@ it('rounds the price and the VAT of an order line to cents', function () {
         ->and($line->getPriceAfterVat())->toBe(36);
 });
 
+it('gives the VAT of one unit, as the price is of one unit', function () {
+    // tax_amount is the tax of the whole row; the SDK takes every amount "regardless of quantity".
+    [$order] = buildBatch([[createOrderItem(['price' => 10.0, 'tax_amount' => 4.2, 'qty_ordered' => 2])]]);
+    $line    = $order->getOrderLines()->first();
+
+    expect($line->getPrice())->toBe(1000)
+        ->and($line->getVat())->toBe(210)
+        ->and($line->getPriceAfterVat())->toBe(1210)
+        ->and($line->getQuantity())->toBe(2);
+});
+
 it('reads a price that the database gives as a string', function () {
     [$order] = buildBatch([[createOrderItem(['price' => '19.9900', 'tax_amount' => '4.1979'])]]);
     $line    = $order->getOrderLines()->first();

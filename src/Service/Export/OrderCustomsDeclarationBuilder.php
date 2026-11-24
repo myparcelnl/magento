@@ -14,7 +14,7 @@ use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 
 /**
- * Builds the customs declaration of a PPS order: each order line at product weight and at the price
+ * Builds the customs declaration of a PPS order: each shipped order row at its weight and at the price
  * paid, in the order's currency. The label path's counterpart is CustomsDeclarationBuilder.
  */
 class OrderCustomsDeclarationBuilder
@@ -33,38 +33,36 @@ class OrderCustomsDeclarationBuilder
         $lines              = [];
 
         foreach ($order->getItems() as $item) {
-            $product = $item->getProduct();
-
-            // The rows a label ships: getQtyToShip() is 0 for a dummy row, such as the child of a
-            // configurable or the parent of a bundle shipped separately.
-            if (! $product || $item->isDummy(true) || $item->getIsVirtual()) {
+            if (! CustomsItems::isShippedRow($item)) {
                 continue;
             }
 
+            // Name and weight from the order row, as the label path does: a deleted product still ships.
             $lines[] = [
-                'product' => $product,
+                'productId' => (int) $item->getProductId(),
+                'name'      => (string) $item->getName(),
+                'weight'    => (float) $item->getWeight(),
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
-                'amount'  => max(1, (int) ($item->getQtyShipped() ?: $item->getQtyOrdered())),
-                'price'   => (float) $item->getPrice(),
+                'amount'    => max(1, (int) ($item->getQtyShipped() ?: $item->getQtyOrdered())),
+                'price'     => (float) $item->getPrice(),
             ];
         }
 
-        $productIds      = array_map(static fn(array $line): int => (int) $line['product']->getId(), $lines);
+        $productIds      = array_column($lines, 'productId');
         $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
         $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
         $currency        = $order->getOrderCurrency()->getCode() ?? RefTypesMoney::CURRENCY_EUR;
 
         foreach ($lines as $line) {
-            $product   = $line['product'];
-            $productId = (int) $product->getId();
+            $productId = $line['productId'];
             $amount    = $line['amount'];
 
-            $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
+            $lineWeight   = $this->items->lineWeightInGrams($line['weight'], $amount);
             $totalWeight += $lineWeight;
 
             $customsDeclaration->addCustomsItem(
                 (new MyParcelCustomsItem())
-                    ->setDescription($this->items->description((string) $product->getName()))
+                    ->setDescription($this->items->description($line['name']))
                     ->setAmount($amount)
                     ->setWeight($lineWeight)
                     ->setItemValueArray([
