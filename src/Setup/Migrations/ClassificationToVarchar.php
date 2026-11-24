@@ -43,6 +43,7 @@ class ClassificationToVarchar
         }
 
         $eavSetup->updateAttribute(Product::ENTITY, self::ATTRIBUTE_CODE, 'backend_type', 'varchar');
+        // 18 is the longest declaration code, see "HS code length" in docs/sdk-v11.md.
         $eavSetup->updateAttribute(Product::ENTITY, self::ATTRIBUTE_CODE, 'frontend_class', 'validate-length maximum-length-18');
         $eavSetup->updateAttribute(Product::ENTITY, self::ATTRIBUTE_CODE, 'default_value', '');
 

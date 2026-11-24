@@ -41,11 +41,11 @@ function createShipmentOptions(
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with(Config::class)->andReturn($config);
 
-    // Absent on purpose when no repository is supplied: the resolver must fall open on a capabilities
+    // Absent on purpose when no provider is supplied: the resolver must fall open on a capabilities
     // lookup it cannot make, and a test that stubs one would not prove that.
     if (null !== $capabilities) {
-        // A real CapabilitiesLookup over the stubbed repository, so the request the resolver asks for is
-        // the one the repository double asserts.
+        // A real CapabilitiesLookup over the stubbed provider, so the request the resolver asks for is
+        // the one the provider double asserts.
         $objectManager->shouldReceive('get')
             ->with(CapabilitiesLookup::class)
             ->andReturn(capabilitiesLookupOver($capabilities));

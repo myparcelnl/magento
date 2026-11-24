@@ -307,10 +307,8 @@ class UpgradeData implements UpgradeDataInterface
                         'label'   => 'HS code',
                         'input'   => 'text',
                         // Text, because a merchant types dots (6109.10) and leading zeros, and an int
-                        // clamps above 2147483647. 18 is the longest declaration code, see "HS code
-                        // length" in docs/sdk-v11.md.
+                        // clamps above 2147483647. ClassificationToVarchar sets the length limit.
                         'type'    => 'varchar',
-                        'class'   => 'validate-length maximum-length-18',
                         'default' => '',
                     ]
                 )
@@ -667,7 +665,6 @@ class UpgradeData implements UpgradeDataInterface
                             'input'   => 'text',
                             // See the note on the first definition of this attribute.
                             'type'    => 'varchar',
-                            'class'   => 'validate-length maximum-length-18',
                             'default' => '',
                         ]
                     )

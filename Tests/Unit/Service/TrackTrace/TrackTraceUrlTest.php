@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Service\TrackTraceUrl;
+use MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl;
 
 /**
  * The fallback url, for shipments stored before the module read the link from the API.

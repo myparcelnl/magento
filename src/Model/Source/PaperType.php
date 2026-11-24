@@ -20,9 +20,6 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 class PaperType implements OptionSourceInterface
 {
     /** The stored values. LabelPositions turns A4 into slots; anything else prints A6. */
-    public const A4 = ShipmentParametersPaperSize::A4;
-    public const A6 = ShipmentParametersPaperSize::A6;
-
     /**
      * Options getter
      *
@@ -30,7 +27,10 @@ class PaperType implements OptionSourceInterface
      */
     public function toOptionArray()
     {
-        return [['value' => self::A4, 'label' => __('A4')], ['value' => self::A6, 'label' => __('A6')]];
+        return [
+            ['value' => ShipmentParametersPaperSize::A4, 'label' => __('A4')],
+            ['value' => ShipmentParametersPaperSize::A6, 'label' => __('A6')],
+        ];
     }
 
     /**
@@ -40,6 +40,6 @@ class PaperType implements OptionSourceInterface
      */
     public function toArray()
     {
-        return [self::A4 => __('A4'), self::A6 => __('A6')];
+        return [ShipmentParametersPaperSize::A4 => __('A4'), ShipmentParametersPaperSize::A6 => __('A6')];
     }
 }

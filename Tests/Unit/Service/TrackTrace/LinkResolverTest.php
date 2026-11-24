@@ -9,7 +9,7 @@ use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Service\TrackTrace\AccountProposition;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
-use MyParcelNL\Magento\Service\TrackTraceUrl;
+use MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl;
 
 /**
  * The link an admin sees: the one the API issued where it is stored, a constructed one where it is

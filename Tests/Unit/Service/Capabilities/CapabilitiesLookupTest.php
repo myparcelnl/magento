@@ -6,8 +6,8 @@ it('fails open for a store with no api key rather than stopping the page', funct
     $logger = mockLoggerFacade();
     $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/No MyParcel API key for store 7/'));
 
-    $r      = makeCapabilitiesRepository();
-    $lookup = capabilitiesLookupOver($r['repository'], '');
+    $r      = makeCapabilitiesProvider();
+    $lookup = capabilitiesLookupOver($r['provider'], '');
 
     expect($lookup->forRequest(7, 'NL')->isPermissive())->toBeTrue()
         ->and($lookup->forRequest(7, 'NL', 'package')->isPermissive())->toBeTrue()
@@ -18,8 +18,8 @@ it('fails open for a store with no api key rather than stopping the page', funct
 it('asks once for two stores that share one api key', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
-    $r      = makeCapabilitiesRepository([new GuzzleHttp\Psr7\Response(200, [], capabilitiesBody([capabilityResult()]))]);
-    $lookup = capabilitiesLookupOver($r['repository']);
+    $r      = makeCapabilitiesProvider([new GuzzleHttp\Psr7\Response(200, [], capabilitiesBody([capabilityResult()]))]);
+    $lookup = capabilitiesLookupOver($r['provider']);
 
     $lookup->forRequest(1, 'NL');
     $lookup->forRequest(2, 'NL');

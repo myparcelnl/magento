@@ -134,7 +134,7 @@ it('refuses an empty API key without a request', function () {
         ->and($c['history'])->toBeEmpty();
 });
 
-it('does not retry a throttled call, so the Repository can fall back at once', function () {
+it('does not retry a throttled call, so the CapabilitiesProvider can fall back at once', function () {
     $c = makeCapabilitiesClient([
         new GuzzleResponse(429, ['Retry-After' => '0'], ''),
         new GuzzleResponse(200, [], capabilitiesBody([])),

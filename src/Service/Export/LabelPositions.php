@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\Export;
 
-use MyParcelNL\Magento\Model\Source\PaperType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentLabelPrintingPosition as Quadrant;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 
 /**
  * Holds the A4 label positions, and the paper size that follows from them.
@@ -40,7 +40,7 @@ class LabelPositions
      */
     public function configured(): ?array
     {
-        return PaperType::A4 === $this->config->getGeneralConfig('print/paper_type') ? self::A4_SHEET : null;
+        return ShipmentParametersPaperSize::A4 === $this->config->getGeneralConfig('print/paper_type') ? self::A4_SHEET : null;
     }
 
     /**

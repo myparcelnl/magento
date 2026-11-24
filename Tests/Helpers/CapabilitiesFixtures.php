@@ -150,12 +150,12 @@ function failCapabilitiesBackendIfAsked(object $store, string $call): void
 }
 
 /**
- * A Repository over an in-memory cache double, so cache hits and misses are observable.
+ * A CapabilitiesProvider over an in-memory cache double, so cache hits and misses are observable.
  *
  * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
- * @return array{repository: CapabilitiesProvider, history: array, store: object}
+ * @return array{provider: CapabilitiesProvider, history: array, store: object}
  */
-function makeCapabilitiesRepository(array $responses = []): array
+function makeCapabilitiesProvider(array $responses = []): array
 {
     $client = makeCapabilitiesClient($responses);
 
@@ -202,21 +202,21 @@ function makeCapabilitiesRepository(array $responses = []): array
     });
 
     return [
-        'repository' => new CapabilitiesProvider($client['client'], $cache, new Fingerprint(), $lockManager),
+        'provider'   => new CapabilitiesProvider($client['client'], $cache, new Fingerprint(), $lockManager),
         'history'    => &$client['history'],
         'store'      => $store,
     ];
 }
 
-/** A real CapabilitiesLookup over $repository, for stores whose API key is $apiKey. */
-function capabilitiesLookupOver(CapabilitiesProvider $repository, string $apiKey = CAPABILITIES_TEST_API_KEY): CapabilitiesLookup
+/** A real CapabilitiesLookup over $provider, for stores whose API key is $apiKey. */
+function capabilitiesLookupOver(CapabilitiesProvider $provider, string $apiKey = CAPABILITIES_TEST_API_KEY): CapabilitiesLookup
 {
     $apiProvider = new MyParcelNL\Magento\Service\Export\ShipmentApiProvider(
         createConfig(['api/key' => $apiKey]),
         createUserAgent()
     );
 
-    return new CapabilitiesLookup($repository, $apiProvider);
+    return new CapabilitiesLookup($provider, $apiProvider);
 }
 
 /**
@@ -310,7 +310,7 @@ function assertFlatInsuranceShape(array $results): void
 }
 
 /**
- * A CapabilitiesLookup that already holds its answers. Reaching the repository fatals: that is the
+ * A CapabilitiesLookup that already holds its answers. Reaching the provider fatals: that is the
  * assertion that the code asked only the requests the test seeded.
  *
  * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a

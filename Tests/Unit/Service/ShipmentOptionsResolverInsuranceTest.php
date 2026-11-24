@@ -32,7 +32,7 @@ function insuranceResolver(
         ]));
     }
 
-    $repository = null === $insuranceOption ? null : makeCapabilitiesRepository($responses)['repository'];
+    $provider = null === $insuranceOption ? null : makeCapabilitiesProvider($responses)['provider'];
 
     $defaultOptions = Mockery::mock(DefaultOptions::class);
 
@@ -46,7 +46,7 @@ function insuranceResolver(
         null === $postedAmount ? [] : ['insurance' => $postedAmount],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => $packageType],
-        $repository,
+        $provider,
         $defaultOptions
     );
 }
@@ -112,7 +112,7 @@ it('sends the configured amount when the account reports no insurance option', f
 it('asks with the package type set, so the bound is not a union', function () {
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    $capabilities = makeCapabilitiesRepository([
+    $capabilities = makeCapabilitiesProvider([
         new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()])),
     ]);
 
@@ -122,7 +122,7 @@ it('asks with the package type set, so the bound is not a union', function () {
         ['insurance' => 137],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::MAILBOX_NAME],
-        $capabilities['repository']
+        $capabilities['provider']
     );
 
     $resolver->getInsurance();
@@ -137,7 +137,7 @@ it('asks with the package type set, so the bound is not a union', function () {
 it('does not ask at all for a package type it cannot name on the wire', function () {
     mockLoggerFacade()->shouldReceive('notice')->zeroOrMoreTimes();
 
-    $capabilities = makeCapabilitiesRepository([
+    $capabilities = makeCapabilitiesProvider([
         new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()])),
     ]);
 
@@ -147,7 +147,7 @@ it('does not ask at all for a package type it cannot name on the wire', function
         ['insurance' => 9000],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => 'pallet_xl'],
-        $capabilities['repository']
+        $capabilities['provider']
     );
 
     expect($resolver->getInsurance())->toBe(9000)
@@ -160,7 +160,7 @@ it('clamps against the type the admin switched to, not the one the checkout stor
 
     // Two results in one answer, because the contracts differ: mailbox caps at EUR 100 where package
     // caps at EUR 500. Asking with the stored type shipped a package insured for the mailbox bound.
-    $repository = makeCapabilitiesRepository([
+    $provider = makeCapabilitiesProvider([
         new GuzzleResponse(200, [], capabilitiesBody([
             capabilityResult([
                 'packageTypes' => ['MAILBOX'],
@@ -171,7 +171,7 @@ it('clamps against the type the admin switched to, not the one the checkout stor
                 'options'      => capabilityOptions(['insurance' => insuranceBounds(0, 50000)]),
             ]),
         ])),
-    ])['repository'];
+    ])['provider'];
 
     $resolver = createShipmentOptions(
         'NL',
@@ -179,7 +179,7 @@ it('clamps against the type the admin switched to, not the one the checkout stor
         ['insurance' => 500],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::MAILBOX_NAME],
-        $repository,
+        $provider,
         null,
         PackageType::PACKAGE_NAME
     );
