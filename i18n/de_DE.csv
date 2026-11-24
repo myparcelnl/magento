@@ -474,7 +474,7 @@ No MyParcel shipments were found to make a return label for.,"Es wurden keine My
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel hat diese Bestellungen angelegt, aber sie konnten nicht als exportiert markiert werden: %1. Exportieren Sie sie nicht erneut. Bitte prüfen Sie das Protokoll."
 The MyParcel API refused this order without giving a reason.,Die MyParcel API hat diese Bestellung ohne Angabe eines Grundes abgelehnt.
 The MyParcel API did not return a shipment for this order.,Die MyParcel API hat für diese Bestellung keine Sendung zurückgegeben.
-The MyParcel export could not be completed.,Der MyParcel Export konnte nicht abgeschlossen werden.
+No answer arrived from the server. The MyParcel export may have run: check the shipping status before you export again.,"Vom Server kam keine Antwort. Der MyParcel Export wurde möglicherweise ausgeführt: Prüfen Sie den Versandstatus, bevor Sie erneut exportieren."
 The MyParcel labels could not be downloaded.,Die MyParcel Etiketten konnten nicht heruntergeladen werden.
 The MyParcel export failed. Please check the log.,Der MyParcel-Export ist fehlgeschlagen. Bitte prüfen Sie das Protokoll.
 No shipments were given to print labels for.,Es wurden keine Sendungen zum Drucken von Etiketten angegeben.

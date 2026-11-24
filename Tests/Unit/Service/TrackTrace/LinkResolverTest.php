@@ -15,7 +15,8 @@ use MyParcelNL\Magento\Service\TrackTraceUrl;
  * The link an admin sees: the one the API issued where it is stored, a constructed one where it is
  * not, and no link at all where nothing can be constructed honestly.
  */
-function makeLinkResolver(array $rows, ?int $propositionId = null, array &$wheres = []): LinkResolver
+/** @param array $orderRows what the order-row query answers, for orders without a MyParcel track */
+function makeLinkResolver(array $rows, ?int $propositionId = null, array &$wheres = [], array $orderRows = []): LinkResolver
 {
     $select = Mockery::mock(Select::class);
     $select->shouldReceive('from', 'joinLeft', 'order')->andReturnSelf();
@@ -28,7 +29,7 @@ function makeLinkResolver(array $rows, ?int $propositionId = null, array &$where
     $connection = Mockery::mock(AdapterInterface::class);
     $connection->shouldReceive('select')->andReturn($select);
     $connection->shouldReceive('quoteInto')->andReturn('');
-    $connection->shouldReceive('fetchAll')->andReturn($rows);
+    $connection->shouldReceive('fetchAll')->andReturn($rows, $orderRows);
     // orderContext() reads the store and shipping address off the order itself; the fixture rows
     // carry those same columns.
     $connection->shouldReceive('fetchRow')->andReturn($rows[0] ?? false);
@@ -235,4 +236,44 @@ it('builds a single track its link without reading any track row', function () {
 
     expect($link)->toBe('https://myparcel.me/track-trace/3STBJG999999999/2131BC/NL')
         ->and($wheres)->toBe([['sales_order.entity_id = ?', 7]]);
+});
+
+/**
+ * The status cron writes the barcodes of an order that it ships without a shipment to the order row
+ * only, as a JSON list. The grid and the order view link them, as they do a track.
+ */
+function linkOrderRow(array $overrides = []): array
+{
+    return array_merge([
+        'order_id'     => 7,
+        'track_number' => '["3SMYPA111","3SMYPA222"]',
+        'store_id'     => 1,
+        'postcode'     => '2131 BC',
+        'country_id'   => 'NL',
+    ], $overrides);
+}
+
+it('links the barcodes on the order row of an order with no track', function () {
+    $wheres = [];
+    $links  = makeLinkResolver([], null, $wheres, [linkOrderRow()]);
+
+    expect($links->forOrders([7])[7])->toBe([
+        ['number' => '3SMYPA111', 'url' => 'https://myparcel.me/track-trace/3SMYPA111/2131BC/NL'],
+        ['number' => '3SMYPA222', 'url' => 'https://myparcel.me/track-trace/3SMYPA222/2131BC/NL'],
+    ]);
+});
+
+it('shows the order row barcodes on the order view', function () {
+    $wheres = [];
+
+    expect(makeLinkResolver([], null, $wheres, [linkOrderRow()])->htmlForOrder(7))
+        ->toContain('href="https://myparcel.me/track-trace/3SMYPA111/2131BC/NL"');
+});
+
+it('reads the order row only for an order that has no track', function () {
+    $wheres = [];
+
+    makeLinkResolver([trackRow()], null, $wheres, [linkOrderRow()])->forOrders([7]);
+
+    expect(array_column($wheres, 0))->not->toContain('sales_order.entity_id IN (?)');
 });

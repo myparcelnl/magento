@@ -29,6 +29,8 @@ define(
                     this.options = options;
                     this.element = element;
                     this.selectedIds = [];
+                    // The messages of an export that reloaded this page, see _refresh().
+                    messages.restore();
                     this._setMyParcelMassAction();
                     // The native mass action in sales_order_grid.xml names this, so that entry point
                     // runs the export the same way instead of submitting a form at the controller.
@@ -466,13 +468,14 @@ define(
                             });
                         })
                         .catch(function () {
-                            // A dropped connection, or an error page where JSON was expected.
+                            // A dropped connection, or an error page where JSON was expected. The
+                            // server may still have exported: an export run again bills twice.
                             if (tab) {
                                 tab.close();
                             }
 
                             failed = true;
-                            messages.error($.mage.__('The MyParcel export could not be completed.'));
+                            messages.error($.mage.__('No answer arrived from the server. The MyParcel export may have run: check the shipping status before you export again.'));
                         })
                         .finally(function () {
                             parentThis._refresh(failed);
@@ -486,8 +489,9 @@ define(
                  * On a grid, refresh: true is not optional. Without it the provider serves its
                  * cached rows and the export appears to have changed nothing.
                  *
-                 * A single order or shipment page has no grid, so it reloads instead. Not after a
-                 * failure: the reload would take the message explaining it along too.
+                 * A single order or shipment page has no grid, so it reloads instead, and the
+                 * messages come back after the reload. Not after a failure: the page still shows
+                 * the state the message is about.
                  *
                  * @protected
                  */
@@ -505,6 +509,7 @@ define(
                     }
 
                     if (!failed) {
+                        messages.keepForReload();
                         window.location.reload();
                     }
                 }

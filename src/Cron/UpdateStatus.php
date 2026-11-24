@@ -27,7 +27,7 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
@@ -243,7 +243,7 @@ class UpdateStatus
             ->from(['t' => $track], [new \Zend_Db_Expr('1')])
             ->where('t.order_id = main_table.entity_id')
             ->where('t.track_number IS NOT NULL')
-            ->where('t.track_number NOT IN (?)', TrackAndTrace::PLACEHOLDERS);
+            ->where('t.track_number NOT IN (?)', TrackNumber::PLACEHOLDERS);
 
         $withAnyTrack = $connection->select()
             ->from(['a' => $track], [new \Zend_Db_Expr('1')])
@@ -256,7 +256,7 @@ class UpdateStatus
             static function (string $placeholder): string {
                 return json_encode([$placeholder]);
             },
-            TrackAndTrace::PLACEHOLDERS
+            TrackNumber::PLACEHOLDERS
         );
 
         // Done means a real barcode on a track. The order row only settles it for an order that has
@@ -308,7 +308,7 @@ class UpdateStatus
             }
 
             $shipments[] = [
-                'barcode'    => (string) ($shipment['external_identifier'] ?? TrackAndTrace::VALUE_PRINTED),
+                'barcode'    => (string) ($shipment['external_identifier'] ?? TrackNumber::PRINTED),
                 'shipmentId' => $shipmentId,
             ];
         }
@@ -334,7 +334,7 @@ class UpdateStatus
             $barcodes = array_values(array_unique(array_filter(
                 array_column($shipments, 'barcode'),
                 static function (string $barcode): bool {
-                    return TrackAndTrace::isRealBarcode($barcode);
+                    return TrackNumber::isRealBarcode($barcode);
                 }
             )));
 
@@ -419,7 +419,7 @@ class UpdateStatus
         foreach ($trackCollection as $track) {
             $number = (string) $track->getTrackNumber();
 
-            if (TrackAndTrace::isRealBarcode($number)) {
+            if (TrackNumber::isRealBarcode($number)) {
                 $found[(int) $track->getOrderId()] = true;
             }
         }

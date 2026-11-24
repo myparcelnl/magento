@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /** @return int[] the ids of the shipments that got a track & trace mail */
 function trackMailsSentFor(array $trackNumbersByShipmentId): array
@@ -39,7 +39,7 @@ function trackMailsSentFor(array $trackNumbersByShipmentId): array
 it('mails only the shipments whose track got a real barcode', function () {
     expect(trackMailsSentFor([
         11 => '3SMYPA111',
-        12 => TrackAndTrace::VALUE_PRINTED,
-        13 => TrackAndTrace::VALUE_EMPTY,
+        12 => TrackNumber::PRINTED,
+        13 => TrackNumber::EMPTY,
     ]))->toBe([11]);
 });

@@ -35,7 +35,7 @@ it('carries the status onto a collo track as well', function () {
 
     $collection->updateMagentoTrack();
 
-    expect($saved->created[0]['data']['myparcel_status'])->toBe(5);
+    expect($saved->created[0]['data']['myparcel_status'])->toBe('5');
 });
 
 it('adds no collo track on a second run', function () {

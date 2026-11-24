@@ -4,7 +4,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\LogContext;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /**
  * Class MagentoOrderCollection
@@ -121,7 +121,7 @@ class MagentoShipmentCollection extends MagentoCollection
     private static function hasRealBarcode(array $tracks): bool
     {
         foreach ($tracks as $track) {
-            if (TrackAndTrace::isRealBarcode((string) $track->getTrackNumber())) {
+            if (TrackNumber::isRealBarcode((string) $track->getTrackNumber())) {
                 return true;
             }
         }

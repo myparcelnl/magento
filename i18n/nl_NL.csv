@@ -484,7 +484,7 @@ No MyParcel shipments were found to make a return label for.,Er zijn geen MyParc
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel heeft deze orders aangemaakt, maar ze konden niet als geëxporteerd worden gemarkeerd: %1. Exporteer ze niet opnieuw. Controleer het log."
 The MyParcel API refused this order without giving a reason.,De MyParcel API heeft deze bestelling geweigerd zonder een reden te geven.
 The MyParcel API did not return a shipment for this order.,De MyParcel API heeft geen zending teruggegeven voor deze bestelling.
-The MyParcel export could not be completed.,De MyParcel export kon niet worden voltooid.
+No answer arrived from the server. The MyParcel export may have run: check the shipping status before you export again.,Er kwam geen antwoord van de server. De MyParcel export is mogelijk uitgevoerd: controleer de verzendstatus voordat u opnieuw exporteert.
 The MyParcel labels could not be downloaded.,De MyParcel labels konden niet worden gedownload.
 The MyParcel export failed. Please check the log.,De MyParcel export is mislukt. Controleer het log.
 No shipments were given to print labels for.,Er zijn geen zendingen opgegeven om labels voor te printen.

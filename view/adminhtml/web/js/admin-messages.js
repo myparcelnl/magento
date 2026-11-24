@@ -8,6 +8,10 @@ define(['jquery'], function ($) {
     'use strict';
 
     var TYPES = ['error', 'warning', 'success', 'notice'];
+    var STORAGE_KEY = 'myparcel-messages';
+
+    /** What render() put on the page since the last clear(), for keepForReload(). */
+    var shown = [];
 
     /**
      * The admin's own message area: div#messages inside .page-content, per the page layout. It is
@@ -57,6 +61,7 @@ define(['jquery'], function ($) {
             }
 
             $container = container();
+            shown = shown.concat(messages);
 
             $.each(messages, function (index, message) {
                 var type = -1 === $.inArray(message.type, TYPES) ? 'notice' : message.type;
@@ -81,7 +86,33 @@ define(['jquery'], function ($) {
 
         /** Only ours: the previous export's messages are stale, Magento's are not. */
         clear: function () {
+            shown = [];
             container().empty();
+        },
+
+        /** Keep the shown messages for the next page load. Lost when storage is blocked. */
+        keepForReload: function () {
+            try {
+                window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(shown));
+            } catch (e) {
+                // Private window or blocked storage: the reload then loses the messages, as before.
+            }
+        },
+
+        /** Show the messages that keepForReload() kept, once. */
+        restore: function () {
+            var kept = null;
+
+            try {
+                kept = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || 'null');
+                window.sessionStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                kept = null;
+            }
+
+            if ($.isArray(kept) && kept.length) {
+                this.render(kept);
+            }
         }
     };
 });

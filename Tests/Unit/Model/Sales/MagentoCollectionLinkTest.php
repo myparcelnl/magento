@@ -45,7 +45,7 @@ function memoisedTrackCollection(array $tracks, ?int &$queries, ?int &$shipmentL
             $collection = Mockery::mock(
                 Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection::class
             );
-            $collection->shouldReceive('addAttributeToFilter')->andReturnSelf();
+            $collection->shouldReceive('addAttributeToFilter', 'setResetItemsDataChanged')->andReturnSelf();
             $collection->shouldReceive('getItems')->andReturn($tracks);
 
             return $collection;
@@ -89,7 +89,7 @@ it('stores the consumer portal link the API returned', function () {
 
     expect($saved->data['myparcel_tracktrace_url'])->toBe('https://myparcel.me/track-trace/3SMYPA123/1234AB/NL')
         ->and($saved->numbers)->toBe(['3SMYPA123'])
-        ->and($saved->data['myparcel_status'])->toBe(3);
+        ->and($saved->data['myparcel_status'])->toBe('3');
 });
 
 it('does not blank a stored link when the response carries none', function () {
@@ -168,6 +168,8 @@ it('reads the tracks of every shipment in one query rather than one per shipment
         }
     );
     $tracks->shouldReceive('getItems')->andReturn([]);
+    // Without it every loaded track counts as changed, and the refresh saves each one.
+    $tracks->shouldReceive('setResetItemsDataChanged')->with(true)->once()->andReturnSelf();
 
     $objectManager = Mockery::mock(Magento\Framework\ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->andReturn($tracks);

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
-use MyParcelNL\Magento\Cron\UpdateStatus;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /**
  * Capture the conditions the selector puts on the cron's query. The selector decides which orders
@@ -120,7 +120,7 @@ it('treats printed as still waiting, because no barcode arrived', function () {
     $bound = array_merge(capturedSelection()['bindings'], capturedSelection()['subBindings']);
     $values = array_filter(array_column($bound, 1), 'is_array');
 
-    expect($values)->toContain(TrackAndTrace::PLACEHOLDERS);
+    expect($values)->toContain(TrackNumber::PLACEHOLDERS);
 });
 
 it('only counts this module carrier tracks', function () {

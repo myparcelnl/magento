@@ -17,7 +17,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
 use MyParcelNL\Magento\Service\LogContext;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
@@ -495,7 +495,7 @@ class MagentoOrderCollection extends MagentoCollection
                     continue;
                 }
 
-                if (TrackAndTrace::isPlaceholder($magentoTrack->getTrackNumber())) {
+                if (TrackNumber::isPlaceholder($magentoTrack->getTrackNumber())) {
                     $free[] = $magentoTrack;
                 }
             }
@@ -512,7 +512,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $hasIdentity = null !== $shipmentId
-                || TrackAndTrace::isRealBarcode($fulfilment['barcode']);
+                || TrackNumber::isRealBarcode($fulfilment['barcode']);
 
             if (! $free && ! $hasIdentity) {
                 continue;

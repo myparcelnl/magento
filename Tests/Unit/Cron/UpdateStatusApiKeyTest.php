@@ -267,7 +267,7 @@ it('writes the barcodes on the order row while the track still holds a placehold
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
         [],
-        MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace::VALUE_EMPTY
+        MyParcelNL\Magento\Service\TrackTrace\TrackNumber::EMPTY
     );
 
     expect($calls->orderRow)->toBe(['track_number' => json_encode(['3SMYPA123'])]);

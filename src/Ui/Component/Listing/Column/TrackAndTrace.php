@@ -8,33 +8,12 @@ use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 class TrackAndTrace extends Column
 {
     public const NAME          = 'track_number';
-    public const VALUE_EMPTY   = '–';
-    public const VALUE_PRINTED = 'printed';
     public const VALUE_CONCEPT = 'concept';
-
-    /**
-     * Values that stand in for a barcode without being one. A track holding one of these is still
-     * waiting, which is what the status cron selects on.
-     *
-     * @var string[]
-     */
-    public const PLACEHOLDERS = [self::VALUE_EMPTY, self::VALUE_PRINTED];
-
-    /** Whether the number stands in for a barcode instead of being one. */
-    public static function isPlaceholder(?string $number): bool
-    {
-        return in_array((string) $number, self::PLACEHOLDERS, true);
-    }
-
-    /** Whether the number identifies a real parcel: present, and not a placeholder. */
-    public static function isRealBarcode(?string $number): bool
-    {
-        return '' !== (string) $number && ! self::isPlaceholder($number);
-    }
 
     /**
      * Script tag to unbind the click event from the td wrapping the barcode link.
@@ -85,7 +64,10 @@ class TrackAndTrace extends Column
             $html = $this->links->html($linksByOrder[(int) ($item['entity_id'] ?? 0)] ?? []);
 
             if ('' === $html) {
-                $item[$name] = self::barcodesFromJson((string) ($item[$name] ?? '')) ?? ($item[$name] ?? null);
+                $barcodes    = TrackNumber::barcodesFromOrderRow($item[$name] ?? null);
+                $item[$name] = null === $barcodes
+                    ? ($item[$name] ?? null)
+                    : htmlspecialchars(implode(', ', $barcodes), ENT_QUOTES);
 
                 continue;
             }
@@ -95,20 +77,5 @@ class TrackAndTrace extends Column
         }
 
         return $dataSource;
-    }
-
-    /**
-     * Get the barcodes of an order that the status cron shipped without a shipment, which stores them
-     * as a JSON list in track_number. Null for any other value.
-     */
-    private static function barcodesFromJson(string $value): ?string
-    {
-        $barcodes = '[' === substr($value, 0, 1) ? json_decode($value, true) : null;
-
-        if (! is_array($barcodes)) {
-            return null;
-        }
-
-        return htmlspecialchars(implode(', ', array_map('strval', $barcodes)), ENT_QUOTES);
     }
 }

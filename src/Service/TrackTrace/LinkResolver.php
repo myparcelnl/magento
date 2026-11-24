@@ -9,11 +9,11 @@ use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
- * Reads the MyParcel track & trace links for a page of orders in one query. Manual tracks are left out.
+ * Reads the MyParcel track & trace links for a page of orders. Manual tracks are left out. An order
+ * without a MyParcel track falls back to the barcodes the status cron wrote to its order row.
  *
  * The link the API issued is stored on the track; TrackTraceUrl only fills in for shipments exported
  * before that was so, and its host depends on the account's proposition, hence the store id in the
@@ -59,6 +59,17 @@ class LinkResolver
             ];
         }
 
+        $withoutTrack = array_values(array_diff($orderIds, array_keys($links)));
+
+        foreach ($withoutTrack ? $this->orderRowsFor($withoutTrack) : [] as $row) {
+            foreach (TrackNumber::barcodesFromOrderRow($row['track_number'] ?? null) ?? [] as $barcode) {
+                $links[(int) $row['order_id']][] = [
+                    'number' => $barcode,
+                    'url'    => $this->urlFor(['track_number' => $barcode] + $row),
+                ];
+            }
+        }
+
         return $links;
     }
 
@@ -98,7 +109,7 @@ class LinkResolver
         $html = '';
 
         foreach ($links as $link) {
-            if ('' === $link['number'] || TrackAndTrace::VALUE_EMPTY === $link['number']) {
+            if ('' === $link['number'] || TrackNumber::EMPTY === $link['number']) {
                 $html .= '-<br/>';
                 continue;
             }
@@ -192,6 +203,32 @@ class LinkResolver
     }
 
     /**
+     * The order rows of orders without a MyParcel track, where the status cron stores the barcodes of
+     * an order it shipped without a shipment.
+     *
+     * @param int[] $orderIds
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function orderRowsFor(array $orderIds): array
+    {
+        $connection = $this->resource->getConnection();
+
+        $select = $connection->select()
+                             ->from(
+                                 ['sales_order' => $this->resource->getTableName('sales_order')],
+                                 ['order_id' => 'entity_id', 'track_number', 'store_id']
+                             );
+
+        $select = $this->joinShippingAddress($select, 'sales_order.entity_id')
+                             ->where('sales_order.entity_id IN (?)', $orderIds)
+                             ->where('sales_order.track_number LIKE ?', '[%')
+        ;
+
+        return $connection->fetchAll($select);
+    }
+
+    /**
      * The store and shipping address a fallback URL is built from.
      *
      * @return array<string, mixed> empty when the order is gone
@@ -229,7 +266,7 @@ class LinkResolver
         $barcode  = (string) ($row['track_number'] ?? '');
         $postcode = (string) ($row['postcode'] ?? '');
 
-        if ('' === $postcode || ! TrackAndTrace::isRealBarcode($barcode)) {
+        if ('' === $postcode || ! TrackNumber::isRealBarcode($barcode)) {
             return '';
         }
 
