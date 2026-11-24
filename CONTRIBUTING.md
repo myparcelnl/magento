@@ -19,8 +19,9 @@ what each fact does.
 
 - **A label of its own:** `label`, and its translation in `i18n/`. Without one, the label is the
   name with spaces and a capital (`no_tracking` is "No tracking"), translated through `i18n/`. The shipping method title shows the label when the option is on.
-- **A checkout fee:** `checkout`. The rate then adds the fee from `delivery/<name>_fee`.
-- **A mailbox option:** `mailbox`. The rate then adds the fee from `mailbox/<name>_fee`. Add that
+- **A checkout fee:** `checkout`. The rate adds the fee from `delivery/<name>_fee`, and the checkout
+  widget shows it as `price<Name>` (`receipt_code` is `priceReceiptCode`).
+- **A mailbox option:** `mailbox`. The same, with the fee from `mailbox/<name>_fee`. Add that
   setting to `etc/dynamic_settings.json`.
 - **A yes/no option of the shipment:** `toggle`. The New Shipment form shows the toggles when
   capabilities cannot be read; otherwise it shows the options that capabilities give. Each toggle is
@@ -37,10 +38,10 @@ The form shows the `label` of the option's row. Add its translation to every fil
 
 ### An option in the checkout
 
-`checkout` adds only the fee in the rate. The checkout widget must support the option, and
-`Model\Quote\Checkout` must pass it on: ask capabilities with `hasOption()`, and add `delivery/<name>_active`
-and `delivery/<name>_fee` to `etc/dynamic_settings.json` for each carrier that offers the option, as
-`signature` does.
+`checkout` gives the fee to the rate and to the widget. The checkout widget must support the option,
+and `Model\Quote\Checkout` must switch it on: add its `allow<Name>` key, from `hasOption()` and
+`delivery/<name>_active`. Add `delivery/<name>_active` and `delivery/<name>_fee` to
+`etc/dynamic_settings.json` for each carrier that offers the option, as `signature` does.
 
 ### A rule that capabilities do not give
 

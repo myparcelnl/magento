@@ -88,6 +88,24 @@ class ShipmentOption
     }
 
     /**
+     * The options with a checkout fee, and the path of that fee under the carrier's config path.
+     *
+     * @return array<string, string> option => fee path
+     */
+    public static function feePaths(): array
+    {
+        $paths = [];
+
+        foreach (['delivery' => 'checkout', 'mailbox' => 'mailbox'] as $group => $flag) {
+            foreach (self::having($flag) as $option) {
+                $paths[$option] = "$group/{$option}_fee";
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
      * Put options in row order; an option without a row keeps its place after them.
      *
      * @param  string[] $options

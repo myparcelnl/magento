@@ -222,11 +222,14 @@ class Checkout
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
             // only PostNL has the Monday settings, and capabilities do not report Monday delivery
             $mondayFee           = $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice;
-            $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
-            $receiptCodeFee      = $canHaveReceiptCode ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $quote) : 0;
-            $priorityDeliveryFee = $canHavePriorityDelivery ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'mailbox/priority_delivery_fee'), $quote) : 0;
-            $onlyRecipientFee    = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
             $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
+
+            $optionPrices = [];
+            foreach (ShipmentOption::feePaths() as $option => $feePath) {
+                $optionPrices[self::getPriceKeyFromOption($option)] = $capabilities->hasOption($carrierName, $packageType, $option)
+                    ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, $feePath), $quote)
+                    : 0;
+            }
 
             // the price per delivery type, with the fee of its own config group on top (standard has none)
             $deliveryTypePrices = [];
@@ -279,17 +282,13 @@ class Checkout
 
                 'dropOffDays' => $this->getDropOffDays($carrierPath),
 
-                'priceSignature'        => $signatureFee,
-                'priceReceiptCode'      => $receiptCodeFee,
-                'priceOnlyRecipient'    => $onlyRecipientFee,
-                'pricePriorityDelivery' => $priorityDeliveryFee,
                 'priceMondayDelivery'   => $mondayFee,
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
                 'pricePackageTypePackageSmall' => $basePrice,
                 // if you want separate package type prices, get them with this: $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $country);
-            ] + $deliveryTypePrices;
+            ] + $deliveryTypePrices + $optionPrices;
         }
 
         return $myParcelConfig;
@@ -314,6 +313,12 @@ class Checkout
         }
 
         return 'price' . str_replace('_', '', ucwords($deliveryType, '_')) . 'Delivery';
+    }
+
+    /** The widget's price key for an option fee: signature -> priceSignature. */
+    private static function getPriceKeyFromOption(string $option): string
+    {
+        return 'price' . str_replace('_', '', ucwords($option, '_'));
     }
 
     /**
