@@ -6,20 +6,30 @@ use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Service\Export\OrderCustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 
-/** The PPS customs path: each shipped row at its weight and at the price paid in the order's currency. */
-function ppsCustomsItems(array $productData, array $config = [], array $itemData = []): array
+/**
+ * The PPS customs items of an order holding these rows: each shipped row at its weight and at the price
+ * paid in the order's currency. $hsCodes and $countries are what the catalog answers, by product id.
+ */
+function customsItemsOf(array $orderItems, array $config = [], array $hsCodes = [7 => '6109.10'], array $countries = [7 => 'CN']): array
 {
-    $item  = createOrderItem(['product_id' => '7'] + $itemData, ['id' => 7] + $productData);
     $order = createOrder([
-        'getItems'         => [$item],
+        'getItems'         => $orderItems,
         'getIncrementId'   => '100000001',
         'getOrderCurrency' => new DataObject(['code' => 'EUR']),
     ]);
 
-    $config        = createConfig(['print/weight_indication' => 'gram'] + $config);
-    $objectManager = customsObjectManager([7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null], $config);
+    $config        = createConfig($config + ['print/weight_indication' => 'gram']);
+    $objectManager = customsObjectManager($hsCodes, $countries, $config);
 
     return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+}
+
+/** One row of product 7. */
+function ppsCustomsItems(array $productData, array $config = [], array $itemData = []): array
+{
+    $item = createOrderItem(['product_id' => '7'] + $itemData, ['id' => 7] + $productData);
+
+    return customsItemsOf([$item], $config, [7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null]);
 }
 
 it('takes the country of origin from the product when it has one', function () {
@@ -52,15 +62,7 @@ it('declares a configurable product once and a virtual product not at all, as a 
     $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable', 'name' => 'Shirt'], ['id' => 7]);
     $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true, 'name' => 'Shirt, red'], ['id' => 7]);
     $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true, 'name' => 'Gift wrap'], ['id' => 7]);
-    $order   = createOrder([
-        'getItems'         => [$parent, $child, $virtual],
-        'getIncrementId'   => '100000001',
-        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
-    ]);
-
-    $config        = createConfig(['print/weight_indication' => 'gram']);
-    $objectManager = customsObjectManager([7 => '6109.10'], [7 => 'CN'], $config);
-    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+    $items   = customsItemsOf([$parent, $child, $virtual]);
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->getDescription())->toBe('Shirt');
@@ -70,31 +72,15 @@ it('declares the children of a bundle shipped separately, not the bundle', funct
     $bundle = createOrderItem(['item_id' => 1, 'product_type' => 'bundle', 'is_dummy' => true, 'name' => 'Gift set'], ['id' => 7]);
     $mug    = createOrderItem(['item_id' => 2, 'parent_item' => $bundle, 'name' => 'Mug'], ['id' => 7]);
     $plate  = createOrderItem(['item_id' => 3, 'parent_item' => $bundle, 'name' => 'Plate'], ['id' => 7]);
-    $order  = createOrder([
-        'getItems'         => [$bundle, $mug, $plate],
-        'getIncrementId'   => '100000001',
-        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
-    ]);
 
-    $config        = createConfig(['print/weight_indication' => 'gram']);
-    $objectManager = customsObjectManager([7 => '6109.10'], [7 => 'CN'], $config);
-    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
-
-    expect(array_map(static fn ($item) => $item->getDescription(), $items))->toBe(['Mug', 'Plate']);
+    expect(array_map(static fn ($item) => $item->getDescription(), customsItemsOf([$bundle, $mug, $plate])))
+        ->toBe(['Mug', 'Plate']);
 });
 
 it('declares the row of a product that was deleted from the catalog', function () {
     // The label path declares it too: the parcel still holds the item.
     $item  = createOrderItem(['product' => null, 'product_id' => '7', 'name' => 'Old mug', 'weight' => 0.3]);
-    $order = createOrder([
-        'getItems'         => [$item],
-        'getIncrementId'   => '100000001',
-        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
-    ]);
-
-    $config        = createConfig(['print/weight_indication' => 'kilo', 'print/country_of_origin' => 'NL']);
-    $objectManager = customsObjectManager([], [], $config);
-    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+    $items = customsItemsOf([$item], ['print/weight_indication' => 'kilo', 'print/country_of_origin' => 'NL'], [], []);
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->getDescription())->toBe('Old mug')

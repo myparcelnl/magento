@@ -45,11 +45,6 @@ class Config extends AbstractHelper
     public const XML_PATH_GLS_SETTINGS              = 'myparcelnl_magento_gls_settings/';
     public const XML_PATH_TRUNKRS_SETTINGS          = 'myparcelnl_magento_trunkrs_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
-
-    /** Records or shipments per export request. Both export paths chunk by it. */
-    public const DEFAULT_EXPORT_CHUNK_SIZE          = 20;
-    private const MAX_EXPORT_CHUNK_SIZE             = 100;
-    private const XML_PATH_EXPORT_CHUNK_SIZE        = 'print/export_chunk_size';
     public const FIELD_DROP_OFF_DAY                 = 'drop_off_day';
     public const FIELD_MYPARCEL_CARRIER             = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS             = 'myparcel_delivery_options';
@@ -57,6 +52,14 @@ class Config extends AbstractHelper
     public const MYPARCEL_TRACK_TITLE               = 'MyParcel';
     public const EXPORT_MODE_PPS                    = 'pps';
     public const EXPORT_MODE_SHIPMENTS              = 'shipments';
+
+    /**
+     * Records or shipments per export request; both export paths chunk by it. 20 is our choice, to keep
+     * an export clear of timeouts; 100 is the most the API takes in one request.
+     */
+    private const DEFAULT_EXPORT_CHUNK_SIZE  = 20;
+    private const MAX_EXPORT_CHUNK_SIZE      = 100;
+    private const XML_PATH_EXPORT_CHUNK_SIZE = 'print/export_chunk_size';
 
     public const CARRIERS_XML_PATH_MAP
         = [

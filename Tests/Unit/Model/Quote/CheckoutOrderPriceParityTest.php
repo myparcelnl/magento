@@ -9,7 +9,9 @@ use Magento\Quote\Model\Quote\Address;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\OrderAmount;
@@ -133,6 +135,27 @@ it('the checkout shows per delivery type the price the order charges', function 
         expect($orderPrice)->toBe($widgetPrice, "order and widget disagree on $deliveryType at $orderAmount");
     }
 })->with(['below the threshold' => [30.0], 'above the threshold' => [120.0]]);
+
+it('the checkout shows per option the fee the order charges', function () {
+    // A fee of its own per option, so a path that reads another option's fee shows too.
+    $fees = [];
+    foreach (array_values(ShipmentOption::feePaths()) as $i => $feePath) {
+        $fees[$feePath] = 1.25 + $i;
+    }
+
+    $config = parityConfig(true, $fees);
+    parityObjectManager($config);
+
+    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config, 120.0), parityQuote());
+
+    foreach (array_keys(ShipmentOption::feePaths()) as $option) {
+        $priceKey   = invokePrivateMethod(newInstanceWithoutConstructor(Checkout::class), 'getPriceKeyFromOption', [$option]);
+        $orderPrice = parityOrderAmount($config, 120.0, 'standard', 'postnl', [$option => true]);
+
+        expect($widget)->toHaveKey($priceKey)
+            ->and($orderPrice)->toBe($widget['priceStandardDelivery'] + $widget[$priceKey], "order and widget disagree on $option");
+    }
+});
 
 it('surcharge view shows the difference with standard delivery', function () {
     $config = parityConfig(false);

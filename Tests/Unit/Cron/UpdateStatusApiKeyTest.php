@@ -8,6 +8,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
@@ -332,6 +333,24 @@ it('ignores a cancelled shipment among the shipped ones', function () {
     );
 
     expect($calls->fulfilment)->toBe(['100000001' => [['barcode' => '3SA', 'shipmentId' => 1]]]);
+});
+
+it('reads an empty barcode as no barcode yet, as a missing one', function () {
+    // '' would pass the selector's placeholder check, and the order would never be polled again.
+    [, , $calls] = runPpsCron(
+        [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
+        ['KEY_A' => new OrderCollection([
+            apiOrderWithShipments('100000001', [
+                ['status' => ShipmentStatus::PRINTED_MINIMUM, 'barcode' => '', 'id' => 1],
+                ['status' => ShipmentStatus::PRINTED_MINIMUM, 'id' => 2],
+            ]),
+        ])]
+    );
+
+    expect($calls->fulfilment)->toBe(['100000001' => [
+        ['barcode' => TrackNumber::PRINTED, 'shipmentId' => 1],
+        ['barcode' => TrackNumber::PRINTED, 'shipmentId' => 2],
+    ]]);
 });
 
 it('writes every barcode to the order row when the chain could give it no track', function () {
