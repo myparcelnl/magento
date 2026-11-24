@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 
+// TODO INT-2124: remove this file with the stand-in in src/Compat when Magento 2.4.7 is the minimum.
+
 /** Runs registration.php in a fresh PHP process without Magento, as on Magento 2.4.6, and returns its output. */
 function runRegistrationWithoutMagento(string $check): string
 {
