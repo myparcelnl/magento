@@ -33,9 +33,13 @@ function importerClientRefusing(): Client
 }
 
 it('reports settings present when a row with contract definitions exists for the key', function () {
+    expect(importerFor(contractRow())->hasSettingsFor('live-key'))->toBeTrue();
+});
+
+it('treats a row with an empty list as absent, as the screens read it as unknown', function () {
     $importer = importerFor([settingsPathFor('live-key') => '{"shop":1,"contract_definitions":[]}']);
 
-    expect($importer->hasSettingsFor('live-key'))->toBeTrue();
+    expect($importer->hasSettingsFor('live-key'))->toBeFalse();
 });
 
 it('treats a row without contract definitions as absent, so the next save imports it again', function () {
@@ -97,6 +101,29 @@ it('answers unknown when the call is refused, rather than failing the import', f
 
     expect($definitions)->toBeNull();
 });
+
+it('keeps the stored list when the call is refused', function () {
+    $definitions = invokePrivateMethod(
+        importerFor(contractRow(), importerClientRefusing()),
+        'fetchContractDefinitions',
+        ['live-key']
+    );
+
+    expect($definitions[0]['carrier'])->toBe('POSTNL');
+});
+
+it('keeps the stored list when the account answers none', function (array $answer) {
+    $definitions = invokePrivateMethod(
+        importerFor(contractRow(), importerClientAnswering($answer)),
+        'fetchContractDefinitions',
+        ['live-key']
+    );
+
+    expect($definitions[0]['carrier'])->toBe('POSTNL');
+})->with([
+    'an empty list'                  => [[]],
+    'only entries that are no array' => [['x', 1]],
+]);
 
 it('leaves contract definitions out when none are known, so the next save imports them again', function () {
     $settings = new Collection([
