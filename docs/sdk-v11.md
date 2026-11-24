@@ -147,6 +147,7 @@ Each workaround names what to delete once the fix lands.
 | 4 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
 | 5 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
 | 6 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
+| 7 | `Collection\Fulfilment\OrderCollection::getShipmentOptions()` sends a fixed list of options and drops `hide_sender`, `fresh_food`, `frozen` and `same_day_delivery` without an error, so an Order v1 order ships without them | None possible: the module cannot build the request itself. Fix it in the SDK: send every option the `ShipmentOptions` holds |
 
 One generation trap worth knowing: `ShipmentDefsShipment::getParentId()` returns a property-less
 stub, so colli are paired by nesting, never by id.
@@ -225,6 +226,10 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   consumer's own data. The admin's per-order message still comes from `Rejection::reasons()` and is
   unchanged.
 - **The SDK defects above** leave workaround code in place until they land.
+- **Label customs values assume a EUR base currency.** The Core API takes EUR only, so a label
+  declares each item at its base price and labels it EUR. On a website with another base currency
+  the declared values are wrong. Main had the same gap. An Order v1 order declares the price paid
+  in the order currency and is not affected.
 - **The REST transformers** bind to the generated Order API enums, the highest-churn SDK surface.
   `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
 - **The PPS status poll asks for every order the account has.** `OrderCollection::query()` is given

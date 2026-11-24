@@ -21,4 +21,12 @@ class RecipientFields
     {
         return (string) preg_replace('/\s+/', '', (string) $address->getPostcode());
     }
+
+    /** The region code when it has two letters, the only length the API takes as a state. */
+    public function state($address): ?string
+    {
+        $regionCode = (string) $address->getRegionCode();
+
+        return 2 === strlen($regionCode) ? $regionCode : null;
+    }
 }

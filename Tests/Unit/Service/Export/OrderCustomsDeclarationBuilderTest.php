@@ -6,10 +6,10 @@ use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Service\Export\OrderCustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 
-/** The PPS customs path: each line at product weight and at the price paid in the order's currency. */
+/** The PPS customs path: each shipped row at its weight and at the price paid in the order's currency. */
 function ppsCustomsItems(array $productData, array $config = [], array $itemData = []): array
 {
-    $item  = createOrderItem($itemData, ['id' => 7] + $productData);
+    $item  = createOrderItem(['product_id' => '7'] + $itemData, ['id' => 7] + $productData);
     $order = createOrder([
         'getItems'         => [$item],
         'getIncrementId'   => '100000001',
@@ -33,9 +33,9 @@ it('falls back to the configured country of origin, not a hardcoded NL', functio
 it('declares weight and the price paid at line level, multiplied by the quantity', function () {
     // The catalog price differs from what the customer paid: the declaration takes the paid price.
     $items = ppsCustomsItems(
-        ['country_of_manufacture' => 'CN', 'weight' => 100.0, 'price' => 99.0],
+        ['country_of_manufacture' => 'CN', 'price' => 99.0],
         [],
-        ['qty_ordered' => 3, 'price' => 10.0]
+        ['qty_ordered' => 3, 'price' => 10.0, 'weight' => 100.0]
     );
 
     expect($items[0]->getWeight())->toBe(300)
@@ -49,9 +49,9 @@ it('declares at least one piece for a fractional quantity, which the API would r
 });
 
 it('declares a configurable product once and a virtual product not at all, as a label does', function () {
-    $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable'], ['id' => 7, 'name' => 'Shirt']);
-    $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true], ['id' => 7, 'name' => 'Shirt, red']);
-    $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true], ['id' => 7, 'name' => 'Gift wrap']);
+    $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable', 'name' => 'Shirt'], ['id' => 7]);
+    $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true, 'name' => 'Shirt, red'], ['id' => 7]);
+    $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true, 'name' => 'Gift wrap'], ['id' => 7]);
     $order   = createOrder([
         'getItems'         => [$parent, $child, $virtual],
         'getIncrementId'   => '100000001',
@@ -67,9 +67,9 @@ it('declares a configurable product once and a virtual product not at all, as a 
 });
 
 it('declares the children of a bundle shipped separately, not the bundle', function () {
-    $bundle = createOrderItem(['item_id' => 1, 'product_type' => 'bundle', 'is_dummy' => true], ['id' => 7, 'name' => 'Gift set']);
-    $mug    = createOrderItem(['item_id' => 2, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Mug']);
-    $plate  = createOrderItem(['item_id' => 3, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Plate']);
+    $bundle = createOrderItem(['item_id' => 1, 'product_type' => 'bundle', 'is_dummy' => true, 'name' => 'Gift set'], ['id' => 7]);
+    $mug    = createOrderItem(['item_id' => 2, 'parent_item' => $bundle, 'name' => 'Mug'], ['id' => 7]);
+    $plate  = createOrderItem(['item_id' => 3, 'parent_item' => $bundle, 'name' => 'Plate'], ['id' => 7]);
     $order  = createOrder([
         'getItems'         => [$bundle, $mug, $plate],
         'getIncrementId'   => '100000001',
@@ -81,4 +81,23 @@ it('declares the children of a bundle shipped separately, not the bundle', funct
     $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 
     expect(array_map(static fn ($item) => $item->getDescription(), $items))->toBe(['Mug', 'Plate']);
+});
+
+it('declares the row of a product that was deleted from the catalog', function () {
+    // The label path declares it too: the parcel still holds the item.
+    $item  = createOrderItem(['product' => null, 'product_id' => '7', 'name' => 'Old mug', 'weight' => 0.3]);
+    $order = createOrder([
+        'getItems'         => [$item],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    $config        = createConfig(['print/weight_indication' => 'kilo', 'print/country_of_origin' => 'NL']);
+    $objectManager = customsObjectManager([], [], $config);
+    $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+
+    expect($items)->toHaveCount(1)
+        ->and($items[0]->getDescription())->toBe('Old mug')
+        ->and($items[0]->getWeight())->toBe(300)
+        ->and($items[0]->getCountry())->toBe('NL');
 });

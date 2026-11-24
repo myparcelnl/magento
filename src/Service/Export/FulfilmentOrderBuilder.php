@@ -130,7 +130,8 @@ class FulfilmentOrderBuilder
             ->setEmail($address->getEmail())
             ->setPerson($this->recipientFields->person($address))
             ->setPhone($address->getTelephone())
-            ->setPostalCode($this->recipientFields->postalCode($address));
+            ->setPostalCode($this->recipientFields->postalCode($address))
+            ->setRegion($this->recipientFields->state($address));
     }
 
     /**
@@ -195,19 +196,17 @@ class FulfilmentOrderBuilder
         return $datetime->format('Y-m-d H:i:s');
     }
 
-    /** @return int weight in grams */
+    /** @return int weight in grams, of the same rows the customs declaration counts */
     private function totalWeightInGrams(Order $magentoOrder): int
     {
-        $totalWeight = 0;
+        $totalWeight = 0.0;
 
         foreach ($magentoOrder->getItems() as $item) {
-            $product = $item->getProduct();
-
-            if (! $product) {
+            if (! CustomsItems::isShippedRow($item)) {
                 continue;
             }
 
-            $totalWeight += $product->getWeight() * $item->getQtyOrdered();
+            $totalWeight += (float) $item->getWeight() * (float) $item->getQtyOrdered();
         }
 
         return $this->weight->convertToGrams($totalWeight);

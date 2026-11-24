@@ -42,6 +42,34 @@ it('names an order whose other collo was refused after one collo shipped', funct
         ->toContain('Not every collo of this order was exported: The postal code is invalid');
 });
 
+it('keeps the unknown outcome of a timed-out collo when the order is blamed later', function () {
+    $report = new ExportReport();
+    $report->failCollateral('100000001', 'Operation timed out', false);
+    $report->fail('100000001', 'The MyParcel API did not return a shipment for this order');
+
+    expect(implode('; ', $report->failureReasons()['100000001']))
+        ->toContain('It is unknown whether MyParcel created every collo of this order: Operation timed out.');
+});
+
+it('keeps the unknown outcome of a timed-out collo of an order that is already blamed', function () {
+    $report = new ExportReport();
+    $report->fail('100000001', 'Invalid postal code');
+    $report->failCollateral('100000001', 'Operation timed out', false);
+
+    expect(implode('; ', $report->failureReasons()['100000001']))
+        ->toContain('Invalid postal code')
+        ->toContain('It is unknown whether MyParcel created every collo of this order: Operation timed out.');
+});
+
+it('says the unknown outcome once when a collo shipped and the order is blamed later', function () {
+    $report = new ExportReport();
+    $report->failCollateral('100000001', 'Operation timed out', false);
+    $report->succeed('100000001', 9002);
+    $report->fail('100000001', 'Invalid postal code');
+
+    expect($report->failureReasons()['100000001'])->toHaveCount(2);
+});
+
 it('does not ask for a re-run when a blamed order sits next to orders that timed out', function () {
     $report = new ExportReport();
     $report->fail('100000001', 'Invalid postal code');

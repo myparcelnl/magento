@@ -52,10 +52,16 @@ class ExportReport
             $reason = (string) __('The MyParcel API refused this order without giving a reason.');
         }
 
+        $collateral = $this->collateral[$incrementId] ?? null;
         unset($this->collateral[$incrementId]);
 
         if (! in_array($reason, $this->blamed[$incrementId] ?? [], true)) {
             $this->blamed[$incrementId][] = $reason;
+        }
+
+        // A timed-out collo may exist; dropping that line invites a re-export that bills it twice.
+        if (null !== $collateral && ! $collateral['refused']) {
+            $this->failPartially($incrementId, $collateral['reason'], false);
         }
     }
 
@@ -68,6 +74,10 @@ class ExportReport
     public function failCollateral(string $incrementId, string $reason, bool $refused): void
     {
         if (isset($this->blamed[$incrementId])) {
+            if (! $refused) {
+                $this->failPartially($incrementId, $reason, false);
+            }
+
             return;
         }
 
