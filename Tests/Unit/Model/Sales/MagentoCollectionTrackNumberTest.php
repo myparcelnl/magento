@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /**
  * A PPS order's barcode and shipment id must reach the track that would otherwise keep a
@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 it('writes the barcode and the shipment id onto a track still holding a placeholder', function () {
     // The id lets updateMagentoTrack() refresh the status and track & trace link afterwards.
-    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
+    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackNumber::EMPTY]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
@@ -28,7 +28,7 @@ it('writes the barcode without an id when the response named none, and says so',
     $logger = mockLoggerFacade();
     $logger->shouldReceive('warning')->once()->andReturnNull();
 
-    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
+    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackNumber::EMPTY]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
 
@@ -37,7 +37,7 @@ it('writes the barcode without an id when the response named none, and says so',
 });
 
 it('replaces the printed placeholder once a real barcode arrives', function () {
-    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_PRINTED]]);
+    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackNumber::PRINTED]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
 
@@ -56,7 +56,7 @@ it('leaves a track that already carries a barcode alone, and gives the new shipm
 });
 
 it('does nothing for an order the fulfilment response said nothing about', function () {
-    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
+    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackNumber::EMPTY]]);
 
     $collection->setFulfilmentTrackData(['100000999' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
@@ -70,7 +70,7 @@ it('gives a second shipment its own track when only one placeholder is free', fu
     $logger = mockLoggerFacade();
     $logger->shouldReceive('notice')->once()->andReturnNull();
 
-    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
+    [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackNumber::EMPTY]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [
         ['barcode' => '3SA', 'shipmentId' => 1],
@@ -104,7 +104,7 @@ it('creates no track for a shipment with neither an id nor a real barcode', func
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => '3SA', 'consignmentId' => 1]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [
-        ['barcode' => TrackAndTrace::VALUE_PRINTED, 'shipmentId' => null],
+        ['barcode' => TrackNumber::PRINTED, 'shipmentId' => null],
     ]]);
 
     expect($saved->createdNumbers)->toBe([])
@@ -115,7 +115,7 @@ it('claims a shipment once for an order that has two Magento shipments', functio
     // An order shipped partly by hand has two Magento shipments; only one track gets the barcode.
     [$collection, $saved] = collectionWithTracks(
         '100000001',
-        [['number' => TrackAndTrace::VALUE_EMPTY]],
+        [['number' => TrackNumber::EMPTY]],
         2
     );
 
@@ -130,7 +130,7 @@ it('logs and skips an order whose track cannot be saved, so the run goes on', fu
     $logger = mockLoggerFacade();
     $logger->shouldReceive('warning')->with('MyParcel: could not save the tracks of order 100000001', Mockery::type('array'))->once();
 
-    [$collection] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
+    [$collection] = collectionWithTracks('100000001', [['number' => TrackNumber::EMPTY]]);
 
     $repository = Mockery::mock(Magento\Sales\Api\ShipmentTrackRepositoryInterface::class);
     $repository->shouldReceive('save')->andThrow(new RuntimeException('deadlock'));

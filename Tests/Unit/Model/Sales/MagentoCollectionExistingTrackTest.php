@@ -50,6 +50,7 @@ function collectionWithForeignTrack(string $class): array
                     return $query;
                 }
             );
+            $query->shouldReceive('setResetItemsDataChanged')->andReturnSelf();
             $query->shouldReceive('getItems')->andReturnUsing(static function () use ($rows, &$carrier) {
                 return array_values(array_filter($rows, static function (DataObject $row) use (&$carrier) {
                     return null === $carrier || $carrier === $row->getData('carrier_code');

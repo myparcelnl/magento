@@ -8,7 +8,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Sales\Model\ResourceModel\Grid;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /**
  * Writes sales_order.track_status and track_number for a page of orders: one tracks query, one read
@@ -127,7 +127,7 @@ class OrderGridColumns
 
             // a placeholder is not a track number: on sales_order.track_number it would lock the order
             // out of the PPS status cron
-            if (TrackAndTrace::isRealBarcode($track['track_number'])) {
+            if (TrackNumber::isRealBarcode($track['track_number'])) {
                 $numbers[] = $track['track_number'];
             }
         }

@@ -3,7 +3,7 @@
  * Overrides magento/module-sales/view/frontend/templates/email/shipment/track.phtml
  */
 
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /* @var \Magento\Framework\View\Element\Template $block */
 $_shipment = $block->getShipment();
@@ -32,7 +32,7 @@ if ($_shipment && $_order) :
                         $trackingUrl = $block->getTrackingUrl();
                         $trackUrl    = $trackingUrl ? $trackingUrl->getUrl($_item) : '';
                         // No link for the "empty" value, nor when no url could be resolved.
-                        if (! $trackUrl || $_item->getNumber() === TrackAndTrace::VALUE_EMPTY) : ?>
+                        if (! $trackUrl || $_item->getNumber() === TrackNumber::EMPTY) : ?>
                             <?= $block->escapeHtml($_item->getNumber()) ?>
                         <?php else : ?>
                             <a href="<?= $block->escapeUrl($trackUrl) ?>"

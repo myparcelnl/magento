@@ -5,7 +5,7 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\SecondaryShipmentResource;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipment;
 
@@ -327,7 +327,7 @@ function collectionWithTracks(string $incrementId, array $tracks, int $shipmentC
     $collection->shouldReceive('tracksByShipmentId')->andReturn($tracksById);
     $collection->shouldReceive('newMagentoTrack')->andReturnUsing(
         static function () use ($makeTrack) {
-            return $makeTrack(['number' => TrackAndTrace::VALUE_EMPTY], true);
+            return $makeTrack(['number' => TrackNumber::EMPTY], true);
         }
     );
 

@@ -16,8 +16,8 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPickup;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
@@ -150,7 +150,7 @@ class ShipmentBuilder
             ->setCarrierCode(MagentoCarrier::CODE)
             ->setTitle(Config::MYPARCEL_TRACK_TITLE)
             ->setQty($magentoShipment->getTotalQty())
-            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
+            ->setTrackNumber(TrackNumber::EMPTY);
     }
 
     private function recipient($address, ?string $carrier): array

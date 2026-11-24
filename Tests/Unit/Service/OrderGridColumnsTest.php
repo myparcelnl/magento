@@ -7,9 +7,9 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\ResourceModel\Grid;
-use MyParcelNL\Magento\Service\OrderGridColumns;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Service\OrderGridColumns;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /**
  * The two grid columns for a page of orders: one tracks query, one read of the current values, a
@@ -147,8 +147,8 @@ it('does not treat a placeholder as a track number', function () {
     [$columns] = gridColumnsWriter([], []);
 
     $html = $columns->columnsForTracks([
-        ['track_number' => TrackAndTrace::VALUE_EMPTY, 'myparcel_status' => null],
-        ['track_number' => TrackAndTrace::VALUE_PRINTED, 'myparcel_status' => null],
+        ['track_number' => TrackNumber::EMPTY, 'myparcel_status' => null],
+        ['track_number' => TrackNumber::PRINTED, 'myparcel_status' => null],
     ]);
 
     expect($html['track_number'])->toBe('');
@@ -184,7 +184,7 @@ it('still reports a real barcode alongside a placeholder', function () {
 
     $html = $columns->columnsForTracks([
         ['track_number' => '3SMYPA123', 'myparcel_status' => null],
-        ['track_number' => TrackAndTrace::VALUE_EMPTY, 'myparcel_status' => null],
+        ['track_number' => TrackNumber::EMPTY, 'myparcel_status' => null],
     ]);
 
     expect($html['track_number'])->toBe(json_encode(['3SMYPA123']));

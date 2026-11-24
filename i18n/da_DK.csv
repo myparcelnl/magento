@@ -470,7 +470,7 @@ No MyParcel shipments were found to make a return label for.,Der blev ikke funde
 "MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel har oprettet disse ordrer, men de kunne ikke markeres som eksporteret: %1. Eksportér dem ikke igen. Tjek loggen."
 The MyParcel API refused this order without giving a reason.,MyParcel API afviste denne ordre uden at angive en årsag.
 The MyParcel API did not return a shipment for this order.,MyParcel API returnerede ingen forsendelse for denne ordre.
-The MyParcel export could not be completed.,MyParcel-eksporten kunne ikke fuldføres.
+No answer arrived from the server. The MyParcel export may have run: check the shipping status before you export again.,"Der kom intet svar fra serveren. MyParcel-eksporten kan være kørt: tjek forsendelsesstatus, før du eksporterer igen."
 The MyParcel labels could not be downloaded.,MyParcel-etiketterne kunne ikke downloades.
 The MyParcel export failed. Please check the log.,MyParcel-eksporten mislykkedes. Tjek loggen.
 No shipments were given to print labels for.,Der er ikke angivet nogen forsendelser at udskrive labels til.

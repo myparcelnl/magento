@@ -318,6 +318,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $collection = $this->objectManager->create(self::PATH_ORDER_TRACK_COLLECTION);
         $collection->addAttributeToFilter('parent_id', ['in' => $shipmentIds]);
         MyParcelTracks::scopeCollection($collection);
+        // Loaded tracks start unchanged, or updateMagentoTrack() saves every one of them.
+        $collection->setResetItemsDataChanged(true);
 
         $grouped = [];
 
@@ -851,7 +853,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     private function writeShipmentToTrack(Track $magentoTrack, object $myParcelShipment): void
     {
         if ($myParcelShipment->getStatus()) {
-            $magentoTrack->setData('myparcel_status', $myParcelShipment->getStatus());
+            // A string, as the database gives it: setData() counts 2 against '2' as a change.
+            $magentoTrack->setData('myparcel_status', (string) $myParcelShipment->getStatus());
         }
 
         if ($myParcelShipment->getBarcode()) {
