@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
@@ -59,6 +60,11 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setOrderCollection($orderCollection): self
     {
+        // Without it every loaded order counts as changed, and save() rewrites each one in full.
+        if ($orderCollection instanceof AbstractCollection) {
+            $orderCollection->setResetItemsDataChanged(true);
+        }
+
         $this->orders    = $orderCollection;
         $this->shipments = null;
         $this->forgetTracks();
