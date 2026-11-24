@@ -12,8 +12,10 @@ asks which of its parts apply, then does only those.
 
 Ask these questions one at a time. Ask all of them.
 
-1. **SDK key.** "What is the snake_case key in `RefShipmentShipmentOptions::setters()`?" If the SDK
-   does not have it, stop: the SDK must be updated first. Do not use a plain string for an API option.
+1. **SDK key.** "What is the snake_case key?" A `toggle` option needs it in
+   `RefShipmentShipmentOptions::setters()`, a label-only option in the SDK's `ShipmentOptionMapper`.
+   If the SDK does not have it, stop: the SDK must be updated first. Do not use a plain string for an
+   API option.
 2. **Label.** "Does the option need a label other than its name?"
 3. **Fee.** "Does the merchant charge for it at checkout?" A checkout fee also needs the widget to
    support the option.

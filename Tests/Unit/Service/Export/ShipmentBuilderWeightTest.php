@@ -71,7 +71,7 @@ it('sums item weight times quantity plus the empty package weight, in kilo mode'
     expect($weight)->toBe((int) (1.5 * 2 * 1000) + 20);
 });
 
-it('floors a zero-weight shipment at the configured default weight', function () {
+it('floors a zero-weight shipment at Weight::DEFAULT_WEIGHT', function () {
     $builder  = createBuilderForWeight(['print/weight_indication' => 'gram']);
     $shipment = createShipment(['getItems' => [
         createShipmentItem(['weight' => 0.0, 'qty' => 1]),

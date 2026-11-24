@@ -8,7 +8,7 @@ This module is not built on the PDK. The other plugins ([myparcelnl/woocommerce]
 
 What this module shares with the stack:
 
-- [myparcelnl/sdk](https://github.com/myparcelnl/sdk) does all API communication. Carriers, delivery types and package types come from the SDK. Do not add definitions of them to this module.
+- [myparcelnl/sdk](https://github.com/myparcelnl/sdk) does all API communication. The names and ids of carriers, delivery types and package types come from the SDK. The module keeps only the v2 name maps in `src/Model/Shipment/` until INT-1563, see `docs/sdk-v11.md`. Do not add other definitions of them.
 - The checkout loads the delivery options widget ([myparcelnl/delivery-options](https://github.com/myparcelnl/delivery-options)) from the jsdelivr CDN, in `view/frontend/requirejs-config.js`.
 
 Only change code in this repository. When a task needs an SDK change, explain the change to the user and do not make it.
@@ -52,7 +52,7 @@ Magento order -> builder (src/Service/Export/) -> SDK v11 Shipment or Fulfilment
 ```
 
 - **Builders** (`src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order. `src/Model/Shipment/` holds the definitions (carriers, package types, delivery types, options) and value objects; services go in `src/Service/`, capabilities in `src/Service/Capabilities/`.
-- **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) send orders and shipments to the SDK in batches. A new SDK call goes through them: controller or observer, then collection, then builder, then SDK.
+- **Export** (`Service\Export\ShipmentExportService`) groups shipments per API key, sends them in chunks and makes the SDK calls. The collections (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) select the orders and shipments and call it. A new SDK call goes: controller or observer, then collection, then export service, then builder, then SDK.
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.

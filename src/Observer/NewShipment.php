@@ -207,11 +207,7 @@ class NewShipment implements ObserverInterface
     }
 
     /**
-     * Update sales_order
-     *
-     * Magento puts our two columns sales_order automatically to sales_order_grid
-     *
-     * @param Shipment $shipment
+     * Write track_status and track_number for the shipment's order, and keep this order instance in step.
      *
      * @throws \Exception
      */

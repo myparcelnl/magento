@@ -30,7 +30,7 @@ use MyParcelNL\Sdk\Services\CountryService;
  * Carrier, package type and the option set come from OrderShipmentOptions, which the fulfilment
  * path shares. What is decided here is what only a label needs: the weight of these shipment items,
  * the recipient array and the pickup model. A shipment that cannot be built fails on its own, and
- * the caller names the order; a value the merchant did not choose is never substituted.
+ * the caller names the order. Carrier, package type and options are never substituted.
  */
 class ShipmentBuilder
 {
@@ -82,10 +82,6 @@ class ShipmentBuilder
     public function build(Track $magentoTrack, array $options, int $colloNumber = 1): BuiltShipment
     {
         $magentoShipment = $magentoTrack->getShipment();
-
-        if (null === $magentoShipment) {
-            throw new \RuntimeException((string) __('This track has no Magento shipment, so there is nothing to export'));
-        }
 
         $order       = $magentoShipment->getOrder();
         $address     = $magentoShipment->getShippingAddress();
