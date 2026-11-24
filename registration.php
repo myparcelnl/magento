@@ -7,7 +7,7 @@
 );
 
 // Magento 2.4.6 has no ResetAfterRequestInterface (added in 2.4.7), which some of our classes implement.
-// TODO INT-2124: remove this block when Magento 2.4.7 is the minimum.
+// @TODO INT-2124: remove this block when Magento 2.4.7 is the minimum.
 if (! interface_exists(\Magento\Framework\ObjectManager\ResetAfterRequestInterface::class)) {
     require_once __DIR__ . '/src/Compat/ResetAfterRequest.php';
     class_alias(
