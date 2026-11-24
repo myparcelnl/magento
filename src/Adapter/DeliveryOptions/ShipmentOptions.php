@@ -46,10 +46,11 @@ class ShipmentOptions
     }
 
     /**
-     * A set that needs no reading of a stored shape: the resolver's own output, or nothing at all.
+     * A set from the current checkout shape as stored, the resolver's own output, or nothing at all.
+     * It keeps the values raw; the getters cast them.
      *
      * fromLegacyCheckoutData() and fromMagentoOptions() exist because those two shapes disagree on
-     * what an absent option means. This one takes the values as they are.
+     * what an absent option means.
      */
     public static function of(array $values): self
     {

@@ -2,9 +2,11 @@
 
 ## Adding a shipment option
 
-The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. If the SDK
-does not know the option, update the SDK first. The key in the request body comes from the SDK's
-`ShipmentOptionMapper`; the module keeps no alias.
+A `toggle` option needs its snake_case key in `RefShipmentShipmentOptions::setters()`:
+`OrderShipmentOptions` throws a `LogicException` without one. An option with only a label, such as
+`printerless_return`, needs a key that the SDK's `ShipmentOptionMapper` knows. If the SDK does not
+know the option, update the SDK first. The key in the request body comes from `ShipmentOptionMapper`;
+the module keeps no alias.
 
 Which carrier offers the option for which package type comes from capabilities. Add code only for
 what capabilities cannot say.

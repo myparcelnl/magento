@@ -490,7 +490,6 @@ Configuration scope id must be a number.,L'ID dell'ambito di configurazione deve
 Customs declaration: %1,Dichiarazione doganale: %1
 "carrier ""%1"" is not one this module knows","il corriere ""%1"" non è noto a questo modulo"
 This order is a pickup but its pickup location cannot be read (%1),"Questo ordine è un ritiro, ma il punto di ritiro non può essere letto (%1)"
-"This track has no Magento shipment, so there is nothing to export","Questo tracking non ha una spedizione Magento, quindi non c'è nulla da esportare"
 this order is a pickup but carries no pickup location,"questo ordine è un ritiro, ma non ha un punto di ritiro"
 %1 label file(s) could not be merged. Please check the log.,Non è stato possibile unire %1 file di etichette. Controlla il log.
 "created as MyParcel shipment %1, but the id could not be stored: %2","creato come spedizione MyParcel %1, ma non è stato possibile salvare l'ID: %2"
