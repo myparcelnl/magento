@@ -236,7 +236,8 @@ class Config extends AbstractHelper
     {
         $configured = $this->getGeneralConfig(self::XML_PATH_EXPORT_CHUNK_SIZE);
 
-        if (! is_numeric($configured)) {
+        // digits only, as the field's validate-digits: is_numeric() would let 20.5 and 1e2 through
+        if (! ctype_digit((string) $configured)) {
             return self::DEFAULT_EXPORT_CHUNK_SIZE;
         }
 

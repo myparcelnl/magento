@@ -30,7 +30,7 @@ function adminControllerGraph(): array
 
         $source = file_get_contents($file->getPathname());
 
-        if (! preg_match('/^(abstract )?class (\w+)(?: extends ([\w\\\\]+))?/m', $source, $class)) {
+        if (! preg_match('/^(abstract |final )?class (\w+)(?: extends ([\w\\\\]+))?/m', $source, $class)) {
             continue;
         }
 
@@ -38,9 +38,10 @@ function adminControllerGraph(): array
 
         $graph[$namespace . '\\' . $class[2]] = [
             'parent'       => isset($class[3]) ? qualifiedName($class[3], $namespace, $source) : null,
-            'declares'     => false !== strpos($source, 'ADMIN_RESOURCE'),
+            // The declaration, not a mention: a docblock can still name a constant that is gone.
+            'declares'     => 1 === preg_match('/\bconst\s+ADMIN_RESOURCE\s*=/', $source),
             // Concrete is enough: a controller that inherits execute() is just as dispatchable.
-            'dispatchable' => '' === $class[1],
+            'dispatchable' => 'abstract ' !== $class[1],
         ];
     }
 
@@ -117,8 +118,4 @@ it('gates every dispatchable admin controller behind its own ACL resource', func
  */
 it('evaluates every admin controller constant under the CI stubs', function (string $class) {
     expect((new ReflectionClass($class))->getConstants())->toHaveKey('ADMIN_RESOURCE');
-})->with([
-    MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport::class,
-    MyParcelNL\Magento\Controller\Adminhtml\Order\SendMyParcelReturnMail::class,
-    MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction::class,
-]);
+})->with(fn () => array_keys(adminControllerGraph()));

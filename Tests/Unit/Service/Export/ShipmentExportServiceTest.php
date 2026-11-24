@@ -183,9 +183,10 @@ it('correlates by reference identifier rather than by result order', function ()
 
     $report = $service->createConcepts($built);
 
-    expect($report->succeeded()['100000001'])->toBe($built[0]->getTrack()->getData('myparcel_consignment_id'))
-        ->and($report->succeeded()['100000002'])->toBe($built[1]->getTrack()->getData('myparcel_consignment_id'))
-        ->and($report->succeeded()['100000001'])->not->toBe($report->succeeded()['100000002']);
+    // The spy numbers its answer from 1101, in reverse: 100000002 is created first.
+    expect($report->succeeded())->toEqual(['100000001' => 1102, '100000002' => 1101])
+        ->and($built[0]->getTrack()->getData('myparcel_consignment_id'))->toBe(1102)
+        ->and($built[1]->getTrack()->getData('myparcel_consignment_id'))->toBe(1101);
 });
 
 it('saves a track that has an entity id, once', function () {

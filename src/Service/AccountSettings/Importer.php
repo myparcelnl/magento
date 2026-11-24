@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\AccountSettings;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
@@ -28,7 +27,6 @@ use Throwable;
 class Importer
 {
     private WriterInterface      $configWriter;
-    private ScopeConfigInterface $scopeConfig;
     private Fingerprint          $fingerprint;
     private LoggerInterface      $logger;
     private Client               $client;
@@ -37,33 +35,28 @@ class Importer
 
     public function __construct(
         WriterInterface      $configWriter,
-        ScopeConfigInterface $scopeConfig,
         Fingerprint          $fingerprint,
         LoggerInterface      $logger,
         Client               $client,
         UserAgent            $userAgent,
         ContractDefinitions  $contractDefinitions
     ) {
-        $this->configWriter = $configWriter;
-        $this->scopeConfig  = $scopeConfig;
-        $this->fingerprint  = $fingerprint;
-        $this->logger       = $logger;
-        $this->client       = $client;
+        $this->configWriter        = $configWriter;
+        $this->fingerprint         = $fingerprint;
+        $this->logger              = $logger;
+        $this->client              = $client;
         $this->userAgent           = $userAgent;
         $this->contractDefinitions = $contractDefinitions;
     }
 
     /**
      * Check whether this account's settings are stored, so a caller can heal a missing row without an
-     * API call on every save. A row without contract definitions counts as missing: rows stored before
-     * 6.0.0 have none.
+     * API call on every save. A row without contract definitions, or with an empty list, counts as
+     * missing: rows stored before 6.0.0 have none, and an account that answered none is asked again.
      */
     public function hasSettingsFor(string $apiKey): bool
     {
-        $stored  = $this->scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey));
-        $decoded = is_string($stored) ? json_decode($stored, true) : null;
-
-        return is_array($decoded) && array_key_exists('contract_definitions', $decoded);
+        return null !== $this->contractDefinitions->storedItems($apiKey);
     }
 
     /**
@@ -113,16 +106,16 @@ class Importer
             [
                 'shop'                 => $shop,
                 'account'              => $account,
-                // A failed fetch keeps the stored list rather than replacing it with nothing.
-                'contract_definitions' => $this->fetchContractDefinitions($apiKey) ?? $this->contractDefinitions->storedItems($apiKey),
+                'contract_definitions' => $this->fetchContractDefinitions($apiKey),
             ]
         );
     }
 
     /**
-     * Fetch the contract definitions of every carrier in one call.
+     * Fetch the contract definitions of every carrier in one call. A failed call or an empty answer
+     * keeps the stored list: ContractDefinitions reads an empty list as unknown anyway.
      *
-     * @return array<int, array<string, mixed>>|null null when the call failed
+     * @return array<int, array<string, mixed>>|null null when none are known
      */
     private function fetchContractDefinitions(string $apiKey): ?array
     {
@@ -135,13 +128,18 @@ class Importer
                 LogContext::of($e)
             );
 
-            return null;
+            return $this->contractDefinitions->storedItems($apiKey);
         }
 
         $definitions = array_values(array_filter($answer, 'is_array'));
 
         if ([] === $definitions) {
-            $this->logger->warning('The account answered no contract definitions; the screens fall open until the next import.');
+            $this->logger->warning(
+                'The account answered no contract definitions; the stored ones are kept, or the screens '
+                . 'fall open until the next import.'
+            );
+
+            return $this->contractDefinitions->storedItems($apiKey);
         }
 
         return $definitions;
