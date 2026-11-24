@@ -85,7 +85,7 @@ it('leaves the decision to configuration when capabilities could not be reached'
 
 it('asks only the package-type-agnostic question when the order forces nothing', function () {
     // Seeding only the agnostic request proves nothing else is consulted: a narrowed lookup would
-    // reach the provider, which is not set here, and fatal. That is the ordinary order, and it
+    // reach the provider, which refuses every call here, and fail. That is the ordinary order, and it
     // is what keeps the extra calls off the common path.
     $c = createCheckoutWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
 

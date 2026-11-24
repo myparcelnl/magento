@@ -201,6 +201,7 @@ class FulfilmentOrderBuilder
     {
         $totalWeight = 0.0;
 
+        /** @var \Magento\Sales\Model\Order\Item $item getItems() declares the interface */
         foreach ($magentoOrder->getItems() as $item) {
             if (! CustomsItems::isShippedRow($item)) {
                 continue;

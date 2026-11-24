@@ -48,16 +48,12 @@ define(['jquery'], function ($) {
         /**
          * @param {Array} messages - {type, text} as the export controller returns them. An
          *                           unrecognised type shows as a notice rather than being dropped.
-         *
-         * @returns {Boolean} whether any of them was an error, which decides whether the caller may
-         *                    refresh the page out from under them.
          */
         render: function (messages) {
             var $container;
-            var failed = false;
 
             if (!messages || !messages.length) {
-                return false;
+                return;
             }
 
             $container = container();
@@ -65,8 +61,6 @@ define(['jquery'], function ($) {
 
             $.each(messages, function (index, message) {
                 var type = -1 === $.inArray(message.type, TYPES) ? 'notice' : message.type;
-
-                failed = failed || 'error' === type;
 
                 // Three classes, as Magento's own renderer emits: the admin styles key off the
                 // bare type for the icon and colour. .text(), never .html(): these carry API
@@ -76,12 +70,10 @@ define(['jquery'], function ($) {
                         .append($('<div/>').text(message.text))
                 );
             });
-
-            return failed;
         },
 
         error: function (text) {
-            return this.render([{type: 'error', text: text}]);
+            this.render([{type: 'error', text: text}]);
         },
 
         /** Only ours: the previous export's messages are stale, Magento's are not. */

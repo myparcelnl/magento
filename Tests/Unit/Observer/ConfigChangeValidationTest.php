@@ -10,11 +10,11 @@ use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
-use MyParcelNL\Magento\Service\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Observer\ConfigChange;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Settings;
+use MyParcelNL\Magento\Service\Settings\Validator\SettingValidatorInterface;
 
 /**
  * The observer's side of the bargain: it asks each validator whether a path is its business, refuses

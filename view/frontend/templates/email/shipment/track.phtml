@@ -30,9 +30,11 @@ if ($_shipment && $_order) :
                     <td>
                         <?php
                         $trackingUrl = $block->getTrackingUrl();
-                        $trackUrl    = $trackingUrl ? $trackingUrl->getUrl($_item) : '';
                         // No link for the "empty" value, nor when no url could be resolved.
-                        if (! $trackUrl || $_item->getNumber() === TrackNumber::EMPTY) : ?>
+                        $trackUrl    = $trackingUrl && $_item->getNumber() !== TrackNumber::EMPTY
+                            ? $trackingUrl->getUrl($_item)
+                            : '';
+                        if (! $trackUrl) : ?>
                             <?= $block->escapeHtml($_item->getNumber()) ?>
                         <?php else : ?>
                             <a href="<?= $block->escapeUrl($trackUrl) ?>"

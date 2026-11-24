@@ -51,8 +51,8 @@ Magento order -> builder (src/Service/Export/) -> SDK v11 Shipment or Fulfilment
       +------------------------------ Track & Trace update -----------------------------+
 ```
 
-- **Builders** (`src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order. `src/Model/Shipment/` holds the definitions (carriers, package types, delivery types, options) and value objects; services go in `src/Service/`, capabilities in `src/Service/Capabilities/`.
-- **Export** (`Service\Export\ShipmentExportService`) groups shipments per API key, sends them in chunks and makes the SDK calls. The collections (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) select the orders and shipments and call it. A new SDK call goes: controller or observer, then collection, then export service, then builder, then SDK.
+- **Builders** (`src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order. `src/Model/Shipment/` holds the definitions (carriers, package types, delivery types, options) and value objects; services go in `src/Service/`. The capabilities services are in `src/Service/Capabilities/`, their value objects (`CapabilitySet`, `InsuranceRange`) in `src/Model/Shipment/Capabilities/`.
+- **Export** (`Service\Export\ShipmentExportService`) groups shipments per API key, sends them in chunks and makes the SDK calls. The collections (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) select the orders and shipments, build them, and pass the result to it. An export goes: controller, then collection, then builder, then export service, then SDK. `Observer\NewShipment` calls the export service itself, and the status cron (`Cron\UpdateStatus`) queries the SDK itself.
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
@@ -91,7 +91,7 @@ These rules are specific to this module. A reviewer can not read them from the c
 - An around plugin needs a docblock that says why a before or after plugin is not enough. `ProblemDetailsError` is an example: it skips `$proceed()` so that Magento does not render the exception.
 - Setup scripts check that a table or column exists before they change it (`isTableExists()`, `tableColumnExists()`). Data migrations go in `src/Setup/Migrations/`.
 - Every external host that the frontend loads needs an entry in `etc/csp_whitelist.xml`.
-- User-facing strings use `__()`, with a translation in every file in `i18n/`.
+- User-facing strings use `__()`, with a translation in every locale file in `i18n/`. `en_US.csv` is the exception: it holds only the English texts that differ from the source string.
 
 ## Documentation
 

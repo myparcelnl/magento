@@ -17,8 +17,8 @@ use MyParcelNL\Magento\Service\LogContext;
 /**
  * Adds the MyParcel delivery options as an extension attribute to orders from OrderRepository.
  *
- * Applies to get() and getList(). The attribute keeps the old shape, with the module's shipment
- * option keys (ShipmentOption::DEFINITIONS); the REST delivery-options endpoint gives the new format.
+ * Applies to get() and getList(). The attribute keeps the old shape, with the shipmentOptions keys
+ * of Adapter\DeliveryOptions\ShipmentOptions; the REST delivery-options endpoint gives the new format.
  */
 class OrderInformationUpdate
 {
@@ -64,7 +64,6 @@ class OrderInformationUpdate
         }
 
         $extensionAttributes = $order->getExtensionAttributes() ?: $this->extensionFactory->create();
-        // the encode string is backwards compatible, use the rest delivery-options endpoint for the new format
         $extensionAttributes->setDeliveryOptions($this->jsonSerializer->serialize($deliveryOptions->toArray()));
         $order->setExtensionAttributes($extensionAttributes);
     }

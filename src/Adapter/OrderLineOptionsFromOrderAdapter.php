@@ -52,14 +52,19 @@ class OrderLineOptionsFromOrderAdapter extends OrderLine
         $magentoItemData = $magentoOrderItem->getData();
         $magentoProduct  = $magentoOrderItem->getProduct();
 
+        // A product deleted from the catalog still ships: the order row keeps its sku, its size is unknown.
+        $size = static function (string $getter) use ($magentoProduct): int {
+            return $magentoProduct ? (int) $magentoProduct->$getter() : 0;
+        };
+
         return [
             'external_identifier' => (string) $magentoItemData['item_id'],
             'name'                => $magentoItemData['name'],
-            'sku'                 => $magentoProduct->getSku(),
-            'height'              => (int) $magentoProduct->getHeight() ?: 0,
-            'length'              => (int) $magentoProduct->getLength() ?: 0,
-            'weight'              => (int) $magentoProduct->getWeight() ?: 0,
-            'width'               => (int) $magentoProduct->getWidth() ?: 0,
+            'sku'                 => $magentoProduct ? $magentoProduct->getSku() : ($magentoItemData['sku'] ?? null),
+            'height'              => $size('getHeight'),
+            'length'              => $size('getLength'),
+            'weight'              => $size('getWeight'),
+            'width'               => $size('getWidth'),
             'description'         => $magentoItemData['description'],
         ];
     }

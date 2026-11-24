@@ -17,9 +17,9 @@ namespace MyParcelNL\Magento\Model\Source;
 use Magento\Framework\Data\OptionSourceInterface;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 
+/** The paper size setting. LabelPositions turns A4 into slots; anything else prints A6. */
 class PaperType implements OptionSourceInterface
 {
-    /** The stored values. LabelPositions turns A4 into slots; anything else prints A6. */
     /**
      * Options getter
      *
