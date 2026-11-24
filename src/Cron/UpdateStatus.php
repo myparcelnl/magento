@@ -172,22 +172,22 @@ class UpdateStatus
             return $this;
         }
 
-        $orderIncrementIds = array_keys($fulfilment);
-        $orderEntityIds    = [];
+        $orderIncrementIds     = array_keys($fulfilment);
+        $entityIdByIncrementId = [];
 
         foreach ($orderRows as $arrayWithIds) {
             if (! isset($fulfilment[$arrayWithIds['increment_id']])) {
                 continue;
             }
-            $orderEntityIds[] = $arrayWithIds['entity_id'];
+            $entityIdByIncrementId[(string) $arrayWithIds['increment_id']] = (int) $arrayWithIds['entity_id'];
         }
 
-        if (! $orderEntityIds) {
+        if (! $entityIdByIncrementId) {
             return $this;
         }
 
         Logger::notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds)));
-        $this->addOrdersToCollection($orderEntityIds);
+        $this->addOrdersToCollection(array_values($entityIdByIncrementId));
 
         // Do not call setNewMyParcelTracks(): it builds a v11 Shipment per track for a create this
         // cron never issues. An order that already has a track reaches setMagentoTrack(), so turn
@@ -198,7 +198,7 @@ class UpdateStatus
                               ->setFulfilmentTrackData($fulfilment)
                               ->updateMagentoTrack();
 
-        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($fulfilment);
+        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($fulfilment, $entityIdByIncrementId);
 
         if ($tally['order_row'] || $tally['without_id']) {
             Logger::notice(sprintf(
@@ -322,10 +322,11 @@ class UpdateStatus
      * Such an order gets no link: myparcel_tracktrace_url is a column on sales_shipment_track.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilment
+     * @param array<string,int>                                                    $entityIdByIncrementId
      *
      * @return int how many orders were written
      */
-    private function writeBarcodeWhereNoTrack(array $fulfilment): int
+    private function writeBarcodeWhereNoTrack(array $fulfilment, array $entityIdByIncrementId): int
     {
         $barcodesByIncrementId = [];
 
@@ -337,7 +338,7 @@ class UpdateStatus
                 }
             )));
 
-            if ($barcodes) {
+            if ($barcodes && isset($entityIdByIncrementId[(string) $incrementId])) {
                 $barcodesByIncrementId[(string) $incrementId] = $barcodes;
             }
         }
@@ -346,16 +347,20 @@ class UpdateStatus
             return 0;
         }
 
-        $orders  = $this->ordersByIncrementId(array_keys($barcodesByIncrementId));
+        $orders  = $this->ordersByEntityId(
+            array_values(array_intersect_key($entityIdByIncrementId, $barcodesByIncrementId))
+        );
         $onTrack = $this->ordersWithABarcodeOnTrack($orders);
         $written = 0;
 
         foreach ($orders as $incrementId => $magentoOrder) {
-            if (isset($onTrack[(int) $magentoOrder->getId()])) {
+            $barcodes = $barcodesByIncrementId[$incrementId] ?? null;
+
+            if (null === $barcodes || isset($onTrack[(int) $magentoOrder->getId()])) {
                 continue;
             }
 
-            $this->setShippedWithoutShipment($magentoOrder, $barcodesByIncrementId[$incrementId]);
+            $this->setShippedWithoutShipment($magentoOrder, $barcodes);
             $written++;
         }
 
@@ -365,14 +370,16 @@ class UpdateStatus
     /**
      * Load the orders in one collection, not a loadByIncrementId() each.
      *
-     * @param string[] $incrementIds
+     * By entity id: a numeric increment id becomes an int, and MySQL then matches '100000001-1' too.
+     *
+     * @param int[] $entityIds
      *
      * @return array<string,Order> keyed by increment id
      */
-    private function ordersByIncrementId(array $incrementIds): array
+    private function ordersByEntityId(array $entityIds): array
     {
         $collection = $this->objectManager->create(MagentoCollection::PATH_MODEL_ORDER_COLLECTION);
-        $collection->addFieldToFilter('increment_id', ['in' => $incrementIds]);
+        $collection->addFieldToFilter('entity_id', ['in' => $entityIds]);
 
         $orders = [];
 

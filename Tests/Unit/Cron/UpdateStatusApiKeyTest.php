@@ -29,6 +29,8 @@ function updateStatusConfig(): MyParcelNL\Magento\Service\Config
 /**
  * @param array<int,array{increment_id:string,entity_id:int,store_id:int}> $orderRows
  * @param array<string,OrderCollection>                                    $responses
+ * @param Order[]                                                          $alsoLoaded orders the order
+ *        load returns besides the polled one, as a filter that matches too much would
  *
  * @return array{0: RecordingUpdateStatus, 1: MagentoOrderCollection, 2: object} the cron, the
  *         collection the matched orders land in, and a recorder for what was handed to it
@@ -37,7 +39,8 @@ function runPpsCron(
     array   $orderRows,
     array   $responses = [],
     array   $failingKeys = [],
-    ?string $trackAfterChain = '3SREAL123'
+    ?string $trackAfterChain = '3SREAL123',
+    array   $alsoLoaded = []
 ): array {
     $logger = mockLoggerFacade();
     $logger->shouldReceive('debug')->andReturnNull();
@@ -46,9 +49,10 @@ function runPpsCron(
 
     // The selector has its own test; here it is stubbed so these cases are about the per-key loop.
     $calls = new class {
-        public array $fulfilment = [];
-        public array $options    = [];
-        public array $orderRow   = [];
+        public array $fulfilment   = [];
+        public array $options      = [];
+        public array $orderRow     = [];
+        public array $orderFilters = [];
     };
 
     // What the order looks like *after* the chain: $trackAfterChain is what its MyParcel track ended
@@ -77,13 +81,20 @@ function runPpsCron(
     $magentoOrders = Mockery::mock(
         Magento\Sales\Model\ResourceModel\Order\Collection::class . ', IteratorAggregate'
     );
-    foreach (['addFieldToSelect', 'addAttributeToFilter', 'setPageSize', 'setOrder', 'addFieldToFilter'] as $fluent) {
+    foreach (['addFieldToSelect', 'addAttributeToFilter', 'setPageSize', 'setOrder'] as $fluent) {
         $magentoOrders->shouldReceive($fluent)->andReturnSelf();
     }
+    $magentoOrders->shouldReceive('addFieldToFilter')->andReturnUsing(
+        static function (string $field, $condition) use ($magentoOrders, $calls) {
+            $calls->orderFilters[] = [$field, $condition];
+
+            return $magentoOrders;
+        }
+    );
     $magentoOrders->shouldReceive('getData')->andReturn($orderRows);
     $magentoOrders->shouldReceive('getIterator')->andReturnUsing(
-        static function () use ($shippableOrder) {
-            return new ArrayIterator([$shippableOrder]);
+        static function () use ($shippableOrder, $alsoLoaded) {
+            return new ArrayIterator(array_merge([$shippableOrder], $alsoLoaded));
         }
     );
 
@@ -337,4 +348,35 @@ it('writes every barcode to the order row when the chain could give it no track'
     );
 
     expect($calls->orderRow['track_number'] ?? null)->toBe(json_encode(['3SA', '3SB']));
+});
+
+it('loads the orders for the order row by entity id', function () {
+    // A numeric increment id becomes an int array key, and MySQL compares an int with the varchar
+    // column as a number: '100000001-1', the admin-edit copy, matches 100000001 as well.
+    [, , $calls] = runPpsCron(
+        [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
+        ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
+        [],
+        null
+    );
+
+    expect($calls->orderFilters)->toContain(['entity_id', ['in' => [1]]])
+        ->and(array_column($calls->orderFilters, 0))->not->toContain('increment_id');
+});
+
+it('skips an order the load returns that the API did not ship', function () {
+    $editedCopy = Mockery::mock(Order::class);
+    $editedCopy->shouldReceive('getId')->andReturn(2);
+    $editedCopy->shouldReceive('getIncrementId')->andReturn('100000001-1');
+    $editedCopy->shouldNotReceive('setData');
+
+    [, , $calls] = runPpsCron(
+        [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
+        ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
+        [],
+        null,
+        [$editedCopy]
+    );
+
+    expect($calls->orderRow)->toBe(['track_number' => json_encode(['3SMYPA123'])]);
 });
