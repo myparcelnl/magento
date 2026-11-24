@@ -53,7 +53,8 @@ it('reports settings absent when no row exists at all', function () {
 });
 
 it('does not mistake another key\'s row for its own', function () {
-    $importer = importerFor([settingsPathFor('other-key') => '{"shop":9,"contract_definitions":[]}']);
+    // A usable row: an empty list reads as absent under any key, so it would hide a wrong lookup.
+    $importer = importerFor([settingsPathFor('other-key') => accountSettingsRow([contractDefinitionItem()])]);
 
     expect($importer->hasSettingsFor('live-key'))->toBeFalse();
 });

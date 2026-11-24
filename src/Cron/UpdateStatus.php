@@ -308,7 +308,8 @@ class UpdateStatus
             }
 
             $shipments[] = [
-                'barcode'    => (string) ($shipment['external_identifier'] ?? TrackNumber::PRINTED),
+                // ?: not ??: an empty identifier is no barcode either, and the selector must poll it again.
+                'barcode'    => (string) ($shipment['external_identifier'] ?? '') ?: TrackNumber::PRINTED,
                 'shipmentId' => $shipmentId,
             ];
         }

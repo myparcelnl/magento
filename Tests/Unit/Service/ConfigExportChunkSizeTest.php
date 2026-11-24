@@ -10,14 +10,15 @@ it('reads the export chunk size the way the admin field validates it', function 
 
     expect($config->getExportChunkSize())->toBe($expected);
 })->with([
-    'not set'      => [null, Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'empty'        => ['', Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'text'         => ['abc', Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'zero'         => ['0', Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'negative'     => ['-1', Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'decimal'      => ['20.5', Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'exponent'     => ['1e2', Config::DEFAULT_EXPORT_CHUNK_SIZE],
-    'above max'    => ['101', Config::DEFAULT_EXPORT_CHUNK_SIZE],
+    // 20 is the default that the admin field's tooltip promises.
+    'not set'      => [null, 20],
+    'empty'        => ['', 20],
+    'text'         => ['abc', 20],
+    'zero'         => ['0', 20],
+    'negative'     => ['-1', 20],
+    'decimal'      => ['50.5', 20],
+    'exponent'     => ['1e2', 20],
+    'above max'    => ['101', 20],
     'minimum'      => ['1', 1],
     'maximum'      => ['100', 100],
     'in range'     => ['50', 50],
