@@ -276,14 +276,39 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->trackMemo = null;
     }
 
+    /**
+     * Get the ids of the collection's shipments that have a track of any carrier.
+     *
+     * Not tracksByShipmentId(): that holds only our tracks, and a shipment with another carrier's
+     * track must not get a MyParcel track next to it.
+     *
+     * @return array<int,true>
+     */
+    protected function shipmentIdsWithAnyTrack(): array
+    {
+        $shipmentIds = $this->shipmentIds();
+
+        if (! $shipmentIds) {
+            return [];
+        }
+
+        /* @var Collection $collection */
+        $collection = $this->objectManager->create(self::PATH_ORDER_TRACK_COLLECTION);
+        $collection->addAttributeToFilter('parent_id', ['in' => $shipmentIds]);
+
+        $withTrack = [];
+
+        foreach ($collection->getItems() as $track) {
+            $withTrack[(int) $track->getParentId()] = true;
+        }
+
+        return $withTrack;
+    }
+
     /** @return array<int,Track[]> */
     private function readTracksByShipmentId(): array
     {
-        $shipmentIds = [];
-
-        foreach ($this->getShipmentsCollection() as $shipment) {
-            $shipmentIds[] = (int) $shipment->getId();
-        }
+        $shipmentIds = $this->shipmentIds();
 
         if (! $shipmentIds) {
             return [];
@@ -301,6 +326,18 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         }
 
         return $grouped;
+    }
+
+    /** @return int[] */
+    private function shipmentIds(): array
+    {
+        $shipmentIds = [];
+
+        foreach ($this->getShipmentsCollection() as $shipment) {
+            $shipmentIds[] = (int) $shipment->getId();
+        }
+
+        return $shipmentIds;
     }
 
     /**

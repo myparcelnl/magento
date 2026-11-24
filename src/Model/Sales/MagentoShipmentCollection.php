@@ -64,10 +64,10 @@ class MagentoShipmentCollection extends MagentoCollection
          * @var Order          $order
          * @var Order\Shipment $shipment
          */
-        $tracks = $this->tracksByShipmentId();
+        $withTrack = $this->shipmentIdsWithAnyTrack();
 
         foreach ($this->getShipmentsCollection() as $shipment) {
-            if (! ($tracks[(int) $shipment->getId()] ?? []) ||
+            if (! isset($withTrack[(int) $shipment->getId()]) ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
                 $this->setNewMagentoTrack($shipment);
