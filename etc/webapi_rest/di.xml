@@ -20,7 +20,7 @@
     <!--
         Gate 2 of 3: deny-by-default allow-list of ACL resources reachable by API-token callers.
         Admin / native Bearer / guest callers bypass this gate entirely; only token-authenticated
-        callers are filtered against this list. Must stay in sync with etc/integration.xml — the
+        callers are filtered against this list. Must stay in sync with etc/integration.xml. The
         regression test Tests/Unit/Service/ScopedResourceRegistryTest enforces this.
 
         See docs/design/adding-a-token-accessible-rest-endpoint.md (Access matrix).
@@ -46,8 +46,8 @@
     </type>
 
     <!--
-        Gate 3 (per-store scope). One ACL resource can authorize several services —
-        Magento_Sales::actions_view alone opens six routes across the three interfaces below — so
+        Gate 3 (per-store scope). One ACL resource can authorize several services
+        (Magento_Sales::actions_view alone opens six routes across the three interfaces below), so
         each needs its own filter. Route -> filter mapping:
         docs/design/adding-a-token-accessible-rest-endpoint.md
     -->

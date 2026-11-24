@@ -11,7 +11,7 @@ use Magento\Framework\Exception\InputException;
 /**
  * Admin action that hard-deletes the API access token at the active (scope, scopeId).
  *
- * No soft-revoke or grace period — once revoked, the token is gone. 400 on invalid scope.
+ * No soft-revoke or grace period: once revoked, the token is gone. 400 on invalid scope.
  */
 class Revoke extends AbstractTokenAction implements HttpPostActionInterface
 {

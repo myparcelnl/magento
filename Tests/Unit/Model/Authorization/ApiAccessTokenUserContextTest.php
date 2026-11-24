@@ -14,7 +14,7 @@ const FAKE_INTEGRATION_ID = 7;
 
 /**
  * Produces a 64-char alphanumeric test token by right-padding the discriminator with zeros.
- * Tokens must satisfy the extraction regex: ^[a-zA-Z0-9]{64}$ — no hyphens.
+ * Tokens must satisfy the extraction regex ^[a-zA-Z0-9]{64}$, so no hyphens.
  */
 function testToken(string $discriminator): string
 {
@@ -160,7 +160,7 @@ it('returns null when the integration record has not been provisioned (id missin
     $plaintext = testToken('nointegration');
     $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
-    // setOwner is not expected when integration resolution fails — UserContext bails before that.
+    // setOwner is not expected when integration resolution fails: UserContext stops before that.
     $scopeContext = Mockery::mock(TokenScopeContext::class);
     $scopeContext->shouldReceive('findByHash')->with(hash('sha256', $plaintext))->andReturn($coord);
     $scopeContext->shouldNotReceive('setOwner');
@@ -282,11 +282,8 @@ it('resets in lockstep with TokenScopeContext', function (string $class) {
 })->with([ApiAccessTokenUserContext::class, TokenScopeContext::class]);
 
 /**
- * Coverage regression: INTEGRATION_NAME is the lookup key UserContext uses against
- * IntegrationServiceInterface::findByName(). A rename of the <integration name="…"/>
- * in etc/integration.xml without updating the constant silently breaks every
- * token-authenticated request — findByName returns an empty Integration, getUserId
- * returns null, the caller gets a generic 401. Static guard catches the drift.
+ * INTEGRATION_NAME is the key UserContext passes to IntegrationServiceInterface::findByName().
+ * A rename in etc/integration.xml alone makes every token-authenticated request a generic 401.
  */
 it('INTEGRATION_NAME matches the <integration name="..."> declared in etc/integration.xml', function () {
     $moduleRoot     = dirname(__DIR__, 4);

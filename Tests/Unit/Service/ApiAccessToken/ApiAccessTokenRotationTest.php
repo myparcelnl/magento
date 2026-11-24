@@ -10,7 +10,7 @@ use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 use MyParcelNL\Magento\Tests\Helpers\MyParcelTokenLifecycleHarness;
 
 // ====================================================================
-// Scenario 1 — rotation at the same coordinate overwrites the row atomically.
+// Scenario 1: rotation at the same coordinate overwrites the row atomically.
 // ====================================================================
 
 it('rotation at the same scope coordinate overwrites the hash row in place', function (string $scope, int $scopeId) {
@@ -34,7 +34,7 @@ it('rotation at the same scope coordinate overwrites the hash row in place', fun
 ]);
 
 // ====================================================================
-// Scenario 2 — the previous token is rejected and the new one authenticates
+// Scenario 2: the previous token is rejected and the new one authenticates
 // at the same scope coordinate. Covers the rotation effect on the REST entry point.
 // ====================================================================
 
@@ -61,7 +61,7 @@ it('after rotation the previous token is rejected and the new one authenticates 
 ]);
 
 // ====================================================================
-// Scenario 3 — rotation preserves the partition of permitted stores
+// Scenario 3: rotation preserves the partition of permitted stores
 // (ownership is row-coordinate, not hash-equality, so the new token sees the same stores).
 // ====================================================================
 
@@ -86,7 +86,7 @@ it('rotation at default scope preserves the partition of permitted stores', func
 });
 
 // ====================================================================
-// Scenario 4a — cross-scope isolation: rotating the default token does not
+// Scenario 4a: cross-scope isolation. Rotating the default token does not
 // touch a store-scoped token (or its partition carve-out).
 // ====================================================================
 
@@ -114,7 +114,7 @@ it('rotating the default-scope token does not affect a store-scoped token', func
 });
 
 // ====================================================================
-// Scenario 4b — cross-scope isolation: rotating a store-scoped token does not
+// Scenario 4b: cross-scope isolation. Rotating a store-scoped token does not
 // touch the default token (or its partition).
 // ====================================================================
 
@@ -144,7 +144,7 @@ it('rotating a store-scoped token does not affect the default-scope token', func
 });
 
 // ====================================================================
-// Scenario 5 — native Bearer scheme is left to Magento's native chain
+// Scenario 5: native Bearer scheme is left to Magento's native chain
 // regardless of rotation state on the MyParcel scheme.
 // ====================================================================
 
@@ -190,7 +190,7 @@ it('a rotation that would collide with another scope\'s hash row is rejected and
     expect(fn () => $forcedService->generateForScope(ScopeInterface::SCOPE_STORES, 2))
         ->toThrow(AlreadyExistsException::class);
 
-    // The rotation didn't persist — stores:2 still holds the original token's hash.
+    // The rotation did not persist: stores:2 still holds the original token's hash.
     expect($harness->valueAt(ScopeInterface::SCOPE_STORES, 2))->toBe($originalHash);
     expect($harness->valueAt(ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0))->toBe($collidingHash);
 });
