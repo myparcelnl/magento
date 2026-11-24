@@ -112,13 +112,13 @@ class MagentoOrderCollection extends MagentoCollection
         /**
          * @var Shipment $shipment
          */
-        $tracks = $this->tracksByShipmentId();
+        $withTrack = $this->shipmentIdsWithAnyTrack();
 
         foreach ($this->getShipmentsCollection() as $shipment) {
             $i = 1;
 
             if (
-                ! ($tracks[(int) $shipment->getId()] ?? []) ||
+                ! isset($withTrack[(int) $shipment->getId()]) ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
                 while ($i <= $this->getOption('label_amount')) {
