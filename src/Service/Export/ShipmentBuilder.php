@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPickup;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11DataShipmentsInnerGeneralSettings as GeneralSettings;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 use MyParcelNL\Sdk\Services\CountryService;
@@ -103,7 +104,8 @@ class ShipmentBuilder
             ->setReferenceIdentifier(self::referenceIdentifierFor((string) ($shipmentId ?? $incrementId), $colloNumber))
             ->setRecipient($this->recipient($address, $shipmentOptions->carrierName()))
             ->setPhysicalProperties(['weight' => $weight])
-            ->setOptions($shipmentOptions->shipmentOptions($address));
+            ->setOptions($shipmentOptions->shipmentOptions($address))
+            ->setGeneralSettings((new GeneralSettings())->setSaveRecipientAddress(0));
 
         if ($deliveryOptions->isPickup()) {
             $shipment->setPickup($this->pickup($deliveryOptions));

@@ -183,6 +183,11 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The per-country print-position rule on the order and shipment views. It answered the same for
   every order, and the grid never used it; positions are offered everywhere.
 - The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
+- Return in the box and its default `print/return_in_the_box`. There is no replacement.
+- Same day delivery in the checkout, with its title setting. No admin field switched it on since
+  #731. INT-1464 can bring it back.
+- The New Shipment form's digital stamp weights 100 and 350 gram. The form now offers the weights of
+  the setting: 20, 50, 200 and 2000 gram.
 - A carrier outside the account's contract leaves the checkout, also when its switch is on.
 
 **Corrected**
@@ -202,12 +207,23 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - Every collo of a multicollo gets its own track and barcode, in both export modes.
 - Return labels and status polling use each order's own account, not the first order's.
 - The order grid's PPS export honours the modal's carrier and package type.
+- A PPS order sends the VAT of one unit, as it sends the price of one unit, and its weight counts
+  the rows a label ships. Its recipient carries the region, as a label carries the state.
+- The grid and the order view link the barcodes the status cron writes to an order without a
+  shipment.
 
 **New**
 
 - Insurance is any amount within the contract range. The settings screen validates per carrier
   against contract definitions; the export clamps per shipment against capabilities for the real
-  destination and package type. GLS gains a Belgium insurance field.
+  destination and package type. GLS gains a Belgium insurance field. `insurance_percentage` no
+  longer rounds up to the next tier, so the same settings can give a lower insured amount.
+- More than one label for a shipment makes one multicollo shipment wherever the account's
+  capabilities allow more than one collo. It was PostNL to NL or BE, package type package only.
+- The checkout leaves out a package type or a carrier that cannot carry an option the order forces
+  on, such as age check. When capabilities cannot be read, it offers them all.
+- A shipment's reference in the MyParcel backoffice is `<shipment id>-<collo number>`, not the
+  shipment id alone.
 - Export runs in chunks of a configurable size, default 20. Each chunk is recorded before the next is
   sent, a rejected chunk is re-sent once without the orders the API named, and failures are reported
   per order with the API's own sentence and field.
