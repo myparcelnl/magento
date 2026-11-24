@@ -156,24 +156,17 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
         $shipmentOptions = $deliveryOptions->getShipmentOptions();
         $deliveryType    = $deliveryOptions->getDeliveryType();
-        $shipmentFees    = [];
-
-        foreach (['delivery' => 'checkout', 'mailbox' => 'mailbox'] as $group => $flag) {
-            foreach (ShipmentOption::having($flag) as $option) {
-                $shipmentFees["$group/{$option}_fee"] = $shipmentOptions->option($option);
-            }
-        }
 
         // the nulls take carrier, package type and country from the quote
         $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryType);
         // the delivery type is never below 0 before the option fees, as Checkout::deliveryTypePrice() shows it
         $amount = max(0.0, $amount + (float) $this->config->getConfigValue("$configPath$deliveryType/fee"));
 
-        foreach ($shipmentFees as $key => $value) {
-            if (! $value) {
+        foreach (ShipmentOption::feePaths() as $option => $feePath) {
+            if (! $shipmentOptions->option($option)) {
                 continue;
             }
-            $amount += (float) $this->config->getConfigValue("$configPath$key");
+            $amount += (float) $this->config->getConfigValue("$configPath$feePath");
         }
 
         // the method should never give a discount on the order, so we return 0 if the amount is negative
