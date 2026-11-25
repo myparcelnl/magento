@@ -150,7 +150,7 @@ define(
                                 click: function (api) {
                                     return api.save().then(function () {
                                         api.close();
-                                        parentThis._refresh(false);
+                                        parentThis._refresh();
                                     }).catch(function () {
                                         // api.save() shows why in the modal.
                                     });
