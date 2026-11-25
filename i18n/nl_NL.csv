@@ -464,11 +464,13 @@ Letter,Ongefrankeerd
 Return if no answer,Retour bij geen gehoor
 Your contract allows € %1 to € %2. Enter 0 to switch insurance off.,Uw contract staat € %1 tot € %2 toe. Vul 0 in om de verzekering uit te zetten.
 "The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.",Het toegestane bereik kon niet worden opgehaald. Elk bedrag wordt hier geaccepteerd en MyParcel beslist. Vul 0 in om de verzekering uit te zetten.
-Insurance amount %1 was not saved: your contract allows € %2 to € %3.,Verzekeringsbedrag %1 is niet opgeslagen: uw contract staat € %2 tot € %3 toe.
+"""%1"" is not a whole number of euros","""%1"" is geen heel bedrag in euro's"
+%1 is outside your contract range of € %2 to € %3,%1 valt buiten het bereik van uw contract: € %2 tot € %3
+%1 was not saved: %2.,%1 is niet opgeslagen: %2.
+%1 holds a value that is no longer valid: %2. Change it.,%1 heeft een waarde die niet meer geldig is: %2. Pas deze aan.
 Importing the MyParcel Backoffice settings failed:,Het importeren van de MyParcel Backoffice-instellingen is mislukt:
 Importing the MyParcel Backoffice settings failed. Check the log for details.,Het importeren van de MyParcel Backoffice-instellingen is mislukt. Bekijk het logbestand voor details.
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Uw contract staat € %1 tot € %2 toe. Verzekering is verplicht voor deze vervoerder en kan niet worden uitgezet."
-"Insurance amount ""%1"" was not saved: enter a whole number of euros.","Verzekeringsbedrag ""%1"" is niet opgeslagen: vul een heel bedrag in euro's in."
 MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.
 Records per export request,Records per exportverzoek
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Hoeveel zendingen of orders in een verzoek naar MyParcel gaan. Laat leeg voor 20. Verlaag dit als grote exports een time-out geven. Het maximum is 100.

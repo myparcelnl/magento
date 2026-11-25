@@ -82,6 +82,22 @@ class Settings
         return $paths;
     }
 
+    /** The field as the settings form names it, "PostNL settings, Insure orders up to (EU)", or null. */
+    public function fieldLabel(string $path): ?string
+    {
+        foreach ($this->getSections() as $section) {
+            foreach ($section['groups'] ?? [] as $group) {
+                foreach ($group['fields'] ?? [] as $field) {
+                    if ($path === ($field['path'] ?? null)) {
+                        return sprintf('%s, %s', __($section['label'] ?? ''), __($field['label'] ?? ''));
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Check if a field should be visible for the given scope.
      *

@@ -454,9 +454,11 @@ Return if no answer,Restituisci se nessuna risposta
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Se abilitato, la casella Consegna prioritaria viene mostrata nel checkout quando questo prodotto è nel carrello, anche se l'impostazione generale della consegna prioritaria è disattivata."
 "Your contract allows € %1 to € %2. Enter 0 to switch insurance off.","Il tuo contratto consente da € %1 a € %2. Inserisci 0 per disattivare l'assicurazione."
 "The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.","Non è stato possibile recuperare l'intervallo consentito. Qui viene accettato qualsiasi importo e decide MyParcel. Inserisci 0 per disattivare l'assicurazione."
-"Insurance amount %1 was not saved: your contract allows € %2 to € %3.","L'importo dell'assicurazione %1 non è stato salvato: il tuo contratto consente da € %2 a € %3."
+"""%1"" is not a whole number of euros","""%1"" non è un importo intero in euro"
+%1 is outside your contract range of € %2 to € %3,%1 è fuori dall'intervallo del tuo contratto: da € %2 a € %3
+%1 was not saved: %2.,%1 non è stato salvato: %2.
+%1 holds a value that is no longer valid: %2. Change it.,%1 contiene un valore non più valido: %2. Modificalo.
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Il tuo contratto consente da € %1 a € %2. L'assicurazione è obbligatoria per questo corriere e non può essere disattivata."
-"Insurance amount ""%1"" was not saved: enter a whole number of euros.","L'importo dell'assicurazione ""%1"" non è stato salvato: inserisci un importo intero in euro."
 "Importing the MyParcel Backoffice settings failed:","L'importazione delle impostazioni MyParcel Backoffice non è riuscita:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importazione delle impostazioni MyParcel Backoffice non è riuscita. Controlla il log per i dettagli."
 "MyParcel Backoffice settings imported.","Impostazioni MyParcel Backoffice importate."

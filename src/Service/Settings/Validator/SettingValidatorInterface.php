@@ -20,7 +20,8 @@ interface SettingValidatorInterface
 
     /**
      * @param  mixed  $value the posted value; it can be null or an array
-     * @return Phrase|null null when the value may be saved, otherwise the reason to show the admin
+     * @return Phrase|null null when the value may be saved, otherwise the reason, without a full stop:
+     *                     ConfigChange names the field and says whether the value was saved
      */
     public function validate(string $path, $value, string $scopeName, int $scopeId): ?Phrase;
 }

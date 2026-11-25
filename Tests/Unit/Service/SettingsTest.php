@@ -134,3 +134,14 @@ it('makes no query for no paths', function () {
     expect($settings->storedValuesAtScope([], 'websites', 1))->toBe([])
         ->and($queries)->toBe(0);
 });
+
+it('names a field the way the settings form shows it', function () {
+    $settings = settingsOver([], [], $queries);
+    setPrivateProperty($settings, 'settingsCache', ['sections' => [[
+        'label'  => 'PostNL settings',
+        'groups' => [['fields' => [['path' => 'a/b/insurance_eu_amount', 'label' => 'Insure orders up to (EU)']]]],
+    ]]]);
+
+    expect($settings->fieldLabel('a/b/insurance_eu_amount'))->toBe('PostNL settings, Insure orders up to (EU)')
+        ->and($settings->fieldLabel('a/b/unknown'))->toBeNull();
+});
