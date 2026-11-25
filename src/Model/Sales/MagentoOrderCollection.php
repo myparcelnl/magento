@@ -532,10 +532,10 @@ class MagentoOrderCollection extends MagentoCollection
                 $magentoTrack->setData('myparcel_consignment_id', $shipmentId);
                 $claimedIds[$shipmentId] = true;
             } else {
-                // Without the id updateMagentoTrack() can never refresh this track, so it keeps
-                // this barcode and gets no status and no consumer portal link, ever.
+                // Without the id updateMagentoTrack() can never refresh this track: it keeps this
+                // barcode and gets no status. Its link is the fallback that LinkResolver builds.
                 Logger::warning(sprintf(
-                    'MyParcel: fulfilment order %s came back with no shipment id for barcode %s, so its track gets no status or track & trace link',
+                    'MyParcel: fulfilment order %s came back with no shipment id for barcode %s, so its track gets no status',
                     $incrementId,
                     $fulfilment['barcode']
                 ));

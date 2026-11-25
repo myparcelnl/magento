@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service;
 /**
  * The digital stamp weight ranges, and the weight to send for each.
  *
+ * The ranges are the tiers the core API rounds a weight up to (DigitalStampRestWebservice::determineWeight).
  * `value` is not the upper bound: the 50-350 range sends 200. Read a range with `max`, send `value`.
  * Labels are translated here because i18n:collect-phrases only finds a literal argument.
  */
