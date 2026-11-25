@@ -53,7 +53,7 @@ it('reads the carrier toggles of the store it is asked about', function () use (
 
 it('reads the mailbox group per store, and keeps no maximum from the store before', function () {
     $resolver = createScopedResolver([
-        1 => ['mailbox' => ['active' => '0']],
+        1 => ['mailbox' => ['active' => '1', 'weight' => '500']],
         2 => ['mailbox' => ['active' => '1', 'weight' => '1500']],
     ]);
     $cart     = [quoteItemFor(1, 1.0, 1000.0)];
