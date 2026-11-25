@@ -274,7 +274,7 @@ class Checkout
                 'allowPriorityDelivery' => $canHavePriorityDelivery && $this->package->getPriorityDelivery($quote->getAllItems(), $carrierPath),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
-                'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $country),
+                'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath),
                 'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 // No admin field switches it on and the export has no same day time check (INT-1464).
                 'allowSameDayDelivery'  => false,
@@ -590,17 +590,11 @@ class Checkout
         return $this;
     }
 
-    /**
-     * @param string $carrier
-     * @param string $country
-     * @return bool
-     */
-    private function isPickupAllowed(string $carrier, string $country): bool
+    /** Whether the settings allow pickup; which package types can go to a pickup point is for capabilities. */
+    private function isPickupAllowed(string $carrier): bool
     {
-        $pickupEnabled = PackageType::PACKAGE_NAME === $this->getPackageType($country)
-                         && $this->config->getBoolConfig($carrier, 'pickup/active');
-
-        return ! $this->package->deliveryOptionsDisabled && $pickupEnabled;
+        return ! $this->package->deliveryOptionsDisabled
+               && $this->config->getBoolConfig($carrier, 'pickup/active');
     }
 
     /**
