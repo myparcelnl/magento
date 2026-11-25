@@ -7,17 +7,19 @@ namespace MyParcelNL\Magento\Service\Export;
 use DateTime;
 use DateTimeZone;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
-use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\OrderLine;
 use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
 use MyParcelNL\Sdk\Services\CountryService;
@@ -96,10 +98,47 @@ class FulfilmentOrderBuilder
         $orderLines = new Collection();
 
         foreach ($magentoOrder->getItems() as $magentoOrderItem) {
-            $orderLines->push(new OrderLineOptionsFromOrderAdapter($magentoOrderItem));
+            $orderLines->push($this->orderLine($magentoOrderItem));
         }
 
         return $orderLines;
+    }
+
+    /**
+     * One order row as an order line, every amount per unit as the SDK wants it.
+     *
+     * @param \Magento\Sales\Model\Order\Item $item
+     */
+    private function orderLine(DataObject $item): OrderLine
+    {
+        // price is per unit and tax_amount is per row
+        $quantity = (float) $item->getQtyOrdered();
+        $price    = DeliveryCosts::getPriceInCents((float) $item->getPrice());
+        $tax      = (float) $item->getTaxAmount();
+        $vat      = DeliveryCosts::getPriceInCents($quantity > 0.0 ? $tax / $quantity : $tax);
+        $weight   = (float) $item->getWeight();
+        $product  = $item->getProduct();
+
+        // A product deleted from the catalog still ships: its dimensions are unknown then.
+        $size = static fn(string $getter): int => $product ? (int) $product->$getter() : 0;
+
+        return new OrderLine([
+            'price'           => $price,
+            'vat'             => $vat,
+            'price_after_vat' => $price + $vat,
+            'quantity'        => $item->getQtyOrdered(),
+            'product'         => [
+                'external_identifier' => (string) $item->getItemId(),
+                'name'                => $item->getName(),
+                'sku'                 => $item->getSku(),
+                'height'              => $size('getHeight'),
+                'length'              => $size('getLength'),
+                // Not convertToGrams() alone: it gives a weightless row the default weight.
+                'weight'              => $weight > 0.0 ? $this->weight->convertToGrams($weight) : 0,
+                'width'               => $size('getWidth'),
+                'description'         => $item->getDescription(),
+            ],
+        ]);
     }
 
     /** @throws RuntimeException when the order has no billing address to invoice */

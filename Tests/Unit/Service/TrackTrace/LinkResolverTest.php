@@ -15,7 +15,7 @@ use MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl;
  * The link an admin sees: the one the API issued where it is stored, a constructed one where it is
  * not, and no link at all where nothing can be constructed honestly.
  */
-/** @param array $orderRows what the order-row query answers, for orders without a MyParcel track */
+/** @param array $orderRows what the order-row query answers, for orders without a real barcode on a MyParcel track */
 function makeLinkResolver(array $rows, ?int $propositionId = null, array &$wheres = [], array $orderRows = []): LinkResolver
 {
     $select = Mockery::mock(Select::class);
@@ -270,7 +270,14 @@ it('shows the order row barcodes on the order view', function () {
         ->toContain('href="https://myparcel.me/track-trace/3SMYPA111/2131BC/NL"');
 });
 
-it('reads the order row only for an order that has no track', function () {
+it('links the order row barcodes in place of a track that holds only a placeholder', function () {
+    $wheres = [];
+    $links  = makeLinkResolver([trackRow(['track_number' => '–'])], null, $wheres, [linkOrderRow()]);
+
+    expect(array_column($links->forOrders([7])[7], 'number'))->toBe(['3SMYPA111', '3SMYPA222']);
+});
+
+it('reads the order row only for an order without a real barcode on its tracks', function () {
     $wheres = [];
 
     makeLinkResolver([trackRow()], null, $wheres, [linkOrderRow()])->forOrders([7]);

@@ -12,7 +12,8 @@ use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * Reads the MyParcel track & trace links for a page of orders. Manual tracks are left out. An order
- * without a MyParcel track falls back to the barcodes the status cron wrote to its order row.
+ * whose MyParcel tracks hold no real barcode falls back to the barcodes the status cron wrote to its
+ * order row.
  *
  * A link the API issued is stored on the track. TrackTraceUrl builds one for a track without it and
  * for an order-row barcode. Its host follows the account's proposition, hence the store id in the
@@ -57,16 +58,26 @@ class LinkResolver
             ];
         }
 
-        $withoutTrack = array_values(array_diff($orderIds, array_keys($links)));
+        $withoutBarcode = array_values(array_filter(
+            $orderIds,
+            static fn(int $orderId): bool => ! array_filter(
+                $links[$orderId] ?? [],
+                static fn(array $link): bool => TrackNumber::isRealBarcode($link['number'])
+            )
+        ));
+        $fromOrderRow   = [];
 
-        foreach ($withoutTrack ? $this->orderRowsFor($withoutTrack) : [] as $row) {
+        foreach ($withoutBarcode ? $this->orderRowsFor($withoutBarcode) : [] as $row) {
             foreach (TrackNumber::barcodesFromOrderRow($row['track_number'] ?? null) ?? [] as $barcode) {
-                $links[(int) $row['order_id']][] = [
+                $fromOrderRow[(int) $row['order_id']][] = [
                     'number' => $barcode,
                     'url'    => $this->urlFor(['track_number' => $barcode] + $row),
                 ];
             }
         }
+
+        // The order row's barcodes replace placeholder tracks: they are what the order shipped with.
+        $links = array_replace($links, $fromOrderRow);
 
         return $links;
     }
@@ -201,8 +212,8 @@ class LinkResolver
     }
 
     /**
-     * The order rows of orders without a MyParcel track, where the status cron stores the barcodes of
-     * an order it shipped without a shipment.
+     * The order rows of orders without a real barcode on a MyParcel track, where the status cron
+     * stores the barcodes of an order it shipped without a shipment.
      *
      * @param int[] $orderIds
      *

@@ -6,8 +6,8 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
- * Both cases stop at the `empty($apiKey)` guard, before any shipment exists. The key is not
- * asserted on the shipment: Shipment has no setApiKey(), and BuiltShipment carries the key.
+ * The key comes from the order's own store and travels on the BuiltShipment: Shipment has no
+ * setApiKey(). The export service groups and sends by that key.
  */
 function standardCheckoutOptions(): array
 {
@@ -17,6 +17,16 @@ function standardCheckoutOptions(): array
         'date'         => '2026-08-20',
     ];
 }
+
+it('carries the API key of the order\'s own store', function (int $storeId, string $apiKey) {
+    // The key is set on this store only, so neither the default key nor another store's key can pass.
+    [$builder, $track] = createConvertibleShipmentBuilder(standardCheckoutOptions(), $apiKey, $storeId, $storeId);
+
+    expect($builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0])->getApiKey())->toBe($apiKey);
+})->with([
+    'store 5' => [5, 'store-5-key'],
+    'store 9' => [9, 'store-9-key'],
+]);
 
 it('raises a LocalizedException when the store has no API key', function () {
     [$builder, $track] = createConvertibleShipmentBuilder(standardCheckoutOptions(), '');
