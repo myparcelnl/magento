@@ -186,13 +186,19 @@ it('restricts nothing when capabilities could not be reached, even with a forced
 
 /**
  * getDeliveryData() is private and reaches for tax, delivery costs and a dozen config keys, so it
- * is driven with only the collaborators its carrier loop touches. What is asserted is one key.
+ * is driven with only the collaborators its carrier loop touches.
  */
-function deliveryDataAllowsOptionsFor(string $carrierName, array $capabilities, array $forced): bool
+function carrierSettingsFor(
+    string $carrierName,
+    array  $capabilities,
+    array  $forced = [],
+    string $packageType = PackageType::MAILBOX_NAME
+): array
 {
     [$checkout, $package] = array_values(createCheckoutWith($capabilities, 'NL', $forced));
 
     $package->shouldReceive('setMailboxSettings')->byDefault();
+    $package->shouldReceive('selectPackageType')->andReturn($packageType);
     $package->shouldReceive('getMaxMailboxWeight')->andReturn(2000)->byDefault();
     $package->shouldReceive('getWeight')->andReturn(100)->byDefault();
     $package->shouldReceive('getPriorityDelivery')->andReturn(false)->byDefault();
@@ -209,18 +215,13 @@ function deliveryDataAllowsOptionsFor(string $carrierName, array $capabilities, 
     $deliveryCosts->shouldReceive('getBasePriceForClient')->andReturn(0.0)->byDefault();
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
 
-    return carrierSettingsOf($checkout, PackageType::MAILBOX_NAME, $carrierName)['allowDeliveryOptions'];
+    return carrierSettingsOf($checkout, $packageType, $carrierName);
 }
 
 it('does not offer a carrier that cannot carry a forced option on the resolved package type', function () {
     // One package type serves the whole checkout, so DPD allowing an age check on a mailbox can
     // still land mailbox in front of a PostNL customer. PostNL is dropped instead of failing later.
     $capabilities = [
-        // isPickupAllowed() re-resolves the package type, so the agnostic request is reached too.
-        ''        => CapabilitySet::fromApiResults([
-            capabilityResult(['packageTypes' => ['PACKAGE']]),
-            capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE']]),
-        ]),
         'mailbox'    => CapabilitySet::fromApiResults([
             capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresSignature' => []]]),
             capabilityResult([
@@ -231,6 +232,24 @@ it('does not offer a carrier that cannot carry a forced option on the resolved p
         ]),
     ];
 
-    expect(deliveryDataAllowsOptionsFor(Carrier::POSTNL, $capabilities, [ShipmentOption::AGE_CHECK]))->toBeFalse()
-        ->and(deliveryDataAllowsOptionsFor(Carrier::DPD, $capabilities, [ShipmentOption::AGE_CHECK]))->toBeTrue();
+    expect(carrierSettingsFor(Carrier::POSTNL, $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeFalse()
+        ->and(carrierSettingsFor(Carrier::DPD, $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeTrue();
+});
+
+it('offers pickup for any package type whose capabilities have it', function (string $packageType, string $apiPackageType) {
+    $capabilities = [$packageType => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => [$apiPackageType]])])];
+
+    expect(carrierSettingsFor(Carrier::POSTNL, $capabilities, [], $packageType)['allowPickupLocations'])->toBeTrue();
+})->with([
+    'package'       => [PackageType::PACKAGE_NAME, 'PACKAGE'],
+    'small package' => [PackageType::PACKAGE_SMALL_NAME, 'SMALL_PACKAGE'],
+]);
+
+it('does not offer pickup for a package type whose capabilities lack it', function () {
+    $capabilities = [PackageType::MAILBOX_NAME => CapabilitySet::fromApiResults([capabilityResult([
+        'packageTypes'  => ['MAILBOX'],
+        'deliveryTypes' => ['STANDARD_DELIVERY'],
+    ])])];
+
+    expect(carrierSettingsFor(Carrier::POSTNL, $capabilities)['allowPickupLocations'])->toBeFalse();
 });
