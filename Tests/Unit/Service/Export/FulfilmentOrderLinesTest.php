@@ -39,8 +39,8 @@ it('gives every order in a batch only its own number of lines', function () {
 
 it('gives every order in a batch only its own products', function () {
     $built = buildBatch([
-        [createOrderItem([], ['sku' => 'FIRST'])],
-        [createOrderItem([], ['sku' => 'SECOND'])],
+        [createOrderItem(['sku' => 'FIRST'])],
+        [createOrderItem(['sku' => 'SECOND'])],
     ]);
 
     $skus = array_map(
@@ -80,6 +80,32 @@ it('reads a price that the database gives as a string', function () {
 
     expect($line->getPrice())->toBe(1999)
         ->and($line->getVat())->toBe(420);
+});
+
+/** The product of the one order line, built with this weight unit. */
+function orderLineProduct(array $itemData, string $weightUnit = 'gram')
+{
+    $order = createFulfilmentOrderBuilder('test-api-key', null, ['print/weight_indication' => $weightUnit])->build(
+        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'], ['getItems' => [createOrderItem($itemData)]]),
+        []
+    );
+
+    return $order->getOrderLines()->first()->getProduct();
+}
+
+it('sends the weight of the order row in grams, whatever the weight unit', function () {
+    expect(orderLineProduct(['weight' => 2.5], 'kilo')->getWeight())->toBe(2500)
+        ->and(orderLineProduct(['weight' => 0.3], 'kilo')->getWeight())->toBe(300)
+        ->and(orderLineProduct(['weight' => 250.0])->getWeight())->toBe(250);
+});
+
+it('sends no weight for a row without one, rather than a default', function () {
+    expect(orderLineProduct([])->getWeight())->toBeNull();
+});
+
+it('sends the sku of the order row, not of the catalog product', function () {
+    // A configurable's row holds the sku that was sold; its catalog product is the parent.
+    expect(orderLineProduct(['sku' => 'SHIRT-RED'])->getSku())->toBe('SHIRT-RED');
 });
 
 it('builds the line of a product that was deleted from the catalog', function () {

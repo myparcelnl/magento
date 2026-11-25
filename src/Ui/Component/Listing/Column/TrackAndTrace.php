@@ -64,10 +64,7 @@ class TrackAndTrace extends Column
             $html = $this->links->html($linksByOrder[(int) ($item['entity_id'] ?? 0)] ?? []);
 
             if ('' === $html) {
-                $barcodes    = TrackNumber::barcodesFromOrderRow($item[$name] ?? null);
-                $item[$name] = null === $barcodes
-                    ? ($item[$name] ?? null)
-                    : htmlspecialchars(implode(', ', $barcodes), ENT_QUOTES);
+                $item[$name] = self::cellWithoutLinks($item[$name] ?? null);
 
                 continue;
             }
@@ -77,5 +74,18 @@ class TrackAndTrace extends Column
         }
 
         return $dataSource;
+    }
+
+    /**
+     * The cell of an order without links. LinkResolver reads the barcode list on the order row, so a list
+     * that gave no link shows nothing. The grid binds the cell as HTML, so any other value is escaped.
+     */
+    private static function cellWithoutLinks(?string $value): ?string
+    {
+        if (null === $value || null !== TrackNumber::barcodesFromOrderRow($value)) {
+            return null;
+        }
+
+        return htmlspecialchars($value, ENT_QUOTES);
     }
 }

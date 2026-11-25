@@ -56,9 +56,8 @@ function createFulfilmentMagentoOrder(array $checkoutDeliveryOptions, array $ove
 }
 
 /**
- * A real DataObject rather than a mock: OrderLineOptionsFromOrderAdapter reads the item through
- * getData() and getProduct(), and the weight loop reads getQtyOrdered(), which magic getters give
- * for free.
+ * A real DataObject rather than a mock: the builder reads the order row through magic getters
+ * (getQtyOrdered(), getSku(), getProduct()), which a DataObject gives for free.
  */
 function createOrderItem(array $data = [], array $productData = []): DataObject
 {

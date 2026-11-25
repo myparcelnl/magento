@@ -191,6 +191,10 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The New Shipment form's digital stamp weights 100 and 350 gram. The form now offers the weights of
   the setting: 20, 50, 200 and 2000 gram.
 - A carrier outside the account's contract leaves the checkout, also when its switch is on.
+- The rules that removed an option by destination or carrier: signature on a Belgian "only
+  recipient" shipment, large format outside the EU, age check outside NL, and priority delivery and
+  receipt code outside NL or for a carrier other than PostNL. The export sends an option that is
+  chosen or on by default, and the API refuses one that the shipment cannot have.
 
 **Corrected**
 
@@ -211,8 +215,13 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The order grid's PPS export honours the modal's carrier and package type.
 - A PPS order sends the VAT of one unit, as it sends the price of one unit, and its weight counts
   the rows a label ships. Its recipient carries the region, as a label carries the state.
-- The grid and the order view link the barcodes the status cron writes to an order without a
-  shipment.
+- The grid and the order view link the barcodes the status cron writes to an order whose track
+  holds no barcode, or that has no shipment.
+- An Order v1 order line sends the weight of the order row in grams, and the sku that was sold. It
+  sent the catalog weight in the shop's weight unit, cut to a whole number.
+- The checkout offers pickup for every package type the account's capabilities allow. It offered
+  pickup for package type `package` only.
+- Euro-to-cent conversion rounds instead of truncating.
 
 **New**
 
@@ -232,6 +241,10 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
 - The track & trace link comes from the API. The fallback host follows the account's proposition.
 - A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
+- The shipping method title lists every option that is on, with the option labels of the options
+  modal ("Signature on receipt", not "Signature").
+- The delivery costs matrix lists the carriers of the account's contract, GLS included. When the
+  contract cannot be read, it lists every carrier.
 
 ## Open risks
 
