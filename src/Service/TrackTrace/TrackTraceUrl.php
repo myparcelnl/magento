@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service\TrackTrace;
 
 /**
- * The fallback track & trace URL, for a shipment stored before the module read the link from the API.
+ * The fallback track & trace URL, for a barcode that has no link from the API: a shipment stored
+ * before the module read that link, a PPS track without a shipment id, or a barcode on the order row.
  *
  * The host follows the account's proposition: a Belgian account's consumer portal is not myparcel.me.
  * Proposition ids are the API's platform ids (AccountDefsPlatformId); an unmapped or unknown one
