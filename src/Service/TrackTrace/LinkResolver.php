@@ -145,10 +145,8 @@ class LinkResolver
     /**
      * The url as an href value, or null when it is not one we will link to.
      *
-     * Framework\Escaper would be the idiomatic choice, but escapeUrl() reaches the global
-     * ObjectManager for translate-inline, which a service cannot do under test. htmlspecialchars
-     * alone stops attribute breakout but not a `javascript:` scheme, and this value arrives from
-     * the api.
+     * htmlspecialchars alone stops attribute breakout but not a `javascript:` scheme, and this value
+     * comes from the API.
      */
     private static function safeHref(string $url): ?string
     {

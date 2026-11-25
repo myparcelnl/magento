@@ -21,8 +21,6 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class DeliveryOptions
 {
-    private const DEFAULT_DELIVERY_TYPE = DeliveryType::STANDARD_NAME;
-
     private ?string $carrier;
 
     private ?string $date;
@@ -158,7 +156,7 @@ class DeliveryOptions
         return new self(
             null,
             null,
-            self::DEFAULT_DELIVERY_TYPE,
+            DeliveryType::DEFAULT_NAME,
             null,
             ShipmentOptions::of([]),
             null

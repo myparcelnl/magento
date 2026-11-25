@@ -16,6 +16,13 @@ use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
 {
+    /**
+     * Path to template file in theme.
+     *
+     * @var string
+     */
+    protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
+
     private ContractDefinitions $contractDefinitions;
     private Settings            $settings;
 
@@ -30,13 +37,6 @@ class DeliveryCostsMatrix extends Field
         $this->contractDefinitions = $contractDefinitions;
         $this->settings            = $settings;
     }
-
-    /**
-     * Path to template file in theme.
-     *
-     * @var string
-     */
-    protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
 
     /**
      * Get the carriers with settings that the account has a contract for.

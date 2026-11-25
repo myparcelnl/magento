@@ -29,9 +29,6 @@ use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\Exception\ApiException;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use Throwable;
 
@@ -100,16 +97,12 @@ class UpdateStatus
      *
      * @return $this
      * @throws AlreadyExistsException
-     * @throws AccountNotActiveException
-     * @throws ApiException
-     * @throws MissingFieldException
      * @throws Exception
      */
     private function updateStatusPPS(): self
     {
         $orderRows  = $this->ordersAwaitingBarcode();
         $fulfilment = [];
-        // One line at the end beats guessing which of five steps dropped an order.
         $tally = ['awaiting' => count($orderRows), 'accounts' => 0, 'returned' => 0, 'matched' => 0,
                   'shipped'  => 0, 'shipments' => 0, 'without_id' => 0, 'order_row' => 0];
 
@@ -155,8 +148,7 @@ class UpdateStatus
             }
         }
 
-        // Debug, not notice: this runs every minute and says nothing happened most of the time.
-        // What is worth a place in system.log is below, and only when something actually did.
+        // Every run logs this; the notices below log only a change.
         Logger::debug(sprintf(
             'PPS: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
             . '%d matched and %d shipped, carrying %d shipment(s)',
@@ -462,8 +454,7 @@ class UpdateStatus
             }
 
             $incrementId = (string) $orderRow['increment_id'];
-            // Keyed by value: the same increment id can appear twice in the row set, and the
-            // caller looks each returned order up rather than walking the list per order.
+            // Keyed by value: the same increment id can appear twice in the row set.
             $grouped[$apiKey][$incrementId] = $incrementId;
         }
 

@@ -39,10 +39,6 @@ class ReplaceFitInMailbox
 
     private MetadataPool $metadataPool;
 
-    /**
-     * @param  \MyParcelNL\Magento\Setup\QueryBuilder    $queryBuilder
-     * @param  \Magento\Framework\Setup\SchemaSetupInterface $setup
-     */
     public function __construct(
         QueryBuilder    $queryBuilder,
         SchemaSetupInterface $setup,

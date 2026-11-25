@@ -44,9 +44,9 @@ class FulfilmentOrderBuilder
 
     public function __construct(ObjectManagerInterface $objectManager)
     {
-        $this->objectManager = $objectManager;
-        $this->weight        = $objectManager->get(Weight::class);
-        $this->apiProvider   = $objectManager->get(ShipmentApiProvider::class);
+        $this->objectManager   = $objectManager;
+        $this->weight          = $objectManager->get(Weight::class);
+        $this->apiProvider     = $objectManager->get(ShipmentApiProvider::class);
         $this->recipientFields = $objectManager->get(RecipientFields::class);
     }
 
@@ -223,7 +223,7 @@ class FulfilmentOrderBuilder
             return (string) $magentoOrder->getCreatedAt();
         }
 
-        $timezone    = $scopeConfig->getValue(
+        $timezone = $scopeConfig->getValue(
             'general/locale/timezone',
             ScopeInterface::SCOPE_STORES,
             $magentoOrder->getStoreId()

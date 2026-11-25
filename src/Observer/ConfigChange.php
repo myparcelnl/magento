@@ -74,8 +74,9 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
-     * Saves every posted dynamic setting, then brings the stored account settings in step: import
-     * for an api key that has none, and reconcile away rows for keys configured nowhere.
+     * Saves each posted dynamic setting that changed and that no validator refuses, then brings the
+     * stored account settings in step: import for an api key that has none, and reconcile away rows
+     * for keys configured nowhere.
      */
     public function execute(EventObserver $observer): self
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Block\DataProviders\Email\Shipment;
 
 use Magento\Framework\App\ObjectManager;
@@ -31,4 +33,7 @@ trait BuildsTrackingUrl
             ->get(LinkResolver::class)
             ->forTrack($track);
     }
+
+    /** The link of another carrier's track, as the email shows it without MyParcel. */
+    abstract protected function foreignUrl(Track $track): string;
 }
