@@ -411,9 +411,9 @@ define(
                         url: action.href,
                         failureLabel: $.mage.__('The MyParcel labels could not be downloaded.')
                     }, null, parentThis.options['label_warning_header'])
-                        .then(function (delivered) {
+                        .then(function () {
                             // The label fetch mints the barcodes, so the grid has new data to show.
-                            parentThis._refresh(!delivered);
+                            parentThis._refresh();
                         })
                         .finally(function () {
                             $('body').trigger('processStop');

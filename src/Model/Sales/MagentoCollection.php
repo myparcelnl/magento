@@ -44,6 +44,7 @@ use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
+use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesCarrierReturns;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
@@ -534,8 +535,11 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     private function shipmentMessage(int $shipmentId, callable $phrase, ?string $barcode = null): string
     {
-        $track   = $this->firstTrackByMyParcelId()[$shipmentId] ?? null;
-        $message = (string) $phrase((string) ($barcode ?: ($track ? $track->getData('track_number') : '') ?: $shipmentId));
+        $track       = $this->firstTrackByMyParcelId()[$shipmentId] ?? null;
+        $trackNumber = $track ? (string) $track->getData('track_number') : '';
+        $message     = (string) $phrase(
+            $barcode ?: (TrackNumber::isRealBarcode($trackNumber) ? $trackNumber : (string) $shipmentId)
+        );
 
         return $this->ordersMessage([$shipmentId], $message);
     }

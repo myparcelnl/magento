@@ -153,8 +153,6 @@ class DefaultOptions
      * The destination decides which of the four configured caps applies. It does **not** bound the
      * amount against the account's contract: that is one clamp, in ShipmentOptionsResolver, so the
      * posted admin override goes through it too.
-     *
-     * @throws \Exception
      */
     public function getDefaultInsurance(string $carrier): int
     {

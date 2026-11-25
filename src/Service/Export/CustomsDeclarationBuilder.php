@@ -101,5 +101,4 @@ class CustomsDeclarationBuilder
             throw CustomsItems::refused($name, $sku, $e);
         }
     }
-
 }

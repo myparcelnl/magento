@@ -23,7 +23,7 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
 
     /**
      * Says which accounts the PDF is missing labels for. A warning, not an error: the document is
-     * real and the caller must still count the download as delivered.
+     * real.
      *
      * The header is set when a batch spanning several accounts lost one of them and merged the rest.
      */

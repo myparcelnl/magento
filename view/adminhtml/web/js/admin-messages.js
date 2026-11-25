@@ -3,6 +3,7 @@
  *
  * The export does not navigate, so Magento never renders the messages it produced. They come back
  * as JSON and are placed here, in Magento's own markup, next to anything already on the page.
+ * A page that reloads after the export keeps them with keepForReload() and shows them with restore().
  */
 define(['jquery'], function ($) {
     'use strict';
@@ -87,7 +88,7 @@ define(['jquery'], function ($) {
             try {
                 window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(shown));
             } catch (e) {
-                // Private window or blocked storage: the reload then loses the messages, as before.
+                // Private window or blocked storage: the reload loses the messages.
             }
         },
 

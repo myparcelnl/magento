@@ -147,6 +147,21 @@ it('names the order and barcode of a shipment the account behind the key does no
         ]);
 });
 
+it('names a shipment by its MyParcel id while its track holds only a placeholder', function () {
+    $run = returnMailRun(
+        ['shipments' => [], 'errors' => [], 'failedApiKeys' => []],
+        [],
+        [],
+        [5 => [returnMailTrack(111, 5, '–')]],
+        [111],
+        [returnMailMagentoShipment(5, '000000001')]
+    );
+
+    expect($run['errors'])->toBe([
+        '000000001: MyParcel does not know shipment 111 for the API key of this store.',
+    ]);
+});
+
 it('names a shipment its own account does not know while another account is unreachable', function () {
     $run = returnMailRun(
         ['shipments' => [], 'errors' => ['Could not reach the MyParcel API'], 'failedApiKeys' => ['key-a']],
