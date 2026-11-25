@@ -118,7 +118,7 @@ it('persists each chunk before issuing the next, and keeps earlier chunks when a
         ->and($tracks[2]->getData('myparcel_consignment_id'))->toBeNull()
         ->and($saves3)->toBe(0)
         ->and(array_map('strval', array_keys($report->succeeded())))->toEqualCanonicalizing(['100000001', '100000002'])
-        ->and(array_map('strval', $report->collateral()))->toBe(['100000003']);
+        ->and($report->collateral())->toBe(['100000003']);
 });
 
 it('reports an unattributable chunk rejection once, not once per order', function () {
@@ -136,7 +136,7 @@ it('reports an unattributable chunk rejection once, not once per order', functio
     //
     // The spy fails with a plain RuntimeException, which is not a 422, so the wording is the
     // cautious one. Nothing here knows whether the call was processed.
-    expect(array_map('strval', $report->collateral()))->toBe(['100000001', '100000002'])
+    expect($report->collateral())->toBe(['100000001', '100000002'])
         ->and($report->failureMessages())->toBe([
             'Orders that MyParcel did not confirm: 2. It is unknown whether they shipped.'
             . ' Check them in the MyParcel backoffice before you export them again. Reason:'

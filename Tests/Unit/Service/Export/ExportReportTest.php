@@ -96,3 +96,17 @@ it('gives the reason for refused orders next to a blamed one, and does not ask t
     expect($report->failureMessages()[1])
         ->toBe('Orders that were not exported because MyParcel refused this batch: 1. Reason: your account is not active');
 });
+
+it('words the collateral line by the orders still in it', function () {
+    $report = new ExportReport();
+    // A timed-out collo of A, then A's other collo ships: A gets a line of its own.
+    $report->failCollateral('100000001', 'Operation timed out', false);
+    $report->succeed('100000001', 9001);
+    // D's chunk is refused as a whole, so D was certainly not created.
+    $report->failCollateral('100000004', 'batch rejected', true);
+
+    $messages = $report->failureMessages();
+
+    expect(end($messages))->toStartWith('Orders that were not exported because MyParcel refused this batch: 1.')
+        ->and($report->collateral())->toBe(['100000004']);
+});

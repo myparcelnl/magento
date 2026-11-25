@@ -22,9 +22,6 @@ class ExportReport
     /** @var array<string,array{reason: string, refused: bool}> increment ids that did not ship but were never blamed */
     private array $collateral = [];
 
-    /** True while every chunk that produced collateral was refused; one unconfirmed chunk clears it. */
-    private bool $collateralRefused = true;
-
     /**
      * Record a shipped order. A success never clears a failure: each collo is a shipment under the
      * same increment id, so one collo can succeed while another fails.
@@ -88,7 +85,6 @@ class ExportReport
         }
 
         $this->collateral[$incrementId] = ['reason' => trim($reason), 'refused' => $refused];
-        $this->collateralRefused        = $this->collateralRefused && $refused;
     }
 
     /** Blame an order that shipped some colli and not others, which a count of collateral would hide. */
@@ -114,7 +110,8 @@ class ExportReport
     /** @return string[] increment ids that did not ship and were not blamed */
     public function collateral(): array
     {
-        return array_keys($this->collateral);
+        // strval: PHP turns a numeric key such as '100000004' into an int.
+        return array_map('strval', array_keys($this->collateral));
     }
 
     /**
@@ -139,7 +136,8 @@ class ExportReport
         // One reason per failed chunk, so a batch over several chunks can give more than one.
         $reason = implode(' ', array_unique(array_filter(array_column($this->collateral, 'reason'))));
 
-        if ($this->collateralRefused) {
+        // Read from the entries left, not tracked: succeed() and fail() take entries out again.
+        if (! in_array(false, array_column($this->collateral, 'refused'), true)) {
             $messages[] = (string) __('Orders that were not exported because MyParcel refused this batch: %1. Reason: %2', $count, $reason);
 
             return $messages;
