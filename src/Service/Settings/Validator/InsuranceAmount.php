@@ -43,7 +43,7 @@ class InsuranceAmount implements SettingValidatorInterface
         $amount = '' === $entered ? '0' : $entered;
 
         if (! preg_match('/^\d+$/', $amount)) {
-            return __('Insurance amount "%1" was not saved: enter a whole number of euros.', $entered);
+            return __('"%1" is not a whole number of euros', $entered);
         }
 
         $range = $this->contractDefinitions->insuranceRangeFor($carrier, $scopeName, $scopeId);
@@ -53,7 +53,7 @@ class InsuranceAmount implements SettingValidatorInterface
         }
 
         return __(
-            'Insurance amount %1 was not saved: your contract allows € %2 to € %3.',
+            '%1 is outside your contract range of € %2 to € %3',
             (int) $amount,
             $range->min(),
             $range->max()

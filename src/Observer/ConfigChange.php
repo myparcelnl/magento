@@ -116,17 +116,17 @@ class ConfigChange implements ObserverInterface
                 }
 
                 $rejection = $this->rejectionFor($path, $value, $scope, $scopeId);
+                $unchanged = $hasRow && (string) $stored[$path] === (string) $value;
 
                 // Refuse this one field rather than the whole save: the form posts every field on
                 // every submit, so failing the lot would make one bad value block every other change.
+                // An unchanged value is checked too, so a stored value that became invalid is reported.
                 if (null !== $rejection) {
-                    $this->messageManager->addErrorMessage($rejection);
+                    $this->reportRejection($path, $rejection, $unchanged);
                     continue;
                 }
 
-                // Validated first, so a stored value that has since become invalid is still reported
-                // even though this save leaves it alone.
-                if ($hasRow && (string) $stored[$path] === (string) $value) {
+                if ($unchanged) {
                     continue;
                 }
 
@@ -187,6 +187,22 @@ class ConfigChange implements ObserverInterface
         }
 
         return null;
+    }
+
+    /** A refused new value is an error; a stored value that is no longer valid stays, so it is a warning. */
+    private function reportRejection(string $path, Phrase $reason, bool $unchanged): void
+    {
+        $field = $this->dynamicSettingsConfig->fieldLabel($path) ?? $path;
+
+        if ($unchanged) {
+            $this->messageManager->addWarningMessage(
+                __('%1 holds a value that is no longer valid: %2. Change it.', $field, $reason)
+            );
+
+            return;
+        }
+
+        $this->messageManager->addErrorMessage(__('%1 was not saved: %2.', $field, $reason));
     }
 
     /** Import the account settings; on failure only warn, so the admin can still save the form. */

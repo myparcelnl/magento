@@ -72,6 +72,7 @@ function saveDynamicSettings(array $posted, array $validators = [], array $store
     $settings = Mockery::mock(Settings::class);
     $settings->shouldReceive('getAllFieldPaths')->andReturn(array_keys($posted));
     $settings->shouldReceive('storedValuesAtScope')->andReturn($stored);
+    $settings->shouldReceive('fieldLabel')->andReturn('PostNL settings, Insure orders up to (EU)');
 
     $writer    = Mockery::spy(WriterInterface::class);
     $messages  = Mockery::spy(ManagerInterface::class);
@@ -118,7 +119,9 @@ it('refuses only the field its validator objected to, and says why', function ()
     // other change.
     $result['writer']->shouldNotHaveReceived('save', [VALIDATED_PATH, '9000']);
     $result['writer']->shouldHaveReceived('save')->with(OTHER_PATH, '80');
-    $result['messages']->shouldHaveReceived('addErrorMessage');
+    $result['messages']->shouldHaveReceived('addErrorMessage')->with(Mockery::on(
+        static fn ($message): bool => 'PostNL settings, Insure orders up to (EU) was not saved: nope.' === (string) $message
+    ));
 });
 
 it('never asks a validator about a path it does not claim', function () {
@@ -182,7 +185,11 @@ it('still reports a stored value that has become invalid, without rewriting it',
         [VALIDATED_PATH => '9000']
     );
 
-    $result['messages']->shouldHaveReceived('addErrorMessage');
+    // Not "was not saved": nothing was refused, and the stored value stays in effect.
+    $result['messages']->shouldNotHaveReceived('addErrorMessage');
+    $result['messages']->shouldHaveReceived('addWarningMessage')->with(Mockery::on(
+        static fn ($message): bool => 'PostNL settings, Insure orders up to (EU) holds a value that is no longer valid: nope. Change it.' === (string) $message
+    ));
     $result['writer']->shouldNotHaveReceived('save');
 });
 
