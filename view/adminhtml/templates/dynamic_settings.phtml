@@ -286,6 +286,17 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
     const activeTab = document.querySelector('.myparcel-tabs-nav').querySelector(`[href="${localStorage.getItem('myparcel-active-tab')}"]`);
     activeTab && activeTab.dispatchEvent(new Event('click'));
 
+    // Magento validates fields in hidden tabs too, and focusing one there does nothing:
+    // open the tab of the first invalid field, so its error message shows.
+    $('#config-edit-form').on('invalid-form.validate', function(event, validator) {
+      const element = validator.errorList.length ? validator.errorList[0].element : null;
+      const panelId = element ? $(element).closest('.myparcel-tab-panel').attr('id') : null;
+
+      if (panelId) {
+        $('.myparcel-tab-item a[href="#' + panelId + '"]').trigger('click');
+      }
+    });
+
     // Use Default checkbox handling
     $('.use-default-checkbox').on('change', function() {
       const fieldId = $(this).data('field');
