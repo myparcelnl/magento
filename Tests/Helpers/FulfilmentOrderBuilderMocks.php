@@ -62,11 +62,9 @@ function createFulfilmentMagentoOrder(array $checkoutDeliveryOptions, array $ove
 function createOrderItem(array $data = [], array $productData = []): DataObject
 {
     $product = new DataObject(array_merge([
-        'sku'    => 'SKU-1',
         'height' => 10,
         'length' => 10,
         'width'  => 10,
-        'weight' => 100.0,
     ], $productData));
 
     // isDummy() is Magento's own rule on a real order item; here the test states the outcome as is_dummy.

@@ -97,6 +97,7 @@ class FulfilmentOrderBuilder
     {
         $orderLines = new Collection();
 
+        /** @var \Magento\Sales\Model\Order\Item $magentoOrderItem getItems() declares the interface */
         foreach ($magentoOrder->getItems() as $magentoOrderItem) {
             $orderLines->push($this->orderLine($magentoOrderItem));
         }
