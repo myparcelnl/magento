@@ -44,7 +44,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      *
      * @param MagentoOrderCollection|null $orderCollection
      */
-    public function __construct(MagentoOrderCollection $orderCollection = null)
+    public function __construct(?MagentoOrderCollection $orderCollection = null)
     {
         $this->objectManager   = $objectManager = ObjectManager::getInstance();
         $request               = $objectManager->get(RequestInterface::class);
