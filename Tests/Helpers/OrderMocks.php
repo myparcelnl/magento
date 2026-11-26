@@ -62,7 +62,7 @@ function createShipmentItem(array $data = []): \Magento\Framework\DataObject
         'product_id' => 1,
     ], $data);
 
-    $data['order_item'] = $data['order_item'] ?? new \Magento\Framework\DataObject(['base_price' => $data['price']]);
+    $data['order_item'] = $data['order_item'] ?? createOrderItem(['base_price' => $data['price']]);
 
     return new \Magento\Framework\DataObject($data);
 }

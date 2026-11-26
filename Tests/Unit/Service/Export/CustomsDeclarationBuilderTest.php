@@ -51,12 +51,27 @@ it('maps every customs field from the shipment item', function () {
 it('declares the base price in EUR, not the price in the order currency', function () {
     $item = createShipmentItem([
         'price'      => 10.00,
-        'order_item' => new Magento\Framework\DataObject(['base_price' => 11.50]),
+        'order_item' => createOrderItem(['base_price' => 11.50]),
     ]);
 
     [, $items] = buildCustomsFor([$item]);
 
     expect(customsItemValue($items[0]))->toBe(['amount' => 1150, 'currency' => RefTypesMoney::CURRENCY_EUR]);
+});
+
+it('leaves out the rows a label does not ship, as Magento holds them before the save', function () {
+    // ShipmentFactory adds the configurable child (qty 0) and a bundle parent shipped separately.
+    $shirt      = createShipmentItem(['name' => 'Shirt', 'product_id' => 99]);
+    $shirtChild = createShipmentItem(['name' => 'Shirt, red', 'qty' => 0, 'product_id' => 99,
+        'order_item' => createOrderItem(['is_dummy' => true])]);
+    $bundle     = createShipmentItem(['name' => 'Gift set', 'product_id' => 99,
+        'order_item' => createOrderItem(['is_dummy' => true])]);
+    $giftWrap   = createShipmentItem(['name' => 'Gift wrap', 'product_id' => 99,
+        'order_item' => createOrderItem(['is_virtual' => true])]);
+
+    [, $items] = buildCustomsFor([$shirt, $shirtChild, $bundle, $giftWrap]);
+
+    expect(array_map(static fn ($item) => $item->getDescription(), $items))->toBe(['Shirt']);
 });
 
 it('declares a multi-quantity line at line level, not per unit', function () {
