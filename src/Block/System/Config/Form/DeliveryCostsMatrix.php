@@ -39,8 +39,8 @@ class DeliveryCostsMatrix extends Field
     }
 
     /**
-     * Get the carriers with settings that the account has a contract for.
-     * When the contracts cannot be read, get all of them.
+     * Get the carriers that the settings form has a section for at this scope.
+     * The form sets rates without a shipment, so contract definitions decide, not capabilities.
      */
     public function getCarriers(): array
     {
@@ -48,7 +48,7 @@ class DeliveryCostsMatrix extends Field
 
         $carriers = [];
 
-        foreach ($this->contractDefinitions->forScope($scopeName, $scopeId)->configuredCarriers() as $carrierName) {
+        foreach ($this->contractDefinitions->forScope($scopeName, $scopeId)->carriers() as $carrierName) {
             $carriers[$carrierName] = ShipmentCarrier::humanFor($carrierName);
         }
 

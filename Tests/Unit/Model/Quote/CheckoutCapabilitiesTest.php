@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+
 use Magento\Quote\Model\Quote;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
@@ -60,6 +63,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'quote'               => $quote,
         'storeId'             => 1,
         'capabilityLookup'    => capabilityLookupWith($capabilities, $country),
+        'contractDefinitions' => contractFor($capabilities),
     ]);
 
     return [
@@ -67,6 +71,25 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'cartRules' => $cartRules,
         'calls'     => $calls,
     ];
+}
+
+/**
+ * A stored contract holding every carrier the seeded capabilities report, so the checkout offers
+ * exactly those.
+ *
+ * @param CapabilitySet|array<string, CapabilitySet> $capabilities
+ */
+function contractFor($capabilities): ContractDefinitions
+{
+    $v2Names = [];
+
+    foreach ($capabilities instanceof CapabilitySet ? [$capabilities] : $capabilities as $set) {
+        foreach ($set->carriers() as $carrier) {
+            $v2Names[] = \MyParcelNL\Magento\Model\Shipment\Carrier::toV2Name($carrier);
+        }
+    }
+
+    return storedContractFor(1, array_values(array_unique($v2Names)));
 }
 
 /** Whether the candidates the resolver was handed include one package type. */
@@ -82,16 +105,33 @@ it('turns off a package type the account does not have, whatever configuration s
     ]);
 
     $c = createCheckoutWith(['' => $mailboxOnly]);
-    $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $c['checkout']->checkPackageType('postnl', 'NL');
 
     expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue()
         ->and(candidateWasOffered($c['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse()
         ->and(candidateWasOffered($c['calls'], PackageType::PACKAGE_SMALL_NAME))->toBeFalse();
 });
 
+it('asks the parcel locker rule with no carrier when none is active', function () {
+    // No stored contract, so no active carrier: only the general and product rules decide.
+    $c = createCheckoutWith(['' => CapabilitySet::permissive()]);
+    $c['cartRules']->shouldReceive('dropOffDelay')->andReturn(null)->byDefault();
+    $c['cartRules']->shouldReceive('excludesParcelLockers')->once()->with([], null, 1)->andReturn(true);
+
+    $store = Mockery::mock(StoreInterface::class);
+    $store->shouldReceive('getCurrentCurrency->getCode')->andReturn('EUR');
+    $store->shouldReceive('getBaseUrl')->andReturn('https://shop.test/');
+    $storeManager = Mockery::mock(StoreManagerInterface::class);
+    $storeManager->shouldReceive('getStore')->andReturn($store);
+    setPrivateProperty($c['checkout'], 'storeManager', $storeManager);
+
+    expect($c['checkout']->getActiveCarriers())->toBe([])
+        ->and(invokePrivateMethod($c['checkout'], 'getGeneralData')['excludeParcelLockers'])->toBeTrue();
+});
+
 it('leaves the decision to configuration when capabilities could not be reached', function () {
     $c = createCheckoutWith(['' => CapabilitySet::permissive()]);
-    $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $c['checkout']->checkPackageType('postnl', 'NL');
 
     expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue()
         ->and(candidateWasOffered($c['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeTrue()
@@ -104,7 +144,7 @@ it('asks only the package-type-agnostic question when the order forces nothing',
     // is what keeps the extra calls off the common path.
     $c = createCheckoutWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
 
-    expect($c['checkout']->checkPackageType(Carrier::POSTNL, 'NL'))->toBe(PackageType::PACKAGE_NAME);
+    expect($c['checkout']->checkPackageType('postnl', 'NL'))->toBe(PackageType::PACKAGE_NAME);
 });
 
 it('answers per carrier, not once for the store', function () {
@@ -114,10 +154,10 @@ it('answers per carrier, not once for the store', function () {
     ]);
 
     $postnl = createCheckoutWith(['' => $set]);
-    $postnl['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $postnl['checkout']->checkPackageType('postnl', 'NL');
 
     $dpd = createCheckoutWith(['' => $set]);
-    $dpd['checkout']->checkPackageType(Carrier::DPD, 'NL');
+    $dpd['checkout']->checkPackageType('dpd', 'NL');
 
     expect(candidateWasOffered($postnl['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeTrue()
         ->and(candidateWasOffered($dpd['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse();
@@ -137,7 +177,7 @@ it('rules out a package type that cannot carry an option the order forces on', f
         [ShipmentOption::AGE_CHECK]
     );
 
-    $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $c['checkout']->checkPackageType('postnl', 'NL');
 
     expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeFalse();
 });
@@ -154,7 +194,7 @@ it('keeps a package type that can carry the forced option', function () {
         [ShipmentOption::AGE_CHECK]
     );
 
-    $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $c['checkout']->checkPackageType('postnl', 'NL');
 
     expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue();
 });
@@ -178,10 +218,10 @@ it('answers the forced-option question per carrier', function () {
     ];
 
     $postnl = createCheckoutWith($capabilities, 'NL', [ShipmentOption::AGE_CHECK]);
-    $postnl['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $postnl['checkout']->checkPackageType('postnl', 'NL');
 
     $dpd = createCheckoutWith($capabilities, 'NL', [ShipmentOption::AGE_CHECK]);
-    $dpd['checkout']->checkPackageType(Carrier::DPD, 'NL');
+    $dpd['checkout']->checkPackageType('dpd', 'NL');
 
     expect(candidateWasOffered($postnl['calls'], PackageType::MAILBOX_NAME))->toBeFalse()
         ->and(candidateWasOffered($dpd['calls'], PackageType::MAILBOX_NAME))->toBeTrue();
@@ -194,7 +234,7 @@ it('restricts nothing when capabilities could not be reached, even with a forced
     // means the service is unreachable, and asking it again per package type would only fail again.
     $c = createCheckoutWith(['' => CapabilitySet::permissive()], 'NL', [ShipmentOption::AGE_CHECK]);
 
-    $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
+    $c['checkout']->checkPackageType('postnl', 'NL');
 
     expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue();
 });
@@ -244,14 +284,14 @@ it('does not offer a carrier that cannot carry a forced option on the resolved p
         ]),
     ];
 
-    expect(carrierSettingsFor(Carrier::POSTNL, $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeFalse()
-        ->and(carrierSettingsFor(Carrier::DPD, $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeTrue();
+    expect(carrierSettingsFor('postnl', $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeFalse()
+        ->and(carrierSettingsFor('dpd', $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeTrue();
 });
 
 it('offers pickup for any package type whose capabilities have it', function (string $packageType, string $apiPackageType) {
     $capabilities = [$packageType => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => [$apiPackageType]])])];
 
-    expect(carrierSettingsFor(Carrier::POSTNL, $capabilities, [], $packageType)['allowPickupLocations'])->toBeTrue();
+    expect(carrierSettingsFor('postnl', $capabilities, [], $packageType)['allowPickupLocations'])->toBeTrue();
 })->with([
     'package'       => [PackageType::PACKAGE_NAME, 'PACKAGE'],
     'small package' => [PackageType::PACKAGE_SMALL_NAME, 'SMALL_PACKAGE'],
@@ -263,7 +303,7 @@ it('does not offer pickup for a package type whose capabilities lack it', functi
         'deliveryTypes' => ['STANDARD_DELIVERY'],
     ])])];
 
-    expect(carrierSettingsFor(Carrier::POSTNL, $capabilities)['allowPickupLocations'])->toBeFalse();
+    expect(carrierSettingsFor('postnl', $capabilities)['allowPickupLocations'])->toBeFalse();
 });
 
 it('prices only the options that capabilities offer', function () {
@@ -272,7 +312,7 @@ it('prices only the options that capabilities offer', function () {
         'options'      => ['requiresSignature' => []],
     ])])];
 
-    $settings = carrierSettingsFor(Carrier::POSTNL, $capabilities, [], PackageType::PACKAGE_NAME, 1.5);
+    $settings = carrierSettingsFor('postnl', $capabilities, [], PackageType::PACKAGE_NAME, 1.5);
 
     expect($settings)->toHaveKeys(['priceSignature', 'priceReceiptCode', 'priceOnlyRecipient', 'pricePriorityDelivery'])
         ->and($settings['priceSignature'])->toBe(1.5)

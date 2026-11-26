@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Settings\Blueprint\Generator;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 
@@ -20,23 +24,17 @@ it('refuses a fact it does not know', function () {
 
 it('reads every option fee from a setting the merchant can fill in', function () {
     // A fee path without a field reads as 0, so the checkout and the order both lose the fee in silence.
-    $settings = json_decode(file_get_contents(dirname(__DIR__, 4) . '/etc/dynamic_settings.json'), true);
-    $fields   = [];
-
-    foreach ($settings['sections'] as $section) {
-        foreach ($section['groups'] ?? [] as $group) {
-            foreach ($group['fields'] ?? [] as $field) {
-                $fields[] = $field['path'] ?? '';
-            }
-        }
-    }
+    // The form of a PostNL contract that offers every option with a fee, mailbox included.
+    $capabilities = CapabilitySet::fromContractDefinitionItems([contractDefinitionItem([
+        'carrier'       => 'POSTNL',
+        'packageTypes'  => array_map([PackageType::class, 'toV2Name'], ['package', 'mailbox']),
+        'deliveryTypes' => array_map([DeliveryType::class, 'toV2Name'], ['standard']),
+        'options'       => array_fill_keys(array_map([ShipmentOption::class, 'toV2Name'], array_keys(ShipmentOption::feePaths())), []),
+    ])]);
+    $paths = Generator::for($capabilities)->paths();
 
     foreach (ShipmentOption::feePaths() as $option => $feePath) {
-        $carriers = array_filter(
-            Config::CARRIERS_XML_PATH_MAP,
-            static fn (string $carrierPath): bool => in_array($carrierPath . $feePath, $fields, true)
-        );
-
-        expect($carriers)->not->toBeEmpty("'$option' reads $feePath, which no carrier's settings have");
+        expect(in_array(Config::carrierPath('postnl') . $feePath, $paths, true))
+            ->toBeTrue("'$option' reads $feePath, which the settings form does not offer");
     }
 });

@@ -7,13 +7,16 @@ namespace MyParcelNL\Magento\Model\Quote;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
@@ -43,6 +46,7 @@ class Checkout
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
     private CapabilitiesLookup    $capabilityLookup;
+    private ContractDefinitions   $contractDefinitions;
 
     /** The quote's store, passed to every store-scoped config read this class delegates. */
     private int $storeId;
@@ -60,6 +64,7 @@ class Checkout
      * @param CartShippingRules     $cartRules
      * @param StoreManagerInterface $storeManager
      * @param CapabilitiesLookup    $capabilityLookup
+     * @param ContractDefinitions   $contractDefinitions
      */
     public function __construct(
         Tax                   $tax,
@@ -68,7 +73,8 @@ class Checkout
         PackageTypeResolver   $packageTypeResolver,
         CartShippingRules     $cartRules,
         StoreManagerInterface $storeManager,
-        CapabilitiesLookup    $capabilityLookup
+        CapabilitiesLookup    $capabilityLookup,
+        ContractDefinitions   $contractDefinitions
     )
     {
         $this->tax                 = $tax;
@@ -78,6 +84,7 @@ class Checkout
         $this->cartRules           = $cartRules;
         $this->storeManager        = $storeManager;
         $this->capabilityLookup    = $capabilityLookup;
+        $this->contractDefinitions = $contractDefinitions;
         $this->quote               = $this->getQuoteFromCurrentSession();
         // A quote without a store id resolves as store 0, which is not the same as null.
         $this->storeId             = (int) $this->quote->getStoreId();
@@ -136,7 +143,7 @@ class Checkout
     private function getGeneralData(): array
     {
         $activeCarriers = $this->getActiveCarriers();
-        $carrierPath    = ! empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
+        $carrierPath    = isset($activeCarriers[0]) ? Config::carrierPath($activeCarriers[0]) : null;
         $deliveryDaysWindow = $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window');
 
         return [
@@ -194,7 +201,6 @@ class Checkout
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
-        $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
         $quote           = $this->quote;
@@ -205,7 +211,7 @@ class Checkout
         $orderAmount     = $this->deliveryCosts->getOrderAmount($quote);
 
         foreach ($activeCarriers as $carrierName) {
-            $carrierPath = $carrierPaths[$carrierName];
+            $carrierPath = Config::carrierPath($carrierName);
 
             $basePrices          = [];
             $canHaveDeliveryType = [];
@@ -227,8 +233,6 @@ class Checkout
             $canHaveAgeCheck         = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
-            // only PostNL has the Monday settings, and capabilities do not report Monday delivery
-            $mondayFee           = $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice;
             $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $optionPrices = [];
@@ -280,14 +284,14 @@ class Checkout
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath, $hidesForProduct),
-                'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
+                // Not a capability the API reports, so never offered, whatever a stored row says.
+                'allowMondayDelivery'   => false,
                 // @TODO INT-1464: no admin field switches it on and the export has no same day time check.
                 'allowSameDayDelivery'  => false,
                 'allowExpressDelivery'  => $allowExpressDelivery,
 
                 'dropOffDays' => $this->getDropOffDays($carrierPath),
 
-                'priceMondayDelivery'   => $mondayFee,
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
@@ -345,9 +349,11 @@ class Checkout
     }
 
     /**
-     * Get the array of enabled carriers by checking if they have either delivery or pickup enabled.
+     * The exportable carriers in this store's contract with delivery or pickup switched on. None when
+     * the contract could not be read: a checkout without carriers is the failure we accept, and the
+     * settings form says why.
      *
-     * @return array
+     * @return string[]
      */
     public function getActiveCarriers(): array
     {
@@ -355,8 +361,12 @@ class Checkout
             return $this->activeCarriers;
         }
 
+        $contracted = $this->contractDefinitions->forScope(ScopeInterface::SCOPE_STORES, $this->storeId)->carriers();
+
         $carriers = [];
-        foreach (Config::CARRIERS_XML_PATH_MAP as $carrier => $path) {
+        foreach (array_filter($contracted, [ShipmentCarrier::class, 'isExportable']) as $carrier) {
+            $path = Config::carrierPath($carrier);
+
             if ($this->config->getBoolConfig($path, 'delivery/active') ||
                 $this->config->getBoolConfig($path, 'pickup/active')
             ) {
@@ -399,7 +409,6 @@ class Checkout
             'deliveryPickupTitle'   => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('Pickup locations'),
 
             'priorityDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('Priority delivery'),
-            'mondayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/monday_delivery_title') ?: __('Monday delivery'),
             'saturdayDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/saturday_title') ?: __('Saturday delivery'),
 
             'signatureTitle'     => $this->config->getGeneralConfig('delivery_titles/signature_title') ?: __('Signature'),
@@ -469,7 +478,7 @@ class Checkout
         // there is none to narrow by yet.
         $capabilities = $this->getCapabilities($country);
 
-        $carrierPath = Config::CARRIERS_XML_PATH_MAP[$carrierName];
+        $carrierPath = Config::carrierPath($carrierName);
         $products    = $this->quote->getAllItems();
         $forced      = $this->cartRules->forcedLimitingOptions($products, $carrierPath, $this->storeId);
         $allowed     = [];
@@ -543,12 +552,8 @@ class Checkout
         return $this->cartRules->forcesAgeCheck($products, $carrierPath, $this->storeId);
     }
 
-    /**
-     * @param string $carrierPath
-     *
-     * @return bool
-     */
-    private function isExcludeParcelLockersActive(string $carrierPath): bool
+    /** With no active carrier there is no carrier age check to ask, only the general and product rules. */
+    private function isExcludeParcelLockersActive(?string $carrierPath): bool
     {
         $products = $this->quote->getAllItems();
 

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
 use MyParcelNL\Magento\Service\Export\RecipientFields;
 use MyParcelNL\Sdk\Model\Recipient;
@@ -18,7 +17,7 @@ use MyParcelNL\Sdk\Model\Recipient;
 function recipientForAddress(
     array   $addressOverrides,
     array   $orderOverrides = [],
-    ?string $carrier = Carrier::POSTNL
+    ?string $carrier = 'postnl'
 ): Recipient
 {
     $order = createOrder(array_merge(
@@ -102,8 +101,8 @@ it('splits a Belgian address by the carrier\'s own country, not always by PostNL
     // A Belgian destination only has a split rule when the carrier ships from Belgium.
     $belgianAddress = ['getCountryId' => 'BE', 'street' => 'Antwerpsesteenweg 20'];
 
-    $viaDpd    = recipientForAddress($belgianAddress, [], Carrier::DPD);
-    $viaPostnl = recipientForAddress($belgianAddress, [], Carrier::POSTNL);
+    $viaDpd    = recipientForAddress($belgianAddress, [], 'dpd');
+    $viaPostnl = recipientForAddress($belgianAddress, [], 'postnl');
 
     expect($viaDpd->getNumber())->toBe('20');
     expect($viaPostnl->getNumber())->toBe('');

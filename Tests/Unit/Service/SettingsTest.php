@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\DataObject;
-use Magento\Framework\Module\Dir\Reader as ModuleDirReader;
-use Magento\Framework\Serialize\Serializer\Json;
+use MyParcelNL\Magento\Model\Settings\Blueprint\Blueprint;
+use MyParcelNL\Magento\Model\Settings\Blueprint\Field;
+use MyParcelNL\Magento\Model\Settings\Blueprint\Group;
+use MyParcelNL\Magento\Model\Settings\Blueprint\ScopeBlueprints;
+use MyParcelNL\Magento\Model\Settings\Blueprint\Section;
 use MyParcelNL\Magento\Service\Settings;
 
 /**
@@ -68,23 +71,19 @@ function settingsOver(array $rows, array $declared, ?int &$queries): Settings
         };
     });
 
-    $settings = new Settings(Mockery::mock(ModuleDirReader::class), Mockery::mock(Json::class), $factory);
-    $fields   = array_map(static fn (string $path) => ['path' => $path], $declared);
-    // a field without a path, such as a heading, declares nothing
-    $fields[] = ['id' => 'heading'];
-    setPrivateProperty($settings, 'settingsCache', ['sections' => [['groups' => [['fields' => $fields]]]]]);
+    $fields     = array_map(static fn (string $path) => Field::text($path, 'Insure orders up to (EU)'), $declared);
+    $blueprints = Mockery::mock(ScopeBlueprints::class);
+    $blueprints->shouldReceive('forScope')->andReturn(
+        new Blueprint([new Section('postnl', 'PostNL settings', [new Group('options', 'Options', $fields)])])
+    );
 
-    return $settings;
+    return new Settings($blueprints, $factory);
 }
 
 function settingsRow(string $path, string $scope, int $scopeId, ?string $value = '1'): array
 {
     return ['path' => $path, 'scope' => $scope, 'scope_id' => $scopeId, 'value' => $value];
 }
-
-it('lists only the fields that declare a path', function () {
-    expect(settingsOver([], ['a/b/c', 'a/b/d'], $queries)->getAllFieldPaths())->toBe(['a/b/c', 'a/b/d']);
-});
 
 it('answers every declared path of a scope from one query', function () {
     $settings = settingsOver([settingsRow('a/b/c', 'websites', 1)], ['a/b/c', 'a/b/d'], $queries);
@@ -136,12 +135,8 @@ it('makes no query for no paths', function () {
 });
 
 it('names a field the way the settings form shows it', function () {
-    $settings = settingsOver([], [], $queries);
-    setPrivateProperty($settings, 'settingsCache', ['sections' => [[
-        'label'  => 'PostNL settings',
-        'groups' => [['fields' => [['path' => 'a/b/insurance_eu_amount', 'label' => 'Insure orders up to (EU)']]]],
-    ]]]);
+    $settings = settingsOver([], ['a/b/insurance_eu_amount'], $queries);
 
-    expect($settings->fieldLabel('a/b/insurance_eu_amount'))->toBe('PostNL settings, Insure orders up to (EU)')
-        ->and($settings->fieldLabel('a/b/unknown'))->toBeNull();
+    expect($settings->fieldLabel('a/b/insurance_eu_amount', 'default', 0))->toBe('PostNL settings, Insure orders up to (EU)')
+        ->and($settings->fieldLabel('a/b/unknown', 'default', 0))->toBeNull();
 });

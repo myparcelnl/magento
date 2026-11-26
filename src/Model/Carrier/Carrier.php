@@ -153,7 +153,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private function getMethodAmount(Quote $quote): float
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
-        $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
+        $carrier         = $deliveryOptions->getCarrier();
+        $configPath      = null === $carrier ? '' : Config::carrierPath($carrier);
         $shipmentOptions = $deliveryOptions->getShipmentOptions();
         $deliveryType    = $deliveryOptions->getDeliveryType();
 

@@ -7,88 +7,57 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Module\Dir;
-use Magento\Framework\Module\Dir\Reader as ModuleDirReader;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Model\Settings\Blueprint\ScopeBlueprints;
 
 /**
- * Service to read dynamic settings configuration.
+ * The settings form of one admin scope, and the rows stored for it.
  *
- * This class reads settings from a JSON configuration file and provides methods
- * to filter which settings are available for the current user/context.
- * TODO this functionality must be integrated into the capabilities system (INT-1289)
+ * The form comes from the scope's account, so two scopes with different api keys can offer different
+ * fields. Its paths are also the save allow-list.
  */
 class Settings
 {
-    private ModuleDirReader      $moduleDirReader;
-    private Json                 $json;
-    private ?array               $settingsCache = null;
-    private CollectionFactory    $scopeCollectionFactory;
+    private ScopeBlueprints   $scopeBlueprints;
+    private CollectionFactory $scopeCollectionFactory;
 
     /** @var array<string,array<string,bool>> "scope|scopeId" => path => whether a row exists there */
     private array $rowsAtScope = [];
 
     public function __construct(
-        ModuleDirReader      $moduleDirReader,
-        Json                 $json,
-        CollectionFactory    $scopeCollectionFactory
+        ScopeBlueprints   $scopeBlueprints,
+        CollectionFactory $scopeCollectionFactory
     )
     {
-        $this->moduleDirReader        = $moduleDirReader;
-        $this->json                   = $json;
+        $this->scopeBlueprints        = $scopeBlueprints;
         $this->scopeCollectionFactory = $scopeCollectionFactory;
     }
 
-    /**
-     * Get all settings configuration from JSON file.
-     *
-     * @return array
-     */
-    public function getSettings(): array
+    /** @param string $scopeName 'default', 'websites', or 'stores' */
+    public function getSections(string $scopeName, ?int $scopeId): array
     {
-        if ($this->settingsCache === null) {
-            $this->settingsCache = $this->loadSettingsFromFile();
-        }
-
-        return $this->settingsCache;
+        return $this->scopeBlueprints->forScope($scopeName, $scopeId)->toArray()['sections'];
     }
 
-    /**
-     * Get all sections.
-     *
-     * @return array
-     */
-    public function getSections(): array
+    /** @return string[] every path the form offers at this scope */
+    public function getAllFieldPaths(string $scopeName, ?int $scopeId): array
     {
-        return $this->getSettings()['sections'] ?? [];
+        return $this->scopeBlueprints->forScope($scopeName, $scopeId)->paths();
     }
 
-    /** @return string[] every field path the settings file declares */
-    public function getAllFieldPaths(): array
+    /** True when the scope's capabilities could not be read, so the form shows no carrier. */
+    public function isPermissive(string $scopeName, ?int $scopeId): bool
     {
-        $paths = [];
-
-        foreach ($this->getSections() as $section) {
-            foreach ($section['groups'] ?? [] as $group) {
-                foreach ($group['fields'] ?? [] as $field) {
-                    if (isset($field['path'])) {
-                        $paths[] = (string) $field['path'];
-                    }
-                }
-            }
-        }
-
-        return $paths;
+        return $this->scopeBlueprints->forScope($scopeName, $scopeId)->isPermissive();
     }
 
     /**
      * Get the label of the field as the settings form shows it, "PostNL settings, Insure orders up
      * to (EU)", or null.
      */
-    public function fieldLabel(string $path): ?string
+    public function fieldLabel(string $path, string $scopeName, ?int $scopeId): ?string
     {
-        foreach ($this->getSections() as $section) {
+        foreach ($this->getSections($scopeName, $scopeId) as $section) {
             foreach ($section['groups'] ?? [] as $group) {
                 foreach ($group['fields'] ?? [] as $field) {
                     if ($path === ($field['path'] ?? null)) {
@@ -99,27 +68,6 @@ class Settings
         }
 
         return null;
-    }
-
-    /**
-     * Check if a field should be visible for the given scope.
-     *
-     * @param array  $field
-     * @param string $scopeName 'default', 'websites', or 'stores'
-     * @return bool
-     */
-    public function isFieldVisibleInScope(array $field, string $scopeName): bool
-    {
-        switch ($scopeName) {
-            case ScopeConfigInterface::SCOPE_TYPE_DEFAULT:
-                return $field['showInDefault'] ?? false;
-            case ScopeInterface::SCOPE_WEBSITES:
-                return $field['showInWebsite'] ?? false;
-            case ScopeInterface::SCOPE_STORES:
-                return $field['showInStore'] ?? false;
-            default:
-                return false;
-        }
     }
 
     /**
@@ -142,14 +90,14 @@ class Settings
      * Partition-aware: true if and only if a row exists at the exact (scope, scopeId) for this path.
      * Unlike hasOwnValue() this does NOT short-circuit for default scope.
      *
-     * Cached per scope for every declared path; other paths query.
+     * Cached per scope for every path the form offers; other paths query.
      */
     public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
     {
         $key = $scope . '|' . $scopeId;
 
         if (! isset($this->rowsAtScope[$key])) {
-            $paths  = $this->getAllFieldPaths();
+            $paths  = $this->getAllFieldPaths($scope, $scopeId);
             $stored = $this->storedValuesAtScope($paths, $scope, $scopeId);
             $known  = [];
 
@@ -214,31 +162,5 @@ class Settings
         }
 
         return $this->hasRowAtScope($path, $scopeName, (int) $scopeId);
-    }
-
-    /**
-     * Load settings from the JSON configuration file.
-     *
-     * @return array
-     */
-    private function loadSettingsFromFile(): array
-    {
-        $moduleDir = $this->moduleDirReader->getModuleDir(Dir::MODULE_ETC_DIR, 'MyParcelNL_Magento');
-        $filePath  = $moduleDir . '/dynamic_settings.json';
-
-        if (! file_exists($filePath)) {
-            return ['sections' => []];
-        }
-
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            return ['sections' => []];
-        }
-
-        try {
-            return $this->json->unserialize($content);
-        } catch (\Exception $e) {
-            return ['sections' => []];
-        }
     }
 }

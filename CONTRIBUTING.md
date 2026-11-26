@@ -25,10 +25,13 @@ what each fact does.
 
 - **A label of its own:** `label`, and its translation in `i18n/`. Without one, the label is the
   name with spaces and a capital (`no_tracking` is "No tracking"), translated through `i18n/`. The shipping method title shows the label when the option is on.
-- **A checkout fee:** `checkout`. The rate adds the fee from `delivery/<name>_fee`, and the checkout
-  widget shows it as `price<Name>` (`only_recipient` is `priceOnlyRecipient`).
-- **A mailbox option:** `mailbox`. The same, with the fee from `mailbox/<name>_fee`. Add that
-  setting to `etc/dynamic_settings.json`.
+  `settingsLabel` and `tooltip` give the settings form its own label and tooltip.
+- **A fee or a from-price:** `checkout` for an option with a checkout fee, `fromPrice` (and
+  `fromPriceTooltip`) for one that the settings automate above an order total. The rate adds the fee
+  from `delivery/<name>_fee`, and the checkout widget shows it as `price<Name>` (`only_recipient` is
+  `priceOnlyRecipient`).
+- **A mailbox option:** `mailbox`. Its settings then go in the mailbox group, not in the default
+  options group, and its fee is `mailbox/<name>_fee`.
 - **A place in the fail-open form:** `toggle`. The New Shipment form shows these options when
   capabilities could not be read. Each toggle is also a key stored on every order.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
@@ -39,10 +42,9 @@ form.
 
 ### An option in the checkout
 
-`checkout` gives the fee to the rate and to the widget. The checkout widget must support the option,
-and `Model\Quote\Checkout` must switch it on: add its `allow<Name>` key, from `hasOption()` and
-`delivery/<name>_active`. Add `delivery/<name>_active` and `delivery/<name>_fee` to
-`etc/dynamic_settings.json` for each carrier that offers the option, as `signature` does.
+`checkout` adds the settings fields, the fee in the rate and the price in the widget. The checkout
+widget must support the option, and `Model\Quote\Checkout` must switch it on: add its `allow<Name>`
+key, from `hasOption()` and `delivery/<name>_active`, as `signature` does.
 
 ### A rule that capabilities do not give
 
