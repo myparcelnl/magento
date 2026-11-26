@@ -276,7 +276,7 @@ class Checkout
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHaveDeliveryType[DeliveryType::PICKUP_NAME] && $this->isPickupAllowed($carrierPath),
                 'allowMondayDelivery'   => $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
-                // No admin field switches it on and the export has no same day time check (INT-1464).
+                // @TODO INT-1464: no admin field switches it on and the export has no same day time check.
                 'allowSameDayDelivery'  => false,
                 'allowExpressDelivery'  => $allowExpressDelivery,
 

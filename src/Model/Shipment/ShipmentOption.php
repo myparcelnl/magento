@@ -88,7 +88,7 @@ class ShipmentOption
     }
 
     /**
-     * The options with a checkout fee, and the path of that fee under the carrier's config path.
+     * Get the fee path of each option with a checkout fee, under the carrier's config path.
      *
      * @return array<string, string> option => fee path
      */

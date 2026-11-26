@@ -39,6 +39,7 @@ class DefaultOptions
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
     private Config $config;
+    private CountryService $countryService;
     private ObjectManagerInterface $objectManager;
     private        $quote;
     private array  $chosenOptions;
@@ -59,7 +60,8 @@ class DefaultOptions
     public function __construct($quote)
     {
         $this->objectManager = ObjectManager::getInstance();
-        $this->config        = $this->objectManager->get(Config::class);
+        $this->config         = $this->objectManager->get(Config::class);
+        $this->countryService = $this->objectManager->get(CountryService::class);
         $this->quote         = $quote;
         try {
             $this->chosenOptions = DeliveryOptionsFactory::create(
@@ -167,7 +169,7 @@ class DefaultOptions
             return $this->getInsurance($carrier, InsuranceAmountSetting::BELGIUM);
         }
 
-        if ((new CountryService())->isEu($shippingCountry)) {
+        if ($this->countryService->isEu((string) $shippingCountry)) {
             return $this->getInsurance($carrier, InsuranceAmountSetting::EU);
         }
 

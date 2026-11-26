@@ -20,7 +20,7 @@ what each fact does.
 - **A label of its own:** `label`, and its translation in `i18n/`. Without one, the label is the
   name with spaces and a capital (`no_tracking` is "No tracking"), translated through `i18n/`. The shipping method title shows the label when the option is on.
 - **A checkout fee:** `checkout`. The rate adds the fee from `delivery/<name>_fee`, and the checkout
-  widget shows it as `price<Name>` (`receipt_code` is `priceReceiptCode`).
+  widget shows it as `price<Name>` (`only_recipient` is `priceOnlyRecipient`).
 - **A mailbox option:** `mailbox`. The same, with the fee from `mailbox/<name>_fee`. Add that
   setting to `etc/dynamic_settings.json`.
 - **A yes/no option of the shipment:** `toggle`. The New Shipment form shows the toggles when

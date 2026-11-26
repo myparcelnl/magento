@@ -87,8 +87,8 @@ class CustomsItems
     }
 
     /**
-     * Whether an order row is one a label ships. getQtyToShip() is 0 for a dummy row, such as the
-     * child of a configurable or the parent of a bundle shipped separately.
+     * Check whether an order row is one a label ships: not a dummy row, such as the child of a
+     * configurable or the parent of a bundle shipped separately, and not a virtual product.
      *
      * @param \Magento\Sales\Model\Order\Item $orderItem
      */

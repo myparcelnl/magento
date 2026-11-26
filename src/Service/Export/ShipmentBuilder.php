@@ -41,6 +41,7 @@ class ShipmentBuilder
     private ShipmentValidator         $validator;
     private CustomsDeclarationBuilder $customsBuilder;
     private RecipientFields           $recipientFields;
+    private CountryService            $countryService;
 
     /** @var array<string,OrderShipmentOptions> by shipment and option set; a multicollo order asks per collo */
     private array $shipmentOptions = [];
@@ -53,6 +54,7 @@ class ShipmentBuilder
         $this->validator      = $objectManager->get(ShipmentValidator::class);
         $this->customsBuilder = $objectManager->get(CustomsDeclarationBuilder::class);
         $this->recipientFields = $objectManager->get(RecipientFields::class);
+        $this->countryService = $objectManager->get(CountryService::class);
         $this->defaultOptions = new DefaultOptions($order);
     }
 
@@ -107,7 +109,7 @@ class ShipmentBuilder
             $shipment->setPickup($this->pickup($deliveryOptions));
         }
 
-        if ((new CountryService())->isRow((string) $address->getCountryId())) {
+        if ($this->countryService->isRow((string) $address->getCountryId())) {
             $shipment->setCustomsDeclaration(
                 $this->customsBuilder->build($magentoShipment, $weight, $incrementId)
             );

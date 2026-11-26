@@ -228,9 +228,8 @@ class LinkResolver
                              );
 
         $select = $this->joinShippingAddress($select, 'sales_order.entity_id')
-                             ->where('sales_order.entity_id IN (?)', $orderIds)
-                             ->where('sales_order.track_number LIKE ?', '[%')
-        ;
+            ->where('sales_order.entity_id IN (?)', $orderIds)
+            ->where('sales_order.track_number LIKE ?', TrackNumber::ORDER_ROW_LIST_PREFIX . '%');
 
         return $connection->fetchAll($select);
     }
