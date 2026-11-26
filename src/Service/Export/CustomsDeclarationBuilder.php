@@ -37,6 +37,11 @@ class CustomsDeclarationBuilder
         $shipmentItems = [];
 
         foreach ($shipment->getItems() as $item) {
+            // Before the save, getItems() still holds the configurable child (qty 0) and a bundle parent.
+            if (! CustomsItems::isShippedRow($item->getOrderItem())) {
+                continue;
+            }
+
             $shipmentItems[] = $item;
         }
 

@@ -52,6 +52,12 @@ it('declares weight and the price paid at line level, multiplied by the quantity
         ->and($items[0]->getItemValue()['amount'])->toBe(3000);
 });
 
+it('declares the quantity ordered of an unshipped row as the database stores it', function () {
+    $items = ppsCustomsItems(['country_of_manufacture' => 'CN'], [], ['qty_shipped' => '0.0000', 'qty_ordered' => '3.0000']);
+
+    expect($items[0]->getAmount())->toBe(3);
+});
+
 it('declares at least one piece for a fractional quantity, which the API would refuse as zero', function () {
     $items = ppsCustomsItems(['country_of_manufacture' => 'CN'], [], ['qty_ordered' => 0.5, 'price' => 10.0]);
 

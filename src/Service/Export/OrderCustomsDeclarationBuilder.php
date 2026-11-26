@@ -44,7 +44,8 @@ class OrderCustomsDeclarationBuilder
                 'name'      => (string) $item->getName(),
                 'weight'    => (float) $item->getWeight(),
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
-                'amount'    => max(1, (int) ($item->getQtyShipped() ?: $item->getQtyOrdered())),
+                // The database gives "0.0000", which is truthy: cast before the fallback.
+                'amount'    => max(1, (int) ((float) $item->getQtyShipped() ?: (float) $item->getQtyOrdered())),
                 'price'     => (float) $item->getPrice(),
             ];
         }
