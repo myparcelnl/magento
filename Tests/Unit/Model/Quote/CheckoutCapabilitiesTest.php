@@ -14,20 +14,16 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\Tax;
 
 /**
  * Create a Checkout without its constructor, which reads the checkout session.
  *
- * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
- * unseeded request does.
- *
- * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
- * order, which never reaches a narrowed lookup.
- *
- * The cases read the PackageTypeCandidates that checkPackageType() hands to the resolver. The
- * resolver mock offers every package type the capabilities allow, as if every config toggle is on.
+ * capabilityLookupWith() seeds the requests. $forced is what the order carries whatever the shopper
+ * picks; an empty list asks without an option filter. Seed a forced option as '<package type>|<option>'.
+ * The resolver mock offers every package type the capabilities allow, as if every config toggle is on.
  *
  * @return array{checkout: Checkout, cartRules: CartShippingRules, calls: object}
  */
@@ -47,7 +43,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     )->byDefault();
 
     $cartRules = Mockery::mock(CartShippingRules::class);
-    $cartRules->shouldReceive('forcedLimitingOptions')->andReturn($forced)->byDefault();
+    $cartRules->shouldReceive('forcedCheckoutOptions')->andReturn($forced)->byDefault();
     $cartRules->shouldReceive('hidesDeliveryOptions')->andReturn(false)->byDefault();
 
     $config = createPermissiveConfig();
@@ -60,6 +56,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'packageTypeResolver' => $packageTypeResolver,
         'cartRules'           => $cartRules,
         'config'              => $config,
+        'dropOffSettings'     => new DropOffSettings($config),
         'quote'               => $quote,
         'storeId'             => 1,
         'capabilityLookup'    => capabilityLookupWith($capabilities, $country),
@@ -164,16 +161,11 @@ it('answers per carrier, not once for the store', function () {
         ->and(candidateWasOffered($dpd['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse();
 });
 
-it('rules out a package type that cannot carry an option the order forces on', function () {
-    // An 18+ order cannot go as a mailbox when the account has no age check on a mailbox. The
-    // agnostic answer still lists mailbox. Only the narrowed one knows.
+it('offers no mailbox when the filtered answer leaves it out', function () {
+    // Seeding only the filtered request also proves the forced option is sent, and nothing else is
+    // asked: any other lookup would reach the repository, which is not set here, and fatal.
     $c = createCheckoutWith(
-        [
-            ''        => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']])]),
-            'mailbox'    => CapabilitySet::fromApiResults([
-                capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresSignature' => []]]),
-            ]),
-        ],
+        ['|age_check' => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE']])])],
         'NL',
         [ShipmentOption::AGE_CHECK]
     );
@@ -183,14 +175,9 @@ it('rules out a package type that cannot carry an option the order forces on', f
     expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeFalse();
 });
 
-it('keeps a package type that can carry the forced option', function () {
+it('keeps mailbox when the filtered answer has it', function () {
     $c = createCheckoutWith(
-        [
-            ''        => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']])]),
-            'mailbox'    => CapabilitySet::fromApiResults([
-                capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresAgeVerification' => []]]),
-            ]),
-        ],
+        ['|age_check' => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']])])],
         'NL',
         [ShipmentOption::AGE_CHECK]
     );
@@ -201,20 +188,11 @@ it('keeps a package type that can carry the forced option', function () {
 });
 
 it('answers the forced-option question per carrier', function () {
-    // DPD may offer an age check on a mailbox where PostNL does not, so the same 18+ order gets a
-    // different answer per carrier. One narrowed set, two carriers, two outcomes.
+    // DPD may carry an age check on a mailbox where PostNL does not: one filtered answer, two outcomes.
     $capabilities = [
-        ''        => CapabilitySet::fromApiResults([
-            capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']]),
+        '|age_check' => CapabilitySet::fromApiResults([
+            capabilityResult(['packageTypes' => ['PACKAGE']]),
             capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE', 'MAILBOX']]),
-        ]),
-        'mailbox' => CapabilitySet::fromApiResults([
-            capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresSignature' => []]]),
-            capabilityResult([
-                'carrier'      => 'DPD',
-                'packageTypes' => ['MAILBOX'],
-                'options'      => ['requiresAgeVerification' => []],
-            ]),
         ]),
     ];
 
@@ -231,9 +209,7 @@ it('answers the forced-option question per carrier', function () {
 it('restricts nothing when capabilities could not be reached, even with a forced option', function () {
     // Degrade, do not disappear: an unreachable capabilities service must not quietly reprice
     // every 18+ order as a package.
-    // Seeding only the agnostic request also proves no narrowed call is made: a permissive answer
-    // means the service is unreachable, and asking it again per package type would only fail again.
-    $c = createCheckoutWith(['' => CapabilitySet::permissive()], 'NL', [ShipmentOption::AGE_CHECK]);
+    $c = createCheckoutWith(['|age_check' => CapabilitySet::permissive()], 'NL', [ShipmentOption::AGE_CHECK]);
 
     $c['checkout']->checkPackageType('postnl', 'NL');
 
@@ -243,14 +219,16 @@ it('restricts nothing when capabilities could not be reached, even with a forced
 /**
  * getDeliveryData() is private and reaches for tax, delivery costs and a dozen config keys, so it
  * is driven with only the collaborators its carrier loop touches.
+ *
+ * @return array<string,mixed>|null the carrier's settings for the widget, null when it is left out
  */
-function carrierSettingsFor(
+function deliveryDataFor(
     string $carrierName,
     array  $capabilities,
-    array  $forced = [],
+    array  $forced,
     string $packageType = PackageType::MAILBOX_NAME,
     float  $price = 0.0
-): array
+): ?array
 {
     $c         = createCheckoutWith($capabilities, 'NL', $forced);
     $checkout  = $c['checkout'];
@@ -268,31 +246,54 @@ function carrierSettingsFor(
     $deliveryCosts->shouldReceive('getBasePriceForClient')->andReturn(0.0)->byDefault();
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
 
-    return carrierSettingsOf($checkout, $packageType, $carrierName);
+    $data = invokePrivateMethod($checkout, 'getDeliveryData', [$packageType, 'NL']);
+
+    return $data['carrierSettings'][$carrierName] ?? null;
 }
 
 it('does not offer a carrier that cannot carry a forced option on the resolved package type', function () {
-    // One package type serves the whole checkout, so DPD allowing an age check on a mailbox can
-    // still land mailbox in front of a PostNL customer. PostNL is dropped instead of failing later.
+    // One package type serves the whole checkout, so DPD carrying an age check on a mailbox can
+    // still land mailbox in front of a PostNL customer. PostNL is left out of carrierSettings instead
+    // of failing later: widget v7 ignores allowDeliveryOptions.
     $capabilities = [
-        'mailbox' => CapabilitySet::fromApiResults([
-            capabilityResult(['packageTypes' => ['MAILBOX'], 'options' => ['requiresSignature' => []]]),
-            capabilityResult([
-                'carrier'      => 'DPD',
-                'packageTypes' => ['MAILBOX'],
-                'options'      => ['requiresAgeVerification' => []],
-            ]),
+        'mailbox|age_check' => CapabilitySet::fromApiResults([
+            capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['MAILBOX']]),
         ]),
     ];
 
-    expect(carrierSettingsFor('postnl', $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeFalse()
-        ->and(carrierSettingsFor('dpd', $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeTrue();
+    expect(deliveryDataFor('postnl', $capabilities, [ShipmentOption::AGE_CHECK]))->toBeNull()
+        ->and(deliveryDataFor('dpd', $capabilities, [ShipmentOption::AGE_CHECK])['allowDeliveryOptions'])->toBeTrue();
+});
+
+/** An 18+ cart whose filtered package answer offers these delivery types. */
+function ageCheckedDeliveryTypes(array $deliveryTypes): array
+{
+    $answer = CapabilitySet::fromApiResults([
+        capabilityResult(['packageTypes' => ['PACKAGE'], 'deliveryTypes' => $deliveryTypes]),
+    ]);
+
+    return deliveryDataFor('postnl', ['|age_check' => $answer, 'package|age_check' => $answer], [ShipmentOption::AGE_CHECK], PackageType::PACKAGE_NAME);
+}
+
+it('offers morning and evening when the filtered answer has them', function () {
+    // No module rule is left: capabilities decide what an age check excludes.
+    $settings = ageCheckedDeliveryTypes(['STANDARD_DELIVERY', 'MORNING_DELIVERY', 'EVENING_DELIVERY']);
+
+    expect($settings['allowMorningDelivery'])->toBeTrue()
+        ->and($settings['allowEveningDelivery'])->toBeTrue();
+});
+
+it('offers no morning or evening when the filtered answer leaves them out', function () {
+    $settings = ageCheckedDeliveryTypes(['STANDARD_DELIVERY', 'PICKUP_DELIVERY']);
+
+    expect($settings['allowMorningDelivery'])->toBeFalse()
+        ->and($settings['allowEveningDelivery'])->toBeFalse();
 });
 
 it('offers pickup for any package type whose capabilities have it', function (string $packageType, string $apiPackageType) {
     $capabilities = [$packageType => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => [$apiPackageType]])])];
 
-    expect(carrierSettingsFor('postnl', $capabilities, [], $packageType)['allowPickupLocations'])->toBeTrue();
+    expect(deliveryDataFor('postnl', $capabilities, [], $packageType)['allowPickupLocations'])->toBeTrue();
 })->with([
     'package'       => [PackageType::PACKAGE_NAME, 'PACKAGE'],
     'small package' => [PackageType::PACKAGE_SMALL_NAME, 'SMALL_PACKAGE'],
@@ -304,7 +305,7 @@ it('does not offer pickup for a package type whose capabilities lack it', functi
         'deliveryTypes' => ['STANDARD_DELIVERY'],
     ])])];
 
-    expect(carrierSettingsFor('postnl', $capabilities)['allowPickupLocations'])->toBeFalse();
+    expect(deliveryDataFor('postnl', $capabilities, [])['allowPickupLocations'])->toBeFalse();
 });
 
 it('prices only the options that capabilities offer', function () {
@@ -313,7 +314,7 @@ it('prices only the options that capabilities offer', function () {
         'options'      => ['requiresSignature' => []],
     ])])];
 
-    $settings = carrierSettingsFor('postnl', $capabilities, [], PackageType::PACKAGE_NAME, 1.5);
+    $settings = deliveryDataFor('postnl', $capabilities, [], PackageType::PACKAGE_NAME, 1.5);
 
     expect($settings)->toHaveKeys(['priceSignature', 'priceReceiptCode', 'priceOnlyRecipient', 'pricePriorityDelivery'])
         ->and($settings['priceSignature'])->toBe(1.5)

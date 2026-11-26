@@ -23,6 +23,7 @@ use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\Tax;
@@ -50,6 +51,7 @@ class Checkout
     private CapabilitiesLookup    $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
     private StoredAccount         $storedAccount;
+    private DropOffSettings       $dropOffSettings;
 
     /** The quote's store, passed to every store-scoped config read this class delegates. */
     private int $storeId;
@@ -69,6 +71,7 @@ class Checkout
      * @param CapabilitiesLookup    $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
      * @param StoredAccount         $storedAccount
+     * @param DropOffSettings       $dropOffSettings
      */
     public function __construct(
         Tax                   $tax,
@@ -79,7 +82,8 @@ class Checkout
         StoreManagerInterface $storeManager,
         CapabilitiesLookup    $capabilityLookup,
         ContractDefinitions   $contractDefinitions,
-        StoredAccount         $storedAccount
+        StoredAccount         $storedAccount,
+        DropOffSettings       $dropOffSettings
     )
     {
         $this->tax                 = $tax;
@@ -91,6 +95,7 @@ class Checkout
         $this->capabilityLookup    = $capabilityLookup;
         $this->contractDefinitions = $contractDefinitions;
         $this->storedAccount       = $storedAccount;
+        $this->dropOffSettings     = $dropOffSettings;
         $this->quote               = $this->getQuoteFromCurrentSession();
         // A quote without a store id resolves as store 0, which is not the same as null.
         $this->storeId             = (int) $this->quote->getStoreId();
@@ -150,7 +155,7 @@ class Checkout
     {
         $activeCarriers = $this->getActiveCarriers();
         $carrierPath    = isset($activeCarriers[0]) ? Config::carrierPath($activeCarriers[0]) : null;
-        $deliveryDaysWindow = $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window');
+        $deliveryDaysWindow = $this->dropOffSettings->deliveryDaysWindow();
 
         return [
             'platform'                          => $this->propositionName(),
@@ -158,7 +163,7 @@ class Checkout
             'proxyCapabilities'                 => $this->storeManager->getStore()->getBaseUrl() . 'myparcel/proxy/core/shipments/capabilities',
             'showDeliveryDate'                  => $deliveryDaysWindow > 0,
             'deliveryDaysWindow'                => $deliveryDaysWindow,
-            'dropOffDelay'                      => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
+            'dropOffDelay'                      => $this->getDropOffDelay(),
             'pickupLocationsDefaultView'        => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
             'allowPickupLocationsViewSelection' => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view_change_allowed'),
             'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
@@ -217,13 +222,18 @@ class Checkout
 
         $quote           = $this->quote;
         $items           = $quote->getAllItems();
-        $capabilities    = $this->getCapabilities($country, $packageType);
         $hidesForProduct = $this->cartRules->hidesDeliveryOptions($items);
         // once per request: every delivery type of every carrier compares the same amount
         $orderAmount     = $this->deliveryCosts->getOrderAmount($quote);
 
         foreach ($activeCarriers as $carrierName) {
-            $carrierPath = Config::carrierPath($carrierName);
+            $carrierPath  = Config::carrierPath($carrierName);
+            // Per carrier: the carrier's own default option setting can force an option.
+            $capabilities = $this->getCapabilities(
+                $country,
+                $packageType,
+                $this->cartRules->forcedCheckoutOptions($items, $carrierPath, $this->storeId)
+            );
 
             $basePrices          = [];
             $canHaveDeliveryType = [];
@@ -242,10 +252,8 @@ class Checkout
             $canHaveReceiptCode      = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
             $canHavePriorityDelivery = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
             $canHaveOnlyRecipient    = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
-            $canHaveAgeCheck         = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
-            $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $optionPrices = [];
             foreach (ShipmentOption::feePaths() as $option => $feePath) {
@@ -268,22 +276,21 @@ class Checkout
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->config->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[DeliveryType::MORNING_NAME] && $this->config->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[DeliveryType::EVENING_NAME] && $this->config->getBoolConfig($carrierPath, 'evening/active');
+            $allowMorningDelivery  = $canHaveDeliveryType[DeliveryType::MORNING_NAME] && $this->config->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = $canHaveDeliveryType[DeliveryType::EVENING_NAME] && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
-            // one package type serves the whole checkout, so check that this carrier can carry the forced options on it
-            $canCarryForced        = $this->canCarry(
-                $capabilities,
-                $carrierName,
-                $packageType,
-                $this->cartRules->forcedLimitingOptions($items, $carrierPath, $this->storeId)
-            );
-            $allowDeliveryOptions  = $canCarryForced
+            // the capabilities are filtered by the forced options, so a carrier that cannot carry them has no result here
+            $allowDeliveryOptions  = $capabilities->hasPackageType($carrierName, $packageType)
                                      && ! $hidesForProduct
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === PackageType::MAILBOX_NAME) {
                 $allowDeliveryOptions = $this->packageTypeResolver->fitsMailboxWeight($items, $carrierPath, $this->storeId);
+            }
+
+            if (! $allowDeliveryOptions) {
+                // Widget v7 ignores allowDeliveryOptions; a carrier missing from carrierSettings is not shown.
+                continue;
             }
 
             $myParcelConfig['carrierSettings'][$carrierName] = [
@@ -302,7 +309,7 @@ class Checkout
                 'allowSameDayDelivery'  => false,
                 'allowExpressDelivery'  => $allowExpressDelivery,
 
-                'dropOffDays' => $this->getDropOffDays($carrierPath),
+                'dropOffDays' => $this->dropOffSettings->dropOffDays($carrierPath),
 
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
@@ -315,10 +322,14 @@ class Checkout
         return $myParcelConfig;
     }
 
-    /** @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for. */
-    private function getCapabilities(string $country, ?string $packageType = null): CapabilitySet
+    /**
+     * @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for.
+     *
+     * @param string[] $forced the forced keepAtCheckout options, sent as a filter
+     */
+    private function getCapabilities(string $country, ?string $packageType = null, array $forced = []): CapabilitySet
     {
-        return $this->capabilityLookup->forRequest($this->storeId, $country, $packageType);
+        return $this->capabilityLookup->forRequest($this->storeId, $country, $packageType, null, null, $forced);
     }
 
     /**
@@ -387,21 +398,6 @@ class Checkout
         }
 
         return $this->activeCarriers = $carriers;
-    }
-
-    private function getDropOffDays(string $carrierPath): array
-    {
-        $dropOffDays = [];
-        for ($weekday = 0; $weekday < 7; $weekday++) {
-            if ($this->config->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object) [
-                    'weekday'    => $weekday,
-                    'cutoffTime' => $this->config->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                ];
-            }
-        }
-
-        return $dropOffDays;
     }
 
     /**
@@ -486,82 +482,26 @@ class Checkout
      */
     public function checkPackageType(string $carrierName, string $country): string
     {
-        // The package-type-agnostic question: this method is what decides the package type, so
-        // there is none to narrow by yet.
-        $capabilities = $this->getCapabilities($country);
-
         $carrierPath = Config::carrierPath($carrierName);
         $products    = $this->quote->getAllItems();
-        $forced      = $this->cartRules->forcedLimitingOptions($products, $carrierPath, $this->storeId);
-        $allowed     = [];
+
+        // The package-type-agnostic question: this method is what decides the package type, so
+        // there is none to narrow by yet. The forced options filter it, so a package type that
+        // cannot carry them is not in the answer. A permissive answer restricts nothing.
+        $capabilities = $this->getCapabilities(
+            $country,
+            null,
+            $this->cartRules->forcedCheckoutOptions($products, $carrierPath, $this->storeId)
+        );
+        $allowed      = [];
 
         foreach ([PackageType::DIGITAL_STAMP_NAME, PackageType::MAILBOX_NAME, PackageType::PACKAGE_SMALL_NAME] as $packageTypeName) {
-            $allowed[$packageTypeName] = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, $packageTypeName, $forced);
+            $allowed[$packageTypeName] = $capabilities->hasPackageType($carrierName, $packageTypeName);
         }
 
         $candidates = $this->packageTypeResolver->candidates($allowed, $carrierPath, $country, $this->storeId);
 
         return $this->packageTypeResolver->resolve($products, $carrierName, $country, $candidates, $this->storeId);
-    }
-
-    /**
-     * The carrier has this package type, and it can carry every limiting option the order forces
-     * on: an 18+ order cannot go as a mailbox where the account has no age check on a mailbox.
-     *
-     * @param string[] $forcedOptions
-     */
-    private function isPackageTypeCandidate(
-        CapabilitySet $capabilities,
-        string        $carrierName,
-        string        $country,
-        string        $packageType,
-        array         $forcedOptions
-    ): bool
-    {
-        if (! $capabilities->hasPackageType($carrierName, $packageType)) {
-            return false;
-        }
-
-        // A permissive set means the service could not be reached: restrict nothing, the API decides.
-        if (! $forcedOptions || $capabilities->isPermissive()) {
-            return true;
-        }
-
-        return $this->canCarry(
-            $this->getCapabilities($country, $packageType),
-            $carrierName,
-            $packageType,
-            $forcedOptions
-        );
-    }
-
-    /**
-     * Never optionsFor(): it has no permissive guard and answers an empty list, which would read
-     * as "supports nothing" and rule out every package type.
-     *
-     * @param string[] $options
-     */
-    private function canCarry(CapabilitySet $capabilities, string $carrierName, string $packageType, array $options): bool
-    {
-        foreach ($options as $option) {
-            if (! $capabilities->hasOption($carrierName, $packageType, $option)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $carrierPath
-     *
-     * @return bool
-     */
-    public function isAgeCheckActive(string $carrierPath): bool
-    {
-        $products = $this->quote->getAllItems();
-
-        return $this->cartRules->forcesAgeCheck($products, $carrierPath, $this->storeId);
     }
 
     /** With no active carrier there is no carrier age check to ask, only the general and product rules. */
@@ -572,17 +512,12 @@ class Checkout
         return $this->cartRules->excludesParcelLockers($products, $carrierPath, $this->storeId);
     }
 
-    /**
-     * @param string $carrierPath
-     * @param string $key
-     *
-     * @return int
-     */
-    public function getDropOffDelay(string $carrierPath, string $key): int
+    /** The longest of the configured drop-off delay and the delay a product in the cart sets. */
+    private function getDropOffDelay(): int
     {
         $products     = $this->quote->getAllItems();
         $productDelay = (int) $this->cartRules->dropOffDelay($products);
-        $configDelay  = $this->config->getIntegerConfig($carrierPath, $key);
+        $configDelay  = $this->dropOffSettings->dropOffDelay();
 
         return max($productDelay, $configDelay);
     }
