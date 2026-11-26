@@ -34,31 +34,49 @@ class OrderCustomsDeclarationBuilder
 
         /** @var \Magento\Sales\Model\Order\Item $item getItems() declares the interface */
         foreach ($order->getItems() as $item) {
-            if (! CustomsItems::isShippedRow($item)) {
+            $parent    = $item->getParentItem();
+            $isVariant = $parent && CustomsItems::CONFIGURABLE === $parent->getProductType();
+
+            // The rows a label ships, but a configurable is declared by its variant, which holds the
+            // customs data. Other dummy rows, such as a bundle shipped separately, ship as their items.
+            if ($item->getIsVirtual()
+                || CustomsItems::CONFIGURABLE === $item->getProductType()
+                || ($item->isDummy(true) && ! $isVariant)
+            ) {
                 continue;
             }
 
-            // Name and weight from the order row, as the label path does: a deleted product still ships.
+            // The order row's product id, name and weight: a product deleted from the catalog still ships.
+            $productIds     = [(int) $item->getProductId()];
+            $quantitySource = $item;
+
+            if ($isVariant) {
+                $productIds[] = (int) $parent->getProductId();
+                // Magento ships the parent and never registers qty_shipped on the variant.
+                $quantitySource = $parent;
+            }
+
             $lines[] = [
-                'productId' => (int) $item->getProductId(),
-                'name'      => (string) $item->getName(),
-                'weight'    => (float) $item->getWeight(),
+                'name'       => (string) $item->getName(),
+                'weight'     => (float) $item->getWeight(),
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
                 // The database gives "0.0000", which is truthy: cast before the fallback.
-                'amount'    => max(1, (int) ((float) $item->getQtyShipped() ?: (float) $item->getQtyOrdered())),
-                'price'     => (float) $item->getPrice(),
+                'amount'     => max(1, (int) ((float) $quantitySource->getQtyShipped() ?: (float) $quantitySource->getQtyOrdered())),
+                'price'      => (float) $quantitySource->getPrice(),
+                'productIds' => $productIds,
             ];
         }
 
-        $productIds      = array_column($lines, 'productId');
-        $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
-        $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
-        $currency        = $order->getOrderCurrency()->getCode() ?? RefTypesMoney::CURRENCY_EUR;
+        $customsData = $lines
+            ? $this->items->customsDataFor(array_column($lines, 'productIds'), (int) $order->getStoreId())
+            : [];
+        $currency    = $order->getOrderCurrency()->getCode() ?? RefTypesMoney::CURRENCY_EUR;
 
-        foreach ($lines as $line) {
-            $productId = $line['productId'];
-            $amount    = $line['amount'];
+        foreach ($lines as $index => $line) {
+            $amount = $line['amount'];
 
+            // Computed once and reused for the declaration total, which is the sum of the line
+            // weights and must agree with them.
             $lineWeight   = $this->items->lineWeightInGrams($line['weight'], $amount);
             $totalWeight += $lineWeight;
 
@@ -71,8 +89,8 @@ class OrderCustomsDeclarationBuilder
                         'amount'   => $this->items->lineValueInCents($line['price'], $amount),
                         'currency' => $currency,
                     ])
-                    ->setCountry((string) ($countries[$productId] ?? ''))
-                    ->setClassification($this->items->classification((string) ($classifications[$productId] ?? '')))
+                    ->setCountry($customsData[$index]['country'])
+                    ->setClassification($this->items->classification($customsData[$index]['classification']))
             );
         }
 

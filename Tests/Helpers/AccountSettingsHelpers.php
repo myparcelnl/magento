@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
-use MyParcelNL\Magento\Service\Capabilities\Client;
+use Magento\Framework\DataObject;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Service\AccountSettings\AccountFeatures;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use Psr\Log\LoggerInterface;
 
@@ -48,7 +53,12 @@ function contractDefinitionsFor(array $rowsByPath, array $scopedValues = []): Co
  *
  * @param array<string, string> $rowsByPath
  */
-function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface $logger = null): Importer
+function importerFor(
+    array            $rowsByPath,
+    ?Client          $client = null,
+    ?AccountFeatures $features = null,
+    ?LoggerInterface $logger = null
+): Importer
 {
     return new Importer(
         Mockery::spy(WriterInterface::class),
@@ -57,7 +67,8 @@ function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface
         $logger ?? Mockery::spy(LoggerInterface::class),
         $client ?? Mockery::spy(Client::class),
         createUserAgent(),
-        contractDefinitionsFor($rowsByPath)
+        contractDefinitionsFor($rowsByPath),
+        $features ?? Mockery::mock(AccountFeatures::class, ['forApiKey' => []])
     );
 }
 
@@ -141,4 +152,25 @@ function accountSettingsFor(string $apiKey, array $rowsByPath, ?callable $reader
     $logger = stubAccountSettingsReader($rowsByPath, $reader);
 
     return ['settings' => new AccountSettings($apiKey), 'logger' => $logger];
+}
+
+/**
+ * A real StoredAccount over a mocked store-to-key lookup; pair it with stubAccountSettingsReader().
+ *
+ * @param array<int, string|null> $keysByStore store id => its api key; also the store views the store manager lists
+ * @param int|null                $keyLookups  the store key lookups to expect; null for any number
+ */
+function storedAccountForStores(array $keysByStore, ?int $keyLookups = null): StoredAccount
+{
+    $provider = Mockery::mock(ShipmentApiProvider::class);
+    $lookup   = $provider->shouldReceive('apiKeyForStoreOrNull')
+        ->andReturnUsing(static fn(int $storeId) => $keysByStore[$storeId]);
+
+    if (null !== $keyLookups) {
+        $lookup->times($keyLookups);
+    }
+
+    $stores = array_map(static fn(int $id) => new DataObject(['id' => $id]), array_keys($keysByStore));
+
+    return new StoredAccount($provider, Mockery::mock(StoreManagerInterface::class, ['getStores' => $stores]));
 }

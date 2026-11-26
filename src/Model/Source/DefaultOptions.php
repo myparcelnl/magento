@@ -26,6 +26,7 @@ use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
@@ -40,7 +41,6 @@ class DefaultOptions
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
     private Config $config;
-    private CountryService $countryService;
     private ObjectManagerInterface $objectManager;
     private        $quote;
     private array  $chosenOptions;
@@ -61,8 +61,7 @@ class DefaultOptions
     public function __construct($quote)
     {
         $this->objectManager = ObjectManager::getInstance();
-        $this->config         = $this->objectManager->get(Config::class);
-        $this->countryService = $this->objectManager->get(CountryService::class);
+        $this->config        = $this->objectManager->get(Config::class);
         $this->quote         = $quote;
         try {
             $this->chosenOptions = DeliveryOptionsFactory::create(
@@ -199,21 +198,11 @@ class DefaultOptions
     private function insuranceCapKey(): string
     {
         $shippingAddress = $this->quote->getShippingAddress();
-        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCodes::CC_NL;
 
-        if (CountryCodes::CC_NL === $shippingCountry) {
-            return InsuranceAmountSetting::LOCAL;
-        }
-
-        if (CountryCodes::CC_BE === $shippingCountry) {
-            return InsuranceAmountSetting::BELGIUM;
-        }
-
-        if ($this->countryService->isEu((string) $shippingCountry)) {
-            return InsuranceAmountSetting::EU;
-        }
-
-        return InsuranceAmountSetting::ROW;
+        return InsuranceAmountSetting::fieldFor(
+            $shippingAddress ? $shippingAddress->getCountryId() : null,
+            ObjectManager::getInstance()->get(StoredAccount::class)->propositionForStore((int) $this->quote->getStoreId())
+        );
     }
 
     /**

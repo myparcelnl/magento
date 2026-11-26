@@ -4,45 +4,37 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\TrackTrace;
 
+use MyParcelNL\Magento\Model\Settings\Proposition;
+
 /**
  * The fallback track & trace URL, for a barcode that has no link from the API: a shipment stored
  * before the module read that link, a PPS track without a shipment id, or a barcode on the order row.
  *
- * The host follows the account's proposition: a Belgian account's consumer portal is not myparcel.me.
- * Proposition ids are the API's platform ids (AccountDefsPlatformId); an unmapped or unknown one
- * keeps the Dutch host. Both values live in etc/di.xml.
+ * The host is the proposition's own: a Belgian account's consumer portal is not myparcel.me.
  */
 class TrackTraceUrl
 {
-    private string $defaultBaseUrl;
-
-    /** @var array<int, string> */
-    private array $baseUrlsByProposition;
-
     /**
-     * @param array<int|string, string> $baseUrlsByProposition proposition id => consumer portal base url
+     * Build the consumer portal link for one barcode, on the host of the proposition. Null without a
+     * proposition, or for one that has no consumer portal host: no link beats a wrong host.
      */
-    public function __construct(
-        string $defaultBaseUrl,
-        array  $baseUrlsByProposition = []
-    )
-    {
-        $this->defaultBaseUrl     = $defaultBaseUrl;
-        $this->baseUrlsByProposition = $baseUrlsByProposition;
-    }
-
-    /** Build the consumer portal link for one barcode, on the host of the account's proposition. */
     public function create(
-        string  $barcode,
-        string  $postalCode,
-        ?string $countryCode = null,
-        ?int    $propositionId = null
-    ): string
+        ?Proposition $proposition,
+        string       $barcode,
+        string       $postalCode,
+        ?string      $countryCode = null
+    ): ?string
     {
+        $baseUrl = $proposition ? $proposition->getTrackTraceUrl() : null;
+
+        if (null === $baseUrl) {
+            return null;
+        }
+
         // Every part is a path segment, so it is encoded: a barcode or postcode carrying a slash or
         // a quote would otherwise change the URL the admin clicks. Spaces go before the encoding,
         // or they survive as %20.
-        $url = $this->baseUrlFor($propositionId)
+        $url = $baseUrl
             . rawurlencode($barcode)
             . '/'
             . rawurlencode(str_replace(' ', '', $postalCode));
@@ -52,14 +44,5 @@ class TrackTraceUrl
         }
 
         return $url;
-    }
-
-    private function baseUrlFor(?int $propositionId): string
-    {
-        if (null === $propositionId) {
-            return $this->defaultBaseUrl;
-        }
-
-        return $this->baseUrlsByProposition[$propositionId] ?? $this->defaultBaseUrl;
     }
 }

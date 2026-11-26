@@ -8,7 +8,7 @@ use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 
 /**
@@ -22,13 +22,13 @@ class TrackActions extends Column
 {
     public const NAME = 'track_actions';
 
-    private Config         $config;
+    private StoredAccount  $storedAccount;
     private UrlInterface   $urlBuilder;
     private LabelPositions $labelPositions;
 
     /**
      * @param ContextInterface   $context
-     * @param Config             $config
+     * @param StoredAccount      $storedAccount
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface       $urlBuilder
      * @param LabelPositions     $labelPositions
@@ -37,7 +37,7 @@ class TrackActions extends Column
      */
     public function __construct(
         ContextInterface   $context,
-        Config             $config,
+        StoredAccount      $storedAccount,
         UiComponentFactory $uiComponentFactory,
         UrlInterface       $urlBuilder,
         LabelPositions     $labelPositions,
@@ -46,7 +46,7 @@ class TrackActions extends Column
     )
     {
         $this->urlBuilder     = $urlBuilder;
-        $this->config         = $config;
+        $this->storedAccount  = $storedAccount;
         $this->labelPositions = $labelPositions;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
@@ -65,7 +65,6 @@ class TrackActions extends Column
             return $dataSource;
         }
 
-        $orderManagementActivated = Config::EXPORT_MODE_PPS === $this->config->getExportMode();
         // Read once for the whole grid: the configured paper type is what a row action asks for,
         // since it renders no modal to pick one in.
         $positions = $this->labelPositions->encode($this->labelPositions->configured());
@@ -96,8 +95,13 @@ class TrackActions extends Column
             $entityId = $item['entity_id'];
             $actions  = [];
 
+            // Per row: a grid holds orders of every store, and each store's account has its own mode.
+            $orderV1 = $this->storedAccount->hasOrderV1ForStore(
+                isset($item['store_id']) ? (int) $item['store_id'] : null
+            );
+
             if (! isset($item[ShippingStatus::NAME])) {
-                if ($orderManagementActivated) {
+                if ($orderV1) {
                     $actions['action-create_concept'] = $this->exportAction(
                         $exportLabel,
                         $entityId,
@@ -132,7 +136,7 @@ class TrackActions extends Column
                     $alreadyExported,
                     $entityId,
                     ['mypa_request_type' => 'concept'],
-                    ! $orderManagementActivated
+                    ! $orderV1
                 );
 
                 // Straight to the labels: this order already shipped, so there is nothing to create.
@@ -144,7 +148,7 @@ class TrackActions extends Column
                         + ($positions ? ['positions' => $positions] : [])
                     ),
                     'label'    => $downloadLabel,
-                    'hidden'   => $orderManagementActivated,
+                    'hidden'   => $orderV1,
                     'callback' => [
                         'provider' => 'myparcel_grid_massaction',
                         'target'   => 'downloadLabelRow',
@@ -155,7 +159,7 @@ class TrackActions extends Column
                 $actions['action-myparcel_send_return_mail'] = [
                     'href'     => $this->urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail', ['selected_ids' => $entityId]),
                     'label'    => __('Send return label'),
-                    'hidden'   => $orderManagementActivated,
+                    'hidden'   => $orderV1,
                     'callback' => [
                         'provider' => 'myparcel_grid_massaction',
                         'target'   => 'exportRow',

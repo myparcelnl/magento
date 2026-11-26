@@ -144,7 +144,6 @@ function runPpsCron(
     $cron = newInstanceWithoutConstructor(RecordingUpdateStatus::class);
     $cron->orderRows = $orderRows;
     setPrivateProperty($cron, 'objectManager', $objectManager);
-    setPrivateProperty($cron, 'config', updateStatusConfig());
     setPrivateProperty($cron, 'orderCollection', $orderCollection);
     setPrivateProperty($cron, 'orderResource', $orderResource);
     $cron->responses   = $responses;

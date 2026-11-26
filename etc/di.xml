@@ -97,16 +97,6 @@
             </argument>
         </arguments>
     </type>
-    <!-- Fallback track & trace url. Keys are the account's proposition id; one not listed keeps the default. -->
-    <type name="MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl">
-        <arguments>
-            <argument name="defaultBaseUrl" xsi:type="string">https://myparcel.me/track-trace/</argument>
-            <argument name="baseUrlsByProposition" xsi:type="array">
-                <!-- 3 is AccountDefsPlatformId::BELGIE -->
-                <item name="3" xsi:type="string">https://sendmyparcel.me/track-trace/</item>
-            </argument>
-        </arguments>
-    </type>
     <!-- Its own lookup: answeredPermissively() must tell what this block asked, not other callers. -->
     <type name="MyParcelNL\Magento\Block\Sales\NewShipment">
         <arguments>
@@ -136,6 +126,12 @@
     <type name="MyParcelNL\Magento\Service\Export\ShipmentExportService">
         <arguments>
             <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Service\Export\HttpClient</argument>
+        </arguments>
+    </type>
+    <!-- A proxy: the importer's graph reaches the admin session, which setup:upgrade must not build unless the migration runs. -->
+    <type name="MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings">
+        <arguments>
+            <argument name="importer" xsi:type="object">MyParcelNL\Magento\Service\AccountSettings\Importer\Proxy</argument>
         </arguments>
     </type>
 </config>

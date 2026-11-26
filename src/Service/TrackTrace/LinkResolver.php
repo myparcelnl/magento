@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service\TrackTrace;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
@@ -15,24 +16,24 @@ use MyParcelNL\Sdk\Services\CountryCodes;
  * whose MyParcel tracks hold no real barcode falls back to the barcodes the status cron wrote to its
  * order row.
  *
- * A link the API issued is stored on the track. TrackTraceUrl builds one for a track without it and
- * for an order-row barcode. Its host follows the account's proposition, hence the store id in the
- * rows; that lookup is made only for a row that needs it.
+ * The API's link is stored on the track. For a track without one, and for an order-row barcode,
+ * TrackTraceUrl builds a link from the account's proposition, which is why the rows carry the store
+ * id. That lookup happens only for a row that needs it.
  */
 class LinkResolver
 {
     private ResourceConnection $resource;
-    private AccountProposition $proposition;
+    private StoredAccount      $storedAccount;
     private TrackTraceUrl      $trackTraceUrl;
 
     public function __construct(
         ResourceConnection $resource,
-        AccountProposition $proposition,
+        StoredAccount      $storedAccount,
         TrackTraceUrl      $trackTraceUrl
     )
     {
         $this->resource      = $resource;
-        $this->proposition   = $proposition;
+        $this->storedAccount = $storedAccount;
         $this->trackTraceUrl = $trackTraceUrl;
     }
 
@@ -277,12 +278,12 @@ class LinkResolver
         }
 
         return $this->trackTraceUrl->create(
+            $this->storedAccount->propositionForStore(isset($row['store_id']) ? (int) $row['store_id'] : null),
             $barcode,
             $postcode,
             // an order without a country on its shipping address counts as Dutch: the portal needs
             // a country to resolve the barcode
-            (string) ($row['country_id'] ?? '') ?: CountryCodes::CC_NL,
-            $this->proposition->forStore(isset($row['store_id']) ? (int) $row['store_id'] : null)
-        );
+            (string) ($row['country_id'] ?? '') ?: CountryCodes::CC_NL
+        ) ?? '';
     }
 }

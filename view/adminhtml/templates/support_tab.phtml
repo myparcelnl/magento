@@ -1,6 +1,7 @@
 <?php
 /** @var $block SupportTabRepository */
 
+use MyParcelNL\Magento\Block\System\Config\Form\OrderManagementInfo;
 use MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository;
 
 ?>
@@ -110,6 +111,11 @@ use MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository;
             <script type="text/javascript">
                 require(['prototype'], function(){Fieldset.applyCollapse('myparcelnl_magento_version');});
             </script>
+        </div>
+        <?php // For support: remove the hidden attribute in the browser inspector to see these. ?>
+        <div class="myparcel_container myparcel-hidden" hidden>
+            <h2><?= __('Account features');?></h2>
+            <?= $block->getLayout()->createBlock(OrderManagementInfo::class)->toHtml() ?>
         </div>
     </div>
 </div>
