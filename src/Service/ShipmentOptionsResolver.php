@@ -214,7 +214,7 @@ class ShipmentOptionsResolver
             $productIds[] = (int) $product['product_id'];
         }
 
-        $ageChecks   = $attributes->getColumn($productIds, ShipmentOption::AGE_CHECK);
+        $ageChecks   = $attributes->getColumn($productIds, ProductAttributes::AGE_CHECK);
         $hasAgeCheck = null;
 
         foreach ($productIds as $productId) {

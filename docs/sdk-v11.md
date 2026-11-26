@@ -17,7 +17,7 @@ module reads its id from the stored account settings (`Service\TrackTrace\Accoun
 
 The module was pinned at `myparcelnl/sdk` `11.0.0-beta.15` because **beta.22 deleted the legacy
 consignment stack** it was built on. No later SDK could be installed: no bug fixes, no regenerated
-clients, no new carriers or options. The pin is now `11.0.0-beta.36`, and the vocabulary maps under
+clients, no new carriers or options. The module now requires `^11.1.0`, and the vocabulary maps under
 `src/Model/Shipment/` are the module's own: the consignment classes that held package types,
 delivery types and option names are gone. Beta.36 adds `Services\Mapping\ApiMapperService`, which
 maps these names to ids and to v2 names; INT-1563 replaces the module maps with it.
