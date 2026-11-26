@@ -60,7 +60,7 @@ it('writes the two grid columns without saving the order', function () {
     $collection = Mockery::mock(MagentoOrderCollection::class);
 
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
-    $gridColumns->shouldReceive('columnsForTracks')->andReturn($columns);
+    $gridColumns->shouldReceive('columnsForOrder')->andReturn($columns);
     $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
         $written[] = [$orderId, $values];
 
@@ -88,7 +88,7 @@ it('does not blank a column on the order that the tracks cannot fill', function 
     });
 
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
-    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => 'status_3', 'track_number' => '']);
+    $gridColumns->shouldReceive('columnsForOrder')->andReturn(['track_status' => 'status_3', 'track_number' => '']);
     $gridColumns->shouldReceive('writeColumns')->andReturnTrue();
 
     $observer = newInstanceWithoutConstructor(NewShipment::class);
@@ -110,7 +110,7 @@ it('marks a PPS export exported rather than reading it off the tracks', function
 
     $written     = [];
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
-    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
+    $gridColumns->shouldReceive('columnsForOrder')->andReturn(['track_status' => '', 'track_number' => '']);
     $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
         $written = $values;
 
@@ -146,7 +146,7 @@ function ppsExportGridWrites(?string $uuidBefore, ?string $uuidAfter): array
 
     $written     = [];
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
-    $gridColumns->shouldReceive('columnsForTracks')->andReturn(['track_status' => '', 'track_number' => '']);
+    $gridColumns->shouldReceive('columnsForOrder')->andReturn(['track_status' => '', 'track_number' => '']);
     $gridColumns->shouldReceive('writeColumns')->andReturnUsing(function (int $orderId, array $values) use (&$written) {
         $written[] = $values;
 

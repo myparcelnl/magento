@@ -265,4 +265,103 @@ it('fails open when the cache or the lock backend throws', function (string $cal
     expect($r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
         // Releases the lock it took, and only that one.
         ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
-})->with(['load', 'lock', 'save']);
+})->with(['load', 'lock']);
+
+it('fails open when the stored copy cannot be read', function () {
+    $r = makeCapabilitiesProvider([]);
+    $r['store']->lockHeld = true;
+    $r['store']->throwOn  = 'storeLoad';
+
+    expect($r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue();
+});
+
+it('keeps the fetched answer when the cache refuses to save it', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/refused the save\. Serving the last stored answer/'));
+    $logger->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
+    $r['store']->throwOn = 'save';
+
+    $set = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+
+    expect($set->isPermissive())->toBeFalse()
+        ->and($set->carriers())->toBe(['postnl'])
+        ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
+});
+
+it('stores a copy of every answer it fetches', function () {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
+    $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+
+    expect($r['store']->stored)->toHaveCount(1)
+        ->and(array_values($r['store']->stored)[0])->toBe([capabilityResult()]);
+});
+
+it('still answers when the copy cannot be stored', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/Could not store the capabilities answer/'));
+    $logger->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesProvider([capabilitiesOk()]);
+    $r['store']->throwOn = 'storeSave';
+
+    $set = $r['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
+
+    expect($set->carriers())->toBe(['postnl'])
+        ->and($r['store']->entries)->toHaveCount(1);
+});
+
+/**
+ * After a cache:clean or a Redis restart only the stored copy is left. Whatever stops the fetch, the
+ * request gets its last answer rather than everything.
+ */
+it('serves the stored answer when the cache is empty and it cannot fetch', function (Closure $cannotFetch) {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+    mockLoggerFacade()->shouldReceive('warning')->byDefault();
+
+    $request = CapabilitiesRequest::forCountry('NL');
+    $first   = makeCapabilitiesProvider([capabilitiesOk()]);
+    $first['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+
+    [$okPrefix] = capabilitiesCacheIdPrefixes();
+    $requestKey      = substr((string) array_key_first($first['store']->entries), strlen($okPrefix));
+
+    $again = makeCapabilitiesProvider([new GuzzleResponse(500, [], '')]);
+    $again['store']->stored = $first['store']->stored;
+    $cannotFetch($again['store'], $requestKey);
+
+    $set = $again['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+
+    expect($set->isPermissive())->toBeFalse()
+        ->and($set->carriers())->toBe(['postnl']);
+})->with([
+    'the fetch fails'          => [static function (): void {}],
+    'another request fetches'  => [static function (object $store): void {
+        $store->lockHeld = true;
+    }],
+    'a failure is remembered'  => [static function (object $store, string $requestKey): void {
+        [, $failurePrefix] = capabilitiesCacheIdPrefixes();
+        $store->entries[$failurePrefix . $requestKey] = '1';
+    }],
+    'the cache backend is down' => [static function (object $store): void {
+        $store->throwOn = 'load';
+    }],
+]);
+
+it('says in the log which answer a failed fetch served', function () {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+
+    $request = CapabilitiesRequest::forCountry('NL');
+    $first   = makeCapabilitiesProvider([capabilitiesOk()]);
+    $first['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+
+    $again = makeCapabilitiesProvider([new GuzzleResponse(500, [], '')]);
+    $again['store']->stored = $first['store']->stored;
+
+    mockLoggerFacade()->shouldReceive('warning')->once()->with(Mockery::pattern('/Serving the last stored answer\.$/'));
+
+    $again['provider']->forApiKey(CAPABILITIES_TEST_API_KEY, $request);
+});
