@@ -11,7 +11,7 @@ the module keeps no alias.
 An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module
 name from the wire key (`noTracking` becomes `no_tracking`). The shipment options modal renders it
 under a label read from that name and stores it on the order. `ShipmentOptionsResolver::resolve()`
-decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from
+decides it, and `OrderExportOptions` sends it when the SDK has a setter. Combination rules come from
 the capabilities `requires` and `excludes`, which `resolve()` applies. At export, the module leaves
 off an option that capabilities do not offer for the shipment.
 

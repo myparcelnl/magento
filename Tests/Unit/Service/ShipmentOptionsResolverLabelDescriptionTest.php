@@ -14,7 +14,7 @@ it('reads the first item of the shipment from memory, so an unsaved shipment nam
         ->and($select->fetchAlls)->toBe(0);
 });
 
-it('reads the order items when there is no shipment, as on the PPS path', function () {
+it('reads the order items when there is no shipment, as on the Order v1 path', function () {
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         null,
         '%product_name%',

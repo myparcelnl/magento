@@ -47,7 +47,7 @@ Select a standard orientation for printing labels.,Wählen Sie eine Standardausr
 Label description,Etikettenbeschreibung
 "This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Diese Beschreibung erscheint auf dem Versandetikett. Folgende Bausteine können verwendet werden: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%."
 Country of origin,Ursprungsland
-"This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dieses Land erscheint auf den internationalen Versandetiketten. Von hier werden Ihre Produkte versandt. Sie können NL, BE, DE usw. verwenden. Dies wird auf Produktebene durch das Herstellungsland überschrieben."
+"This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dieses Land erscheint auf den internationalen Versandetiketten. Von hier werden Ihre Produkte versandt. Sie können NL, BE, DE usw. verwenden. Dies wird auf Produktebene durch das Herstellungsland überschrieben."
 Create Concept,Konzept erstellen
 "Enable create label concept, when invoice is printed.","Konzeptsendung erstellen, wenn die Rechnung gedruckt wird."
 Delivery methods,Versandmethoden
@@ -69,8 +69,8 @@ Automate 'Insurance € 100','Versichert bis €100' automatisieren
 Automate 'Insurance € 250','Versichert bis €250' automatisieren
 Automate 'Insurance € 500','Versichert bis € 500' automatisieren
 Automate 'Insure shipments to Belgium','Sendungen nach Belgien versichern' automatisieren
-Automate Priority delivery (mailbox),Prio-Lieferung (Briefkasten) automatisieren
-Automatically enable priority delivery for mailbox packages during export,Priority-Lieferung für Briefkastenpakete während des Exports automatisch aktivieren
+Automate Priority delivery (mailbox),Prio-Zustellung (Briefkasten) automatisieren
+Automatically enable priority delivery for mailbox packages during export,Prio-Zustellung für Briefkastenpakete während des Exports automatisch aktivieren
 Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,"Hinweis: Die Montagszustellung ist nur möglich, wenn das Paket samstags vor 15:00 Uhr an den dafür vorgesehenen PostNL-Standorten abgegeben wird."
 'Signature on receipt' operates above a certain order total amount,"'Unterschrift bei Empfang' wird aktiviert, wenn der Gesamtbetrag den oben genannten Betrag übersteigt"
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,"Die Altersüberprüfung ist für Paketsendungen gedacht, bei denen der Empfänger 18+ durch einen Identitätsnachweis nachweisen muss. Bei dieser Versandoption sind Unterschrift bei Empfang und Nur Empfänger enthalten. Das Mindestalter 18+ ist weiterhin von den Lieferoptionen Morgen- und Abendlieferung ausgeschlossen."
@@ -100,7 +100,7 @@ Evening delivery active,Abendzustellung aktiviert
 Monday delivery,Montagszustellung
 Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Die Zustellung am Montag kann besondere Bedingungen erfordern, die sich von anderen (Wochen-)Tagen unterscheiden, einschließlich, aber nicht beschränkt auf Kosten und Bestellschluss."
 Number of days,Anzahl der Tage
-Delivery enabled,Zustellung aktiviert
+Delivery enabled,Lieferung aktiviert
 Receipt code,Empfangscode
 Receipt code fee,Empfangscode Kosten
 Collect package,Paket abholen lassen
@@ -111,7 +111,7 @@ Default weight,Standardgewicht
 Digital stamp fee,Digitale-Briefmarke-Kosten
 From price,Ab Preis
 Enable sameday delivery,Taggleiche Zustellung aktivieren
-Sameday delivery fee,Taggleiche-Zustellung-Kosten
+Sameday delivery fee,Taggleiche Zustellung Kosten
 Sameday cut-off time,Bestellschluss für taggleiche Zustellung
 Saturday cut-off time,Samstag Bestellschluss
 Sunday cut-off time,Sonntag Bestellschluss
@@ -209,13 +209,13 @@ If both have been selected this price will be added to the regular shipping pric
 This will be added to the regular shipping price,Dies wird zu den normalen Versandkosten addiert
 Pickup at PostNL location,Abholung an PostNL-Standort
 Pickup active,Abholung aktiv
-Standard delivery Title,Standardlieferung Titel
+Standard delivery Title,Titel Standardzustellung
 Signature on receipt title,Unterschrift bei Empfang Titel
 Hide sender title,Absender verbergen Titel
 Printerless return,Retoure ohne Drucker
 Frozen,Tiefgekühlt
 Fresh food,Frische Lebensmittel
-Priority delivery,Prio-Lieferung
+Priority delivery,Prio-Zustellung
 "No tracking","Keine Sendungsverfolgung"
 Morning title,Titel Morgenzustellung
 Evening title,Titel Abendzustellung
@@ -272,7 +272,7 @@ error3212,{field} ist erforderlich.
 error3224,Ungültiger Versanddienstleister.
 error3501,Diese Adresse wurde nicht gefunden.
 error3505,Postleitzahl ist für das gewählte Land nicht gültig.
-error3506,Ungültiger Zustelltyp.
+error3506,Ungültige Lieferart.
 error3516,Land wird vom Versanddienstleister nicht unterstützt.
 error3517,Für dieses Land nicht verfügbar.
 error3707,Ungültiger Pakettyp.
@@ -291,7 +291,7 @@ Pickup,Abholung
 Pickup location,Abholort
 Open map,Karte öffnen
 Confirm,Bestätigen
-Standard Delivery,Standardlieferung
+Standard Delivery,Standardzustellung
 Morning Delivery,Morgenzustellung
 Evening Delivery,Abendzustellung
 Pickup locations,Abholung an einem Abholort
@@ -302,10 +302,10 @@ Mailbox,Briefkastenpaket
 Digital Stamp,Digitale Briefmarke
 Packet,Kleines Paket
 Signature,Unterschrift bei Empfang
-Priority delivery,Prio-Lieferung
+Priority delivery,Prio-Zustellung
 Only Recipient,Nur Empfänger
-Monday delivery,Montagslieferung
-Saturday delivery,Samstagslieferung
+Monday delivery,Montagszustellung
+Saturday delivery,Samstagszustellung
 Load more,Mehr laden
 Options,Optionen
 No delivery options available.,Keine Lieferoptionen verfügbar.
@@ -322,7 +322,7 @@ Maximum weight (in grams),Maximalgewicht (in Gramm)
 Country part of,Land Teil von
 Minimum order amount,Mindestbestellwert
 Maximum order amount,Höchstbestellwert
-Delivery type,Zustellart
+Delivery type,Lieferart
 "The order amount is the subtotal after discount, including tax and without shipping. Set the fees to 0 if the matrix sets the full price per delivery type.","Der Bestellwert ist die Zwischensumme nach Rabatt, inklusive MwSt. und ohne Versandkosten. Setzen Sie die Kosten pro Zustellart auf 0, wenn die Matrix den Preis pro Zustellart vollständig festlegt."
 No rules defined. Click Add rule to create a new rule.,"Keine Regeln definiert. Klicken Sie auf 'Regel hinzufügen', um eine neue Regel zu erstellen."
 Add rule,Regel hinzufügen
@@ -361,7 +361,7 @@ DHL Europlus settings,DHL Europlus Einstellungen
 DHL For You settings,DHL For You Einstellungen
 DHL Parcel Connect settings,DHL Parcel Connect Einstellungen
 DPD settings,DPD Einstellungen
-Delivery fee,Liefergebühr
+Delivery fee,Lieferkosten
 Empty package weight,Leerpaketgewicht
 Fresh food from price (€),Frischwaren ab Preis (€)
 Frozen from price (€),Tiefkühlware ab Preis (€)
@@ -375,7 +375,7 @@ Insure orders up to (Local),Bestellungen bis versichern (Lokal)
 Insure orders up to (ROW),Bestellungen bis versichern (ROW)
 International mailbox,Internationale Mailbox
 Mode,Modus
-Monday delivery fee,Montagszustellungsgebühr
+Monday delivery fee,Montagszustellung Kosten
 Only recipient,Nur Empfänger
 Only recipient fee,Nur-Empfänger-Gebühr
 Only recipient from price (€),Nur Empfänger ab Preis (€)
@@ -384,10 +384,10 @@ Pickup at DHL location,Abholung an einem DHL-Standort
 Pickup at DPD location,Abholung an einem DPD-Standort
 Pickup at GLS location,Abholung an einem GLS-Standort
 PostNL settings,PostNL Einstellungen
-Priority delivery fee,Prioritätszustellungsgebühr
-Priority delivery title,Titel Prioritätszustellung
+Priority delivery fee,Prio-Zustellung Kosten
+Priority delivery title,Titel Prio-Zustellung
 Receipt code from price (€),Empfangscode ab Preis (€)
-Saturday delivery fee,Samstagslieferungsgebühr
+Saturday delivery fee,Samstagszustellung Kosten
 Signature from price (€),Unterschrift ab Preis (€)
 Small Package settings,Kleines Paket Einstellungen
 Small Package weight,Kleines Paket Gewicht
@@ -445,13 +445,13 @@ No standard weight,Kein Standardgewicht
 20 - 50 gram,20 - 50 Gramm
 50 - 350 gram,50 - 350 Gramm
 350 - 2000 gram,350 - 2000 Gramm
-Create MyParcel consignment,MyParcel Sendung erstellen
+Create MyParcel shipment,MyParcel Sendung erstellen
 Export Entire Order,Gesamte Bestellung exportieren
 Label amount:,Anzahl Etiketten:
 Letter,Unfrankiert
 Return if no answer,Bei Nichtannahme zurücksenden
-24 hour priority,Prio-Lieferung
-"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Wenn aktiviert, wird das Kontrollkästchen Prio-Lieferung im Checkout angezeigt, wenn dieses Produkt im Warenkorb liegt, auch wenn die allgemeine Einstellung für Prio-Lieferung ausgeschaltet ist."
+24 hour priority,Prio-Zustellung
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Wenn aktiviert, wird das Kontrollkästchen Prio-Zustellung im Checkout angezeigt, wenn dieses Produkt im Warenkorb liegt, auch wenn die allgemeine Einstellung für Prio-Zustellung ausgeschaltet ist."
 "Your contract allows € %1 to € %2. Enter 0 to switch insurance off.","Ihr Vertrag erlaubt € %1 bis € %2. Geben Sie 0 ein, um die Versicherung auszuschalten."
 "The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.","Der zulässige Bereich konnte nicht abgerufen werden. Hier wird jeder Betrag akzeptiert und MyParcel entscheidet. Geben Sie 0 ein, um die Versicherung auszuschalten."
 """%1"" is not a whole number of euros","""%1"" ist kein ganzer Euro-Betrag"

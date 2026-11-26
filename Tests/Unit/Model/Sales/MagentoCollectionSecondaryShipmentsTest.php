@@ -20,11 +20,11 @@ it('gives every collo of a multicollo its own track', function () {
     expect($saved->numbers)->toBe(['3SMAIN'])
         ->and($saved->created)->toHaveCount(2)
         ->and($saved->created[0]['number'])->toBe('3SCOLLO2')
-        ->and($saved->created[0]['data']['myparcel_consignment_id'])->toBe(4243)
+        ->and($saved->created[0]['data']['myparcel_shipment_id'])->toBe(4243)
         ->and($saved->created[0]['data']['myparcel_tracktrace_url'])
         ->toBe('https://myparcel.me/track-trace/3SCOLLO2/1234AB/NL')
         ->and($saved->created[1]['number'])->toBe('3SCOLLO3')
-        ->and($saved->created[1]['data']['myparcel_consignment_id'])->toBe(4244);
+        ->and($saved->created[1]['data']['myparcel_shipment_id'])->toBe(4244);
 });
 
 it('carries the status onto a collo track as well', function () {
@@ -98,9 +98,9 @@ it('gives a collo the spare row persist parked, instead of adding one', function
     expect($saved->created)->toBe([])
         ->and($saved->rows[0]['number'])->toBe('3SMAIN')
         ->and($saved->rows[1]['number'])->toBe('3SCOLLO2')
-        ->and($saved->rows[1]['data']['myparcel_consignment_id'])->toBe(4243)
+        ->and($saved->rows[1]['data']['myparcel_shipment_id'])->toBe(4243)
         ->and($saved->rows[2]['number'])->toBe('3SCOLLO3')
-        ->and($saved->rows[2]['data']['myparcel_consignment_id'])->toBe(4244);
+        ->and($saved->rows[2]['data']['myparcel_shipment_id'])->toBe(4244);
 });
 
 it('never refreshes a spare row as though it were the parent', function () {
@@ -124,7 +124,7 @@ it('adds a row when a multicollo has more colli than spare rows', function () {
     $collection->updateMagentoTrack();
 
     expect($saved->created)->toHaveCount(1)
-        ->and($saved->created[0]['data']['myparcel_consignment_id'])->toBe(4243);
+        ->and($saved->created[0]['data']['myparcel_shipment_id'])->toBe(4243);
 });
 it('leaves the link of a new collo to the status cron, so a refresh asks the API once', function () {
     // The API sets link_consumer_portal only on a shipment asked for by id; the cron asks for each
@@ -136,5 +136,5 @@ it('leaves the link of a new collo to the status cron, so a refresh asks the API
     $collection->updateMagentoTrack();
 
     expect($saved->fetched)->toHaveCount(1)
-        ->and($saved->created[0]['data']['myparcel_consignment_id'])->toBe(4243);
+        ->and($saved->created[0]['data']['myparcel_shipment_id'])->toBe(4243);
 });

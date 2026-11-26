@@ -19,7 +19,7 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderLine;
 use MyParcelNL\Sdk\Model\PhysicalProperties;
 use MyParcelNL\Sdk\Model\PickupLocation;
@@ -29,15 +29,12 @@ use MyParcelNL\Sdk\Support\Collection;
 use RuntimeException;
 
 /**
- * Turns one Magento order into a v11 fulfilment (PPS) order, tagged with its own store's API key.
+ * Turns one Magento order into an Order v1 order, with the API key of its store.
  *
- * The counterpart of ShipmentBuilder: carrier, package type and the option set come from the
- * OrderShipmentOptions both share, and what is decided here is what only a PPS order needs: the
- * two Recipients, the order lines and the order weight.
- *
- * Always call setCarrierId(): AbstractOrder::getCarrier() throws when the carrier was never set.
+ * Carrier, package type and options come from OrderExportOptions, as in ShipmentBuilder. This class
+ * adds the two recipients, the order lines and the order weight.
  */
-class FulfilmentOrderBuilder
+class OrderV1Builder
 {
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
@@ -60,19 +57,20 @@ class FulfilmentOrderBuilder
      * @throws LocalizedException when the order's store has no API key
      * @throws RuntimeException   when the order cannot be exported as stored
      */
-    public function build(Order $magentoOrder): FulfilmentOrder
+    public function build(Order $magentoOrder): SdkOrderV1
     {
-        $shipmentOptions = new OrderShipmentOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
+        $orderOptions = new OrderExportOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
 
         $apiKey            = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
-        $deliveryOptions   = $shipmentOptions->deliveryOptions();
+        $deliveryOptions   = $orderOptions->deliveryOptionsToShip();
         $shippingRecipient = $this->shippingRecipient($magentoOrder, $this->storedAccount->homeCountryForApiKey($apiKey));
 
-        $order = (new FulfilmentOrder())
+        $order = (new SdkOrderV1())
             ->setApiKey($apiKey)
             ->setStatus((string) $magentoOrder->getStatus())
-            ->setCarrierId($shipmentOptions->carrierId())
-            ->setDeliveryOptions($shipmentOptions->shipmentOptions())
+            // Required: AbstractOrder::getCarrier() throws when it is not set.
+            ->setCarrierId($orderOptions->carrierIdToShip())
+            ->setDeliveryOptions($orderOptions->sdkShipmentOptions())
             ->setInvoiceAddress($this->billingRecipient($magentoOrder))
             ->setRecipient($shippingRecipient)
             ->setOrderDate($this->localCreatedAtDate($magentoOrder))

@@ -13,8 +13,8 @@ use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /**
- * PPS export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
- * observer, so the uuid setFulfilment() stores has to land on that same instance. Exporting a
+ * Order v1 export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
+ * observer, so the uuid exportAsOrderV1() stores has to land on that same instance. Exporting a
  * reload of the order puts it on a copy, and the later save writes myparcel_uuid back to null.
  */
 
@@ -31,7 +31,7 @@ it('exports the order instance the shipment holds, not a reload of it', function
 
                    return $collection;
                });
-    $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
+    $collection->shouldReceive('exportAsOrderV1')->once()->andReturnSelf();
 
     $observer = newInstanceWithoutConstructor(NewShipment::class);
     setPrivateProperty($observer, 'orderCollection', $collection);
@@ -100,7 +100,7 @@ it('does not blank a column on the order that the tracks cannot fill', function 
     expect($set)->toBe(['track_status' => 'status_3']);
 });
 
-it('marks a PPS export exported rather than reading it off the tracks', function () {
+it('marks an Order v1 export exported rather than reading it off the tracks', function () {
     $order = createOrder(['getEntityId' => 7]);
     $order->shouldReceive('setData')->andReturnSelf();
 
@@ -139,7 +139,7 @@ function ppsExportGridWrites(?string $uuidBefore, ?string $uuidAfter): array
     $collection->shouldReceive('setOptionsFromParameters')->andReturnSelf();
     $collection->shouldReceive('getOptions')->andReturn(['label_amount' => 2]);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
-    $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
+    $collection->shouldReceive('exportAsOrderV1')->once()->andReturnSelf();
 
     $storedAccount = Mockery::mock(StoredAccount::class);
     $storedAccount->shouldReceive('hasOrderV1ForExport')->andReturnTrue();

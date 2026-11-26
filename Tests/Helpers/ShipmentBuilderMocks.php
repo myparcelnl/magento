@@ -12,7 +12,7 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\Export\CustomsDeclarationBuilder;
-use MyParcelNL\Magento\Service\Export\OrderShipmentOptions;
+use MyParcelNL\Magento\Service\Export\OrderExportOptions;
 use MyParcelNL\Magento\Service\Export\RecipientFields;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
@@ -34,15 +34,15 @@ function createShipmentBuilder(array $properties = []): ShipmentBuilder
 }
 
 /**
- * Builds an OrderShipmentOptions past its constructor. Setting `deliveryOptions` and `resolved`
+ * Builds an OrderExportOptions past its constructor. Setting `deliveryOptions` and `chosen`
  * fills the two memoised answers, so a test can name only the question it is asking.
  * Without an `order` or `dating`, it gets an order of store 1 and Dating at today's date.
  */
-function createOrderShipmentOptions(array $properties = []): OrderShipmentOptions
+function createOrderExportOptions(array $properties = []): OrderExportOptions
 {
     $properties += ['order' => createOrder(), 'dating' => datingOn(date('Y-m-d'))];
 
-    return instanceWithProperties(OrderShipmentOptions::class, $properties);
+    return instanceWithProperties(OrderExportOptions::class, $properties);
 }
 
 /**

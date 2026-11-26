@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentTyp
 /**
  * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. One instance serves a whole batch.
  *
- * Descriptions are truncated before they are set, because setDescription() throws above its limit.
+ * Truncate a description before setDescription(), which throws above its limit.
  */
 class CustomsDeclarationBuilder
 {

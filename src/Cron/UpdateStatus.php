@@ -23,11 +23,13 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use Throwable;
 
@@ -74,16 +76,16 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        // Not gated on the account's current mode: the PPS pass selects only orders a PPS export
-        // marked, so an account that moved off order v1 still gets its in-flight orders. PPS only
+        // Not gated on the account's current mode: the Order v1 pass selects only orders an Order v1 export
+        // marked, so an account that moved off order v1 still gets its in-flight orders. Order v1 only
         // acquires barcodes, and the poll below carries a shipment on from there, for either mode.
-        $this->updateStatusPPS();
+        $this->updateOrderV1Status();
 
         return $this->pollShipmentStatuses();
     }
 
     /**
-     * Add a Magento shipment for each order exported as a whole order (PPS) that the API says has shipped.
+     * Add a Magento shipment and track for each Order v1 order that has shipped.
      *
      * Each order_shipments entry gets its own track; updateMagentoTrack() expands a multicollo entry
      * from the shipment API. The API's reference is the increment_id, the track table holds entity_id.
@@ -94,10 +96,10 @@ class UpdateStatus
      * @throws AlreadyExistsException
      * @throws Exception
      */
-    private function updateStatusPPS(): self
+    private function updateOrderV1Status(): self
     {
         $orderRows  = $this->ordersAwaitingBarcode();
-        $fulfilment = [];
+        $orderV1ShipmentsByIncrementId = [];
         $tally = ['awaiting' => count($orderRows), 'accounts' => 0, 'returned' => 0, 'matched' => 0,
                   'shipped'  => 0, 'shipments' => 0, 'without_id' => 0, 'order_row' => 0];
 
@@ -106,7 +108,7 @@ class UpdateStatus
                 $apiOrders = $this->queryApiOrders($apiKey);
             } catch (Throwable $e) {
                 // One unreachable account must not cost the other accounts their update.
-                Logger::warning('PPS: could not poll one account', LogContext::of($e));
+                Logger::warning('Order v1: could not poll one account', LogContext::of($e));
                 continue;
             }
 
@@ -117,7 +119,7 @@ class UpdateStatus
                 $incrementId = $apiOrder->getExternalIdentifier();
 
                 if (! $incrementId
-                    || isset($fulfilment[$incrementId])
+                    || isset($orderV1ShipmentsByIncrementId[$incrementId])
                     || ! isset($orderIdsToCheck[$incrementId])) {
                     continue;
                 }
@@ -139,13 +141,13 @@ class UpdateStatus
                     }
                 }
 
-                $fulfilment[$incrementId] = $shipments;
+                $orderV1ShipmentsByIncrementId[$incrementId] = $shipments;
             }
         }
 
         // Every run logs this; the notices below log only a change.
         Logger::debug(sprintf(
-            'PPS: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
+            'Order v1: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
             . '%d matched and %d shipped, carrying %d shipment(s)',
             $tally['awaiting'],
             $tally['accounts'],
@@ -155,15 +157,15 @@ class UpdateStatus
             $tally['shipments']
         ));
 
-        if (! $fulfilment) {
+        if (! $orderV1ShipmentsByIncrementId) {
             return $this;
         }
 
-        $orderIncrementIds     = array_keys($fulfilment);
+        $orderIncrementIds     = array_keys($orderV1ShipmentsByIncrementId);
         $entityIdByIncrementId = [];
 
         foreach ($orderRows as $arrayWithIds) {
-            if (! isset($fulfilment[$arrayWithIds['increment_id']])) {
+            if (! isset($orderV1ShipmentsByIncrementId[$arrayWithIds['increment_id']])) {
                 continue;
             }
             $entityIdByIncrementId[(string) $arrayWithIds['increment_id']] = (int) $arrayWithIds['entity_id'];
@@ -173,7 +175,7 @@ class UpdateStatus
             return $this;
         }
 
-        Logger::notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds)));
+        Logger::notice(sprintf('Order v1: update orders %s', implode(', ', $orderIncrementIds)));
         $this->addOrdersToCollection(array_values($entityIdByIncrementId));
 
         // Do not call setNewMyParcelTracks(): it builds a v11 Shipment per track for a create this
@@ -182,14 +184,14 @@ class UpdateStatus
         $this->orderCollection->setOption('create_track_if_one_already_exist', false)
                               ->setNewMagentoShipment(false)
                               ->setMagentoTrack()
-                              ->setFulfilmentTrackData($fulfilment)
+                              ->setOrderV1TrackData($orderV1ShipmentsByIncrementId)
                               ->updateMagentoTrack();
 
-        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($fulfilment, $entityIdByIncrementId);
+        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($orderV1ShipmentsByIncrementId, $entityIdByIncrementId);
 
         if ($tally['order_row'] || $tally['without_id']) {
             Logger::notice(sprintf(
-                'PPS: %d order(s) got their barcode on the order row, as no MyParcel track carries a real barcode; '
+                'Order v1: %d order(s) got their barcode on the order row, as no MyParcel track carries a real barcode; '
                 . '%d shipment(s) came back with no id, so they get no status',
                 $tally['order_row'],
                 $tally['without_id']
@@ -200,7 +202,7 @@ class UpdateStatus
     }
 
     /**
-     * The PPS orders still waiting for a barcode.
+     * Get the Order v1 orders still waiting for a barcode.
      *
      * Keyed on the export marker and on the absence of a real barcode, on a track or on the order
      * row. Do not key on sales_order.track_number being null: a placeholder there is not a barcode.
@@ -263,15 +265,14 @@ class UpdateStatus
     }
 
     /**
-     * Every shipped shipment of one fulfilment order, in the order the API listed them.
+     * Get every shipped shipment of one Order v1 order, in the order the API listed them.
      *
-     * order_shipments passes through the SDK as a raw array with no model behind it, so each key is
-     * read defensively. The shipped check is per entry: a fulfilment order can hold a concept or a
-     * cancelled shipment beside shipped ones, in any position.
+     * order_shipments is a raw SDK array, so each key is read defensively. The shipped check is per
+     * entry: a concept or cancelled shipment can sit beside shipped ones.
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
      */
-    private function shippedShipments(FulfilmentOrder $apiOrder): array
+    private function shippedShipments(SdkOrderV1 $apiOrder): array
     {
         $shipments = [];
         $seenIds   = [];
@@ -309,16 +310,16 @@ class UpdateStatus
      *
      * No track holds a stored link for it, so LinkResolver::forOrders() builds one from the barcode.
      *
-     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilment
+     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
      * @param array<string,int>                                                    $entityIdByIncrementId
      *
      * @return int how many orders were written
      */
-    private function writeBarcodeWhereNoTrack(array $fulfilment, array $entityIdByIncrementId): int
+    private function writeBarcodeWhereNoTrack(array $orderV1ShipmentsByIncrementId, array $entityIdByIncrementId): int
     {
         $barcodesByIncrementId = [];
 
-        foreach ($fulfilment as $incrementId => $shipments) {
+        foreach ($orderV1ShipmentsByIncrementId as $incrementId => $shipments) {
             $barcodes = array_values(array_unique(array_filter(
                 array_column($shipments, 'barcode'),
                 static function (string $barcode): bool {
@@ -459,9 +460,8 @@ class UpdateStatus
     /**
      * Carry every exported shipment on to its next status, whatever export mode made it.
      *
-     * It selects on the track rather than on the order (a MyParcel shipment id and a status that
-     * is not final yet), and a PPS shipment answers to both. setOrdersToUpdate() replaces the
-     * collection the PPS pass left behind.
+     * It selects on the track (a shipment id and a status not final yet), which an Order v1
+     * shipment also has. setOrdersToUpdate() replaces the collection the Order v1 pass left behind.
      *
      * @throws LocalizedException
      * @throws Exception
@@ -537,7 +537,7 @@ class UpdateStatus
         $trackCollection
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [1, 2, 3, 4, 5, 6, 8])
-            ->addAttributeToFilter('myparcel_consignment_id', ['notnull' => true])
+            ->addAttributeToFilter(Config::FIELD_MYPARCEL_SHIPMENT_ID, ['notnull' => true])
             ->setPageSize(self::PAGE_SIZE)
             ->setOrder('order_id', 'DESC');
         MyParcelTracks::scopeCollection($trackCollection);

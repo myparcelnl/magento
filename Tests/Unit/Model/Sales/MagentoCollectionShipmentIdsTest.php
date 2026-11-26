@@ -17,7 +17,7 @@ function shipmentWithTracks(int $entityId, int $storeId, array $myParcelShipment
 
     foreach ($myParcelShipmentIds as $shipmentId) {
         $track = Mockery::mock(Magento\Sales\Model\Order\Shipment\Track::class);
-        $track->shouldReceive('getData')->with('myparcel_consignment_id')->andReturn($shipmentId);
+        $track->shouldReceive('getData')->with('myparcel_shipment_id')->andReturn($shipmentId);
         $tracks[] = $track;
     }
 
@@ -46,7 +46,7 @@ function groupShipmentIds(array $entries, array $keysByStore): array
     $collection = partialOrderCollection($shipments);
     setPrivateProperty($collection, 'apiProvider', new ShipmentApiProvider(createConfig([], [], $keysByStore), createUserAgent()));
 
-    return $collection->getMyparcelConsignmentIdsByApiKey($tracksByShipmentId);
+    return $collection->getMyParcelShipmentIdsByApiKey($tracksByShipmentId);
 }
 
 it('groups shipment ids by the api key each order resolves', function () {

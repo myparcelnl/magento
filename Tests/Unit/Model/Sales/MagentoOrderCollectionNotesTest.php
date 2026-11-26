@@ -7,7 +7,7 @@ use Magento\Sales\Model\ResourceModel\Order\Status\History\Collection as OrderSt
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
- * The status-history comments a PPS export sends as order notes.
+ * The status-history comments an Order v1 export sends as order notes.
  *
  * One status-history query per chunk, not one per order.
  */
