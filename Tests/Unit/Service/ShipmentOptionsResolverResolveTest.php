@@ -17,7 +17,7 @@ it('resolves every option to a non-null value', function () {
     $resolved = createShipmentOptions(CountryCodes::CC_NL, CarrierPostNL::NAME, [])->resolve()->toArray();
 
     expect($resolved)->not->toContain(null)
-        ->and(array_keys($resolved))->toHaveCount(14);
+        ->and(array_keys($resolved))->toHaveCount(13);
 });
 
 it('types every resolved option as the setters expect', function () {

@@ -7,6 +7,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Helper\MyParcelCurl;
@@ -40,7 +41,7 @@ function ppsBuiltOrder(string $incrementId): FulfilmentOrder
 
 /**
  * A collection over one Magento order per increment id, whose order saves go to $save and whose
- * messages land in $did->errors.
+ * messages land in $did->errors and whose export errors land in $did->rows.
  *
  * @param string[] $incrementIds
  *
@@ -57,6 +58,13 @@ function ppsExportingCollection(array $incrementIds, object $did, callable $save
     $userAgent = Mockery::mock(UserAgent::class);
     $userAgent->shouldReceive('map')->andReturn([]);
 
+    $errorRecorder = Mockery::mock(ExportErrorRecorder::class);
+    $errorRecorder->shouldReceive('write')->andReturnUsing(
+        static function (Order $order, ?string $error) use ($did): void {
+            $did->rows[$order->getIncrementId()] = $error;
+        }
+    );
+
     $magentoOrders = [];
 
     foreach ($incrementIds as $incrementId) {
@@ -71,6 +79,7 @@ function ppsExportingCollection(array $incrementIds, object $did, callable $save
         'messageManager' => errorRecordingMessageManager($did),
         'objectManager'  => $objectManager,
         'userAgent'      => $userAgent,
+        'errorRecorder'  => $errorRecorder,
         'options'        => [],
     ]);
 
@@ -83,11 +92,11 @@ function ppsExportingCollection(array $incrementIds, object $did, callable $save
  * @param array<string,FulfilmentOrder> $builtByIncrementId what the builder returns per order
  * @param array{response?: string, code?: int, timeout?: string} $answer
  *
- * @return array{errors: string[], exported: string[], sent: string[]}
+ * @return array{errors: string[], exported: string[], sent: string[], rows: array<string,string|null>}
  */
 function ppsChunkRun(array $builtByIncrementId, array $answer): array
 {
-    $did = new class { public array $errors = []; public array $exported = []; public array $sent = []; };
+    $did = new class { public array $errors = []; public array $exported = []; public array $sent = []; public array $rows = []; };
 
     MyParcelRequest::setCurlFactory(static function () use ($answer, $did): MyParcelCurl {
         $curl = Mockery::mock(MyParcelCurl::class);
@@ -124,7 +133,7 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
 
     invokePrivateMethod($collection, 'exportFulfilmentChunk', [$builder, $magentoOrders]);
 
-    return ['errors' => $did->errors, 'exported' => $did->exported, 'sent' => $did->sent];
+    return ['errors' => $did->errors, 'exported' => $did->exported, 'sent' => $did->sent, 'rows' => $did->rows];
 }
 
 it('tells the admin that a chunk MyParcel did not answer may have been created', function () {
@@ -136,6 +145,7 @@ it('tells the admin that a chunk MyParcel did not answer may have been created',
     expect($run['exported'])->toBe([])
         ->and($run['errors'])->toHaveCount(1)
         ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.')
+        ->and($run['rows'])->toBe(['100000001' => $run['errors'][0], '100000002' => $run['errors'][0]])
         ->and($run['errors'][0])->toContain('Operation timed out');
 });
 
@@ -148,7 +158,8 @@ it('does not mark an order exported when the answer leaves it out', function () 
 
     expect($run['exported'])->toBe([])
         ->and($run['errors'])->toHaveCount(1)
-        ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.');
+        ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.')
+        ->and($run['rows'])->toBe(['100000001' => $run['errors'][0], '100000002' => $run['errors'][0]]);
 });
 
 it('marks the other orders exported and names the one whose save failed', function () {
@@ -156,7 +167,7 @@ it('marks the other orders exported and names the one whose save failed', functi
     $logger->shouldReceive('warning')->once()
         ->with('MyParcel export: order 100000001 created but not marked exported', Mockery::any());
 
-    $did = new class { public array $errors = []; public array $exported = []; };
+    $did = new class { public array $errors = []; public array $exported = []; public array $rows = []; };
 
     [$collection, $magentoOrders] = ppsExportingCollection(
         ['100000001', '100000002'],

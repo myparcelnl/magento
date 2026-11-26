@@ -46,8 +46,11 @@ class OrderShipmentOptions
      */
     public const LABEL_DESCRIPTION_MAX_LENGTH = 45;
 
+    private const CARRIERS_WITHOUT_DELIVERY_DATE = ['DPD', 'BPOST'];
+
     private ObjectManagerInterface $objectManager;
     private JsonSerializer         $jsonSerializer;
+    private Dating                 $dating;
     private Order                  $order;
     private array                  $options;
     private DefaultOptions         $defaultOptions;
@@ -68,6 +71,7 @@ class OrderShipmentOptions
     {
         $this->objectManager  = $objectManager;
         $this->jsonSerializer = $objectManager->get(JsonSerializer::class);
+        $this->dating         = $objectManager->get(Dating::class);
         $this->order          = $order;
         $this->options        = $options;
         $this->defaultOptions = $defaultOptions;
@@ -173,8 +177,7 @@ class OrderShipmentOptions
         $options = (new SdkShipmentOptions())
             ->setPackageType($packageType)
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
-            ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
-            ->setSameDayDelivery($this->flag($resolved->option(ShipmentOption::SAME_DAY_DELIVERY)));
+            ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH));
 
         foreach (ShipmentOption::having('toggle') as $option) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
@@ -208,9 +211,9 @@ class OrderShipmentOptions
             $options->setReturn(0);
         }
 
-        $deliveryDate = Dating::convertDeliveryDate($deliveryOptions->getDate());
+        $deliveryDate = $this->dating->convertDeliveryDate($deliveryOptions->getDate(), $this->order);
 
-        if (null !== $deliveryDate) {
+        if (null !== $deliveryDate && $this->acceptsDeliveryDate($resolved)) {
             $options->setDeliveryDate($deliveryDate);
         }
 
@@ -227,6 +230,14 @@ class OrderShipmentOptions
         return $options;
     }
 
+    /** The API refuses a delivery date for DPD and bpost, and together with collect. */
+    private function acceptsDeliveryDate(ResolvedOptions $resolved): bool
+    {
+        $v2Carrier = Carrier::toV2Name((string) $this->carrierName());
+
+        return ! in_array($v2Carrier, self::CARRIERS_WITHOUT_DELIVERY_DATE, true) && ! $resolved->option(ShipmentOption::COLLECT);
+    }
+
     /**
      * The stored checkout data, with the carrier resolved and a pickup location dropped when the
      * carrier was overridden: a pickup location is carrier-specific, so an inherited one is no
@@ -234,20 +245,13 @@ class OrderShipmentOptions
      */
     private function storedDeliveryOptions(): array
     {
-        $raw             = (string) $this->order->getData(Config::FIELD_DELIVERY_OPTIONS);
-        $stored          = '' === $raw ? [] : ($this->jsonSerializer->unserialize($raw) ?? []);
-        $checkoutCarrier = $stored['carrier'] ?? null;
-        $selected        = $this->carrierFromOptions() ?? $this->defaultOptions->getCarrierName();
+        $raw    = (string) $this->order->getData(Config::FIELD_DELIVERY_OPTIONS);
+        $stored = '' === $raw ? [] : ($this->jsonSerializer->unserialize($raw) ?? []);
 
-        $stored['carrier'] = $selected;
-
-        if ($checkoutCarrier && $selected !== $checkoutCarrier && ! empty($stored['isPickup'])) {
-            unset($stored['pickupLocation']);
-            $stored['isPickup']     = false;
-            $stored['deliveryType'] = DeliveryType::STANDARD_NAME;
-        }
-
-        return $stored;
+        return DeliveryOptions::withCarrier(
+            $stored,
+            $this->carrierFromOptions() ?? $this->defaultOptions->getCarrierName()
+        );
     }
 
     /**

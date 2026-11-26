@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Model\Checkout;
 use Magento\Checkout\Api\Data\ShippingInformationInterface;
 use Magento\Checkout\Model\ShippingInformationManagement;
 use Magento\Quote\Model\QuoteRepository;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 
 class ShippingInformationManagementPlugin
 {
@@ -36,7 +37,7 @@ class ShippingInformationManagementPlugin
             $extAttributes->getMyparcelDeliveryOptions() != '{}'
         ) {
 
-            $deliveryOptions = $extAttributes->getMyparcelDeliveryOptions();
+            $deliveryOptions = DeliveryOptions::inheritUntickedInJson((string) $extAttributes->getMyparcelDeliveryOptions());
             $quote = $this->quoteRepository->getActive($cartId);
             $quote->setMyparcelDeliveryOptions($deliveryOptions);
         }

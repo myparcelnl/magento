@@ -104,7 +104,7 @@ class ShipmentBuilder
             ->setCarrier($shipmentOptions->carrierId())
             ->setReferenceIdentifier(self::referenceIdentifierFor((string) ($shipmentId ?? $incrementId), $colloNumber))
             ->setRecipient($this->recipient($address, $this->storedAccount->homeCountryForApiKey($apiKey)))
-            ->setPhysicalProperties(['weight' => $weight])
+            ->setPhysicalProperties(self::physicalProperties($weight, $deliveryOptions))
             ->setOptions($shipmentOptions->shipmentOptions())
             ->setGeneralSettings((new GeneralSettings())->setSaveRecipientAddress(0));
 
@@ -121,6 +121,12 @@ class ShipmentBuilder
         $this->assertValid($shipment);
 
         return new BuiltShipment($shipment, $magentoTrack, $apiKey, $incrementId);
+    }
+
+    /** The weight in grams, and the length, width and height in cm a merchant saved on the order. */
+    private static function physicalProperties(int $weight, DeliveryOptions $deliveryOptions): array
+    {
+        return ['weight' => $weight] + $deliveryOptions->getDimensions();
     }
 
     /**
