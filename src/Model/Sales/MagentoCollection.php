@@ -165,16 +165,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Get all options
-     *
-     * @return array
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
      * Get option by key
      *
      * @param $option
@@ -343,7 +333,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             );
         }
 
-        return $this->shipmentBuilders[$orderId]->build($magentoTrack, $this->options, $colloNumber);
+        return $this->shipmentBuilders[$orderId]->build($magentoTrack, $colloNumber);
     }
 
     /**

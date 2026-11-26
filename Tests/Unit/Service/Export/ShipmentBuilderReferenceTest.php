@@ -14,7 +14,7 @@ function referenceOfBuilt(array $shipmentOverrides, int $collo = 1): string
         $shipmentOverrides
     );
 
-    return $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0], $collo)->getReferenceIdentifier();
+    return $builder->build($track, $collo)->getReferenceIdentifier();
 }
 
 it('references a saved shipment by its entity id and collo number', function () {

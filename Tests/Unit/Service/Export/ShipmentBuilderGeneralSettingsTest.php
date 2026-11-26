@@ -10,7 +10,7 @@ it('tells the API not to save the recipient address in the address book', functi
         'test-api-key'
     );
 
-    $shipment = $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0], 1);
+    $shipment = $builder->build($track, 1);
 
     expect($shipment->getShipment()->getGeneralSettings()->getSaveRecipientAddress())->toBe(0);
 });
