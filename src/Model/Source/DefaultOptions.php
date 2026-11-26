@@ -23,6 +23,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
+use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
@@ -78,35 +79,60 @@ class DefaultOptions
      */
     public function hasOptionSet(string $option, string $carrier): bool
     {
+        return null !== $this->sourceOf($option, $carrier);
+    }
+
+    /**
+     * Which OptionSource tier switched the option on, or null when it is off. The same answer as
+     * hasOptionSet(), with its provenance kept.
+     */
+    public function sourceOf(string $option, string $carrier): ?int
+    {
         if (ShipmentOption::LARGE_FORMAT === $option) {
-            return $this->hasDefaultLargeFormat($carrier, $option);
+            return $this->hasDefaultLargeFormat($carrier, $option) ? OptionSource::CONFIGURATION : null;
         }
 
-        // Check that the customer has already chosen this option in the checkout
-        if (array_key_exists('shipmentOptions', $this->chosenOptions) &&
-            array_key_exists($option, $this->chosenOptions['shipmentOptions']) &&
-            $this->chosenOptions['shipmentOptions'][$option]
-        ) {
-            return true;
-        }
+        $chosen = (bool) ($this->chosenOptions['shipmentOptions'][$option] ?? false);
 
         if (ShipmentOption::AGE_CHECK === $option) {
-            // Memoised, false included: the answer is the quote's and cannot change while this
-            // instance lives, and the New Shipment form asks once per carrier and package type.
-            if (! array_key_exists('ageCheck', $this->fromProducts)) {
-                $this->fromProducts['ageCheck'] =
-                    ShipmentOptionsResolver::getAgeCheckFromProduct(
-                        $this->quote->getItems() ?? [],
-                        $this->objectManager->get(ProductAttributes::class)
-                    );
+            $fromProducts = $this->ageCheckFromProducts();
+
+            // Asked before the checkout: both can answer "on", but the product is the higher tier.
+            if (true === $fromProducts) {
+                return OptionSource::PRODUCT;
             }
 
-            if (null !== $this->fromProducts['ageCheck']) {
-                return $this->fromProducts['ageCheck'];
+            if ($chosen) {
+                return OptionSource::CHECKOUT;
+            }
+
+            if (false === $fromProducts) {
+                return null;
             }
         }
 
-        return $this->hasDefaultOption($carrier, $option);
+        if ($chosen) {
+            return OptionSource::CHECKOUT;
+        }
+
+        return $this->hasDefaultOption($carrier, $option) ? OptionSource::CONFIGURATION : null;
+    }
+
+    /**
+     * Memoised, false included: the answer is the quote's and cannot change while this instance
+     * lives, and the New Shipment form asks once per carrier and package type.
+     */
+    private function ageCheckFromProducts(): ?bool
+    {
+        if (! array_key_exists('ageCheck', $this->fromProducts)) {
+            $this->fromProducts['ageCheck'] =
+                ShipmentOptionsResolver::getAgeCheckFromProduct(
+                    $this->quote->getItems() ?? [],
+                    $this->objectManager->get(ProductAttributes::class)
+                );
+        }
+
+        return $this->fromProducts['ageCheck'];
     }
 
     /**
@@ -158,22 +184,36 @@ class DefaultOptions
      */
     public function getDefaultInsurance(string $carrier): int
     {
+        return $this->getInsurance($carrier, $this->insuranceCapKey(), true);
+    }
+
+    /**
+     * The amount to insure for when another option requires insurance: getDefaultInsurance()
+     * without the from-price, which would otherwise leave the companion at 0.
+     */
+    public function getRequiredInsurance(string $carrier): int
+    {
+        return $this->getInsurance($carrier, $this->insuranceCapKey(), false);
+    }
+
+    private function insuranceCapKey(): string
+    {
         $shippingAddress = $this->quote->getShippingAddress();
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCodes::CC_NL;
 
         if (CountryCodes::CC_NL === $shippingCountry) {
-            return $this->getInsurance($carrier, InsuranceAmountSetting::LOCAL);
+            return InsuranceAmountSetting::LOCAL;
         }
 
         if (CountryCodes::CC_BE === $shippingCountry) {
-            return $this->getInsurance($carrier, InsuranceAmountSetting::BELGIUM);
+            return InsuranceAmountSetting::BELGIUM;
         }
 
         if ($this->countryService->isEu((string) $shippingCountry)) {
-            return $this->getInsurance($carrier, InsuranceAmountSetting::EU);
+            return InsuranceAmountSetting::EU;
         }
 
-        return $this->getInsurance($carrier, InsuranceAmountSetting::ROW);
+        return InsuranceAmountSetting::ROW;
     }
 
     /**
@@ -182,7 +222,7 @@ class DefaultOptions
      * A cap of 0 means insurance is off, also where a contract minimum of 0 is meant. Do not read 0
      * as "insure at the minimum": that switches insurance on for every merchant who never set it.
      */
-    private function getInsurance(string $carrierName, string $priceKey): int
+    private function getInsurance(string $carrierName, string $priceKey, bool $applyFromPrice): int
     {
         $total                = $this->quote->getGrandTotal();
         $settings             = $this->settingsFor($carrierName);
@@ -190,7 +230,7 @@ class DefaultOptions
 
         if (! isset($settings[$priceKey])
             || (int) $settings[$priceKey] === 0
-            || $totalAfterPercentage < (int) $settings[self::INSURANCE_FROM_PRICE]) {
+            || ($applyFromPrice && $totalAfterPercentage < (int) $settings[self::INSURANCE_FROM_PRICE])) {
             return 0;
         }
 
