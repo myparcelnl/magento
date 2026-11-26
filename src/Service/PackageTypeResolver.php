@@ -226,7 +226,7 @@ class PackageTypeResolver
     /** @param mixed $configured the group's `weight` value, in the merchant's own unit */
     private function configuredWeight($configured, int $default): float
     {
-        $weight = abs((float) str_replace(',', '.', (string) $configured));
+        $weight = abs(Config::parseDecimal((string) $configured));
 
         if ($this->weight->unitIsKilo()) {
             return $weight < self::KILO_EPSILON ? $default / 1000.0 : $weight;

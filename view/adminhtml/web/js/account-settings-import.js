@@ -3,7 +3,7 @@ define(['jquery', 'mage/loader'], function ($) {
 
     /**
      * Bound via data-mage-init on the settings_button.phtml root div. config keys: ajaxUrl, buttonId,
-     * apiKeyFieldId, scopeName, scopeId, successLabel, failurePrefix, failureLabel.
+     * apiKeyFieldId, scopeName, scopeId, successLabel, failurePrefix, failureLabel, unsavedLabel.
      *
      * The button is disabled while the api key field is disabled (the scope inherits the key) and while
      * the request runs. fetch() does not pass through loaderAjax, so the overlay is started by hand.
@@ -12,6 +12,8 @@ define(['jquery', 'mage/loader'], function ($) {
         const button = document.getElementById(config.buttonId);
         const input  = document.getElementById(config.apiKeyFieldId);
         const notice = element.querySelector('[data-role="import-notice"]');
+        // The import reads the saved key, so a key typed since the page loaded is not the one it uses.
+        const savedKey = input ? input.value : '';
 
         if (!button) {
             return;
@@ -36,6 +38,12 @@ define(['jquery', 'mage/loader'], function ($) {
         }
 
         button.addEventListener('click', function () {
+            if (input && input.value !== savedKey) {
+                report('message-warning', config.unsavedLabel);
+
+                return;
+            }
+
             notice.hidden = true;
             button.setAttribute('disabled', 'disabled');
             $('body').trigger('processStart');

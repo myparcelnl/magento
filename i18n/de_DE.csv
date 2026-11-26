@@ -464,6 +464,7 @@ Return if no answer,Bei Nichtannahme zurücksenden
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-Einstellungen wurden importiert."
 Records per export request,Datensätze pro Exportanfrage
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,"Wie viele Sendungen oder Bestellungen in einer Anfrage an MyParcel gesendet werden. Leer lassen für 20. Verringern Sie den Wert, wenn große Exporte eine Zeitüberschreitung haben. Das Maximum ist 100."
+"Save the configuration first. The import uses the saved API key.","Speichern Sie zuerst die Konfiguration. Der Import verwendet den gespeicherten API-Schlüssel."
 Return label sent,Retouren-Etikett gesendet
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kennt die Sendung %1 unter dem API-Schlüssel dieses Stores nicht.
 The carrier of shipment %1 does not support return labels.,Der Versanddienstleister der Sendung %1 unterstützt keine Retouren-Etiketten.
