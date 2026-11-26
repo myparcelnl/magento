@@ -2,63 +2,6 @@
 
 declare(strict_types=1);
 
-use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
-use Magento\Framework\ObjectManagerInterface;
-use MyParcelNL\Magento\Service\ProductAttributes;
-
-/**
- * The module's product attributes are read through the product collection, never the EAV value
- * tables: Commerce keys those on row_id and holds one row per scheduled update, so a hand-built
- * query answers the wrong version or nothing at all.
- *
- * These cases pin the two things that matter to the callers: the map is keyed by public product id,
- * and a batch costs one load.
- *
- * @param array<int,array<string,string|null>> $rows product id => attribute code => value
- */
-function productAttributesFor(array $rows, ?array &$loads = null): ProductAttributes
-{
-    $loads = [];
-
-    $collection = Mockery::mock(ProductCollection::class);
-    $filtered   = [];
-
-    $collection->shouldReceive('addIdFilter')->andReturnUsing(
-        static function (array $ids) use (&$filtered, &$loads, $collection) {
-            $filtered = $ids;
-            $loads[]  = $ids;
-
-            return $collection;
-        }
-    );
-    $collection->shouldReceive('addAttributeToSelect')->andReturnSelf();
-    $collection->shouldReceive('getItems')->andReturnUsing(
-        static function () use (&$filtered, $rows): array {
-            $products = [];
-
-            foreach ($filtered as $id) {
-                if (! array_key_exists($id, $rows)) {
-                    continue;
-                }
-
-                $product = Mockery::mock();
-                $product->shouldReceive('getId')->andReturn($id);
-                $product->shouldReceive('getData')->andReturnUsing(
-                    static fn(string $code) => $rows[$id][$code] ?? null
-                );
-                $products[] = $product;
-            }
-
-            return $products;
-        }
-    );
-
-    $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
-
-    return new ProductAttributes($objectManager);
-}
-
 it('answers a column keyed by the public product id', function () {
     $attributes = productAttributesFor([
         7 => ['myparcel_classification' => '6109.10'],
@@ -123,4 +66,20 @@ it('does not re-query a product the collection never returned', function () {
 
     expect($loads)->toHaveCount(1)
         ->and($attributes->getValue(7, 'age_check'))->toBeNull();
+});
+
+it('reads an item value as an int, and null for an item whose product is gone', function () {
+    $attributes = productAttributesFor([7 => ['myparcel_fit_in_mailbox' => '3']]);
+
+    expect($attributes->itemValue(quoteItemFor(7), 'fit_in_mailbox'))->toBe(3)
+        ->and($attributes->itemValue(quoteItemFor(7), 'age_check'))->toBeNull()
+        ->and($attributes->itemValue(quoteItemFor(null), 'fit_in_mailbox'))->toBeNull();
+});
+
+it('loads the products of a cart in one query and skips an item whose product is gone', function () {
+    $attributes = productAttributesFor([7 => [], 9 => []], $loads);
+
+    $attributes->preloadItems([quoteItemFor(7), quoteItemFor(null), quoteItemFor(9)]);
+
+    expect($loads)->toBe([[7, 9]]);
 });
