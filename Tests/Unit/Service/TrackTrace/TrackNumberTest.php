@@ -26,3 +26,10 @@ it('reads no barcodes from a value that is no JSON list', function () {
         ->and(TrackNumber::barcodesFromOrderRow('[not json'))->toBeNull()
         ->and(TrackNumber::barcodesFromOrderRow(null))->toBeNull();
 });
+
+it('reads back the barcodes it stores on the order row', function () {
+    $stored = TrackNumber::toOrderRow([1 => '3SMYPA111', 2 => '3SMYPA222']);
+
+    expect($stored)->toStartWith(TrackNumber::ORDER_ROW_LIST_PREFIX)
+        ->and(TrackNumber::barcodesFromOrderRow($stored))->toBe(['3SMYPA111', '3SMYPA222']);
+});

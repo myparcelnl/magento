@@ -17,6 +17,7 @@ use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Services\CountryService;
 
 /**
  * Builds a ShipmentBuilder past its constructor, which reaches for a live
@@ -62,6 +63,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
         ->andReturn(new ShipmentApiProvider($config, createUserAgent()));
     $objectManager->shouldReceive('get')->with(ShipmentValidator::class)->andReturn(new ShipmentValidator());
     $objectManager->shouldReceive('get')->with(RecipientFields::class)->andReturn(new RecipientFields());
+    $objectManager->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
     // Never reached from a German address (customs is ROW-only), but the constructor fetches it.
     $objectManager->shouldReceive('get')->with(CustomsDeclarationBuilder::class)
         ->andReturn(new CustomsDeclarationBuilder($objectManager, $config, new Weight($config)));
@@ -162,6 +164,7 @@ function mockAttributeValueLookup($value, array $alsoBind = []): void
     // resolvable insurance range logs a notice, and that has to land somewhere.
     $objectManager->shouldReceive('get')->with(LoggerInterface::class)
         ->andReturn(makePermissiveLogger());
+    $objectManager->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
 
     foreach ($alsoBind as $class => $instance) {
         $objectManager->shouldReceive('get')->with($class)->andReturn($instance);

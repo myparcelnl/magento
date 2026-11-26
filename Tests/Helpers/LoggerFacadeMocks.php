@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
+use MyParcelNL\Sdk\Services\CountryService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -19,6 +20,7 @@ function mockLoggerFacade(array $alsoBind = []): LoggerInterface
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with(LoggerInterface::class)->andReturn($logger);
+    $objectManager->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
 
     foreach ($alsoBind as $class => $instance) {
         $objectManager->shouldReceive('get')->with($class)->andReturn($instance);

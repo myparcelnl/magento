@@ -8,6 +8,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\RecipientFields;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Services\CountryService;
 
 /**
  * The PPS export chunks by print/export_chunk_size, the same setting the shipment export uses.
@@ -33,6 +34,7 @@ function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null): ob
     $objectManager->shouldReceive('get')->with(Weight::class)->andReturn(new Weight($config));
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)->andReturn($apiProvider);
     $objectManager->shouldReceive('get')->with(RecipientFields::class)->andReturn(new RecipientFields());
+    $objectManager->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
 
     $userAgent = createUserAgent();
 

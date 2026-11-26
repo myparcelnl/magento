@@ -192,7 +192,8 @@ function carrierSettingsFor(
     string $carrierName,
     array  $capabilities,
     array  $forced = [],
-    string $packageType = PackageType::MAILBOX_NAME
+    string $packageType = PackageType::MAILBOX_NAME,
+    float  $price = 0.0
 ): array
 {
     [$checkout, $package] = array_values(createCheckoutWith($capabilities, 'NL', $forced));
@@ -207,7 +208,7 @@ function carrierSettingsFor(
     setPrivateProperty($package, 'deliveryOptionsDisabled', false);
 
     $tax = Mockery::mock(Tax::class);
-    $tax->shouldReceive('shippingPrice')->andReturn(0.0)->byDefault();
+    $tax->shouldReceive('shippingPrice')->andReturn($price)->byDefault();
     setPrivateProperty($checkout, 'tax', $tax);
 
     $deliveryCosts = Mockery::mock(DeliveryCosts::class);
@@ -252,4 +253,17 @@ it('does not offer pickup for a package type whose capabilities lack it', functi
     ])])];
 
     expect(carrierSettingsFor(Carrier::POSTNL, $capabilities)['allowPickupLocations'])->toBeFalse();
+});
+
+it('prices only the options that capabilities offer', function () {
+    $capabilities = [PackageType::PACKAGE_NAME => CapabilitySet::fromApiResults([capabilityResult([
+        'packageTypes' => ['PACKAGE'],
+        'options'      => ['requiresSignature' => []],
+    ])])];
+
+    $settings = carrierSettingsFor(Carrier::POSTNL, $capabilities, [], PackageType::PACKAGE_NAME, 1.5);
+
+    expect($settings)->toHaveKeys(['priceSignature', 'priceReceiptCode', 'priceOnlyRecipient', 'pricePriorityDelivery'])
+        ->and($settings['priceSignature'])->toBe(1.5)
+        ->and($settings['priceOnlyRecipient'])->toBe(0);
 });

@@ -94,7 +94,7 @@ define(['jquery'], function ($) {
 
         /** Show the messages that keepForReload() kept, once. */
         restore: function () {
-            var kept = null;
+            var kept;
 
             try {
                 kept = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || 'null');

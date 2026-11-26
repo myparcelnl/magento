@@ -14,14 +14,18 @@ use MyParcelNL\Magento\Service\Config;
  *
  * @param array<string, mixed> $carrierSettings the carrier's default_options
  */
-function defaultOptionsFor(array $carrierSettings, float $grandTotal, ?string $countryId = 'NL'): DefaultOptions
-{
+function defaultOptionsFor(
+    array $carrierSettings,
+    float $grandTotal,
+    ?string $countryId = 'NL',
+    bool $withAddress = true
+): DefaultOptions {
     $config = createConfig([], [Carrier::POSTNL => ['default_options' => $carrierSettings]]);
     mockLoggerFacade([Config::class => $config]);
 
     $address = null;
 
-    if (null !== $countryId) {
+    if ($withAddress) {
         $address = Mockery::mock(Address::class);
         $address->shouldReceive('getCountryId')->andReturn($countryId);
     }
@@ -91,7 +95,13 @@ it('picks the cap belonging to the destination zone', function () {
 });
 
 it('falls back to the domestic cap for an order with no shipping address', function () {
-    $options = defaultOptionsFor(insuranceSettings(), 9000.00, null);
+    $options = defaultOptionsFor(insuranceSettings(), 9000.00, null, false);
 
     expect($options->getDefaultInsurance(Carrier::POSTNL))->toBe(5000);
+});
+
+it('uses the world cap for a shipping address without a country', function () {
+    $options = defaultOptionsFor(insuranceSettings(['insurance_row_amount' => 100]), 9000.00, null);
+
+    expect($options->getDefaultInsurance(Carrier::POSTNL))->toBe(100);
 });

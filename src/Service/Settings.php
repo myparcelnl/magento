@@ -82,7 +82,10 @@ class Settings
         return $paths;
     }
 
-    /** The field as the settings form names it, "PostNL settings, Insure orders up to (EU)", or null. */
+    /**
+     * Get the label of the field as the settings form shows it, "PostNL settings, Insure orders up
+     * to (EU)", or null.
+     */
     public function fieldLabel(string $path): ?string
     {
         foreach ($this->getSections() as $section) {

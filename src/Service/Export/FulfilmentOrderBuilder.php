@@ -41,6 +41,7 @@ class FulfilmentOrderBuilder
     private Weight                 $weight;
     private ShipmentApiProvider    $apiProvider;
     private RecipientFields        $recipientFields;
+    private CountryService         $countryService;
 
     public function __construct(ObjectManagerInterface $objectManager)
     {
@@ -48,6 +49,7 @@ class FulfilmentOrderBuilder
         $this->weight          = $objectManager->get(Weight::class);
         $this->apiProvider     = $objectManager->get(ShipmentApiProvider::class);
         $this->recipientFields = $objectManager->get(RecipientFields::class);
+        $this->countryService  = $objectManager->get(CountryService::class);
     }
 
     /**
@@ -83,7 +85,7 @@ class FulfilmentOrderBuilder
             $order->setPickupLocation($this->pickupLocation($deliveryOptions));
         }
 
-        if ((new CountryService())->isRow((string) $shippingRecipient->getCc())) {
+        if ($this->countryService->isRow((string) $shippingRecipient->getCc())) {
             $order->setCustomsDeclaration(
                 $this->objectManager->get(OrderCustomsDeclarationBuilder::class)->build($magentoOrder)
             );

@@ -246,7 +246,7 @@ class UpdateStatus
 
         $placeholderOnOrder = array_map(
             static function (string $placeholder): string {
-                return json_encode([$placeholder]);
+                return TrackNumber::toOrderRow([$placeholder]);
             },
             TrackNumber::PLACEHOLDERS
         );
@@ -496,7 +496,7 @@ class UpdateStatus
             )
         );
 
-        $magentoOrder->setData('track_number', json_encode(array_values($barcodes)));
+        $magentoOrder->setData('track_number', TrackNumber::toOrderRow($barcodes));
         $this->orderResource->save($magentoOrder);
     }
 

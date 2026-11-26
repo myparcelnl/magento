@@ -17,6 +17,7 @@ use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\OrderAmount;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Services\CountryService;
 
 // End to end: the real DeliveryCosts, Checkout::getDeliveryData() and Carrier::getMethodAmount() on one matrix.
 
@@ -89,6 +90,7 @@ function parityObjectManager(Config $config): void
 {
     $om = Mockery::mock(ObjectManagerInterface::class);
     $om->shouldReceive('get')->with(Config::class)->andReturn($config);
+    $om->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
     ObjectManager::setInstance($om);
 }
 
