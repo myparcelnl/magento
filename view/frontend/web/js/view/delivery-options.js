@@ -151,8 +151,12 @@ define(
           deliveryOptions.updateAddress(shippingAddressFromData);
         }, deliveryOptions.throttleTimeout);
 
-        customerData.get('checkout-data').subscribe(function(newData) {
-          debouncedUpdateAddressFromCheckoutData(newData.shippingAddressFromData);
+        customerData.get('checkout-data').subscribe(function() {
+          const formAddress = deliveryOptions.formAddress();
+
+          if (formAddress) {
+            debouncedUpdateAddressFromCheckoutData(formAddress);
+          }
         });
 
         document.addEventListener(
@@ -214,13 +218,27 @@ define(
       },
 
       /**
+       * The address typed in the checkout form, or null when the customer chose a saved address:
+       * the form then holds an earlier address that is not the shipping address.
+       */
+      formAddress() {
+        const shipping = quote.shippingAddress();
+
+        if (shipping && typeof shipping.getType === 'function' && shipping.getType() === 'customer-address') {
+          return null;
+        }
+
+        return customerData.get('checkout-data')().shippingAddressFromData || null;
+      },
+
+      /**
        * Get the address entered by the user.
        *
        * @returns {Object} normalized address object with street, number, postal code, city and country code.
        * @param {Object?} address - Quote.shippingAddress or checkout-data shipping address from Magento or undefined
        */
       getAddress: function(address) {
-        address = address || customerData.get('checkout-data')().shippingAddressFromData || quote.shippingAddress() || {};
+        address = address || deliveryOptions.formAddress() || quote.shippingAddress() || {};
         /* checkoutData uses country_id, quote uses countryId, but use countryId from checkout form when appropriate */
         const cc = checkout.resolveCountryId(address.country_id || address.countryId || ''),
           street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '',

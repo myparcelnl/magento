@@ -13,6 +13,7 @@ use Magento\Framework\App\Action\HttpPutActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\Controller\ResultInterface;
 use MyParcelNL\Magento\Service\Proxy\CorsHandler;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
@@ -41,21 +42,28 @@ class Forward implements
     HttpOptionsActionInterface
 {
     private RequestInterface $request;
+    private HttpResponse $response;
     private Forwarder $forwarder;
     private CorsHandler $cors;
 
     public function __construct(
         RequestInterface $request,
+        HttpResponse $response,
         Forwarder $forwarder,
         CorsHandler $cors
     ) {
         $this->request   = $request;
+        $this->response  = $response;
         $this->forwarder = $forwarder;
         $this->cors      = $cors;
     }
 
     public function execute(): ResultInterface
     {
+        // A JSON relay, not a page: keep it out of the page cache. Otherwise Magento deletes the
+        // X-Magento-Vary cookie here, and cached pages fall back to the default store view.
+        $this->response->setMetadata('NotCacheable', true);
+
         $origin = $this->cors->getRequestOrigin($this->request);
 
         if ($this->cors->isPreflight($this->request)) {

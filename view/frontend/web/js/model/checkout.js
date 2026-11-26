@@ -35,12 +35,14 @@ define([
   'ko',
   'mage/url',
   'Magento_Checkout/js/model/quote',
+  'Magento_Checkout/js/model/url-builder',
 ],
 function(
   _,
   ko,
   mageUrl,
-  quote
+  quote,
+  urlBuilder
 ) {
   'use strict';
 
@@ -194,7 +196,7 @@ function(
      */
     getDeliveryOptionsConfig: function() {
       return sendRequest(
-        'rest/V1/delivery_options/config',
+        urlBuilder.createUrl('/delivery_options/config', {}),
         'POST',
         JSON.stringify({shippingAddress: [quote.shippingAddress()]})
       );
@@ -209,7 +211,7 @@ function(
      */
     calculatePackageType: function(carrier) {
       return sendRequest(
-        'rest/V1/package_type',
+        urlBuilder.createUrl('/package_type', {}),
         'GET',
         {
           carrier: carrier,
@@ -243,7 +245,7 @@ function(
       doRequest(
         function() {
           return sendRequest(
-            'rest/V1/shipping_methods',
+            urlBuilder.createUrl('/shipping_methods', {}),
             'POST',
             JSON.stringify({deliveryOptions: [deliveryOptions]})
           );

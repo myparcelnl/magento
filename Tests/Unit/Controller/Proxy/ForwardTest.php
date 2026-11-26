@@ -15,14 +15,40 @@ function makeForward(array $headers, string $method = 'GET'): array
     $cors->shouldReceive('getRequestOrigin')->with($request)->andReturn($headers['Origin'] ?? ($headers['Referer'] ?? ''));
 
     $forwarder = Mockery::mock(Forwarder::class);
+    $response  = mockProxyResponse();
 
     return [
-        'controller' => new Forward($request, $forwarder, $cors),
+        'controller' => new Forward($request, $response['response'], $forwarder, $cors),
         'request'    => $request,
         'cors'       => $cors,
         'forwarder'  => $forwarder,
+        'metadata'   => $response['metadata'],
     ];
 }
+
+it('keeps every proxy response out of the page cache, so the store view cookie survives', function (
+    string $method,
+    string $origin,
+    bool $allowed
+) {
+    $f = makeForward(['Origin' => $origin], $method);
+
+    $result = Mockery::mock(Raw::class);
+    $f['cors']->shouldReceive('isPreflight')->andReturn('OPTIONS' === $method);
+    $f['cors']->shouldReceive('buildPreflightResponse')->andReturn($result);
+    $f['cors']->shouldReceive('isAllowedOrigin')->andReturn($allowed);
+    $f['cors']->shouldReceive('buildForbidden')->andReturn($result);
+    $f['forwarder']->shouldReceive('forward')->andReturn($result);
+    $f['cors']->shouldReceive('applyCorsHeaders')->andReturn($result);
+
+    $f['controller']->execute();
+
+    expect($f['metadata']['NotCacheable'] ?? null)->toBeTrue();
+})->with([
+    'preflight' => ['OPTIONS', 'https://shop.test', true],
+    'forwarded' => ['POST', 'https://shop.test', true],
+    'forbidden' => ['POST', 'https://evil.test', false],
+]);
 
 it('delegates preflight handling to CorsHandler regardless of origin', function () {
     $f = makeForward(['Origin' => 'https://shop.test'], 'OPTIONS');
