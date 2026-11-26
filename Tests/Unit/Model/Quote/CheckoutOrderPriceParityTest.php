@@ -6,14 +6,18 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\OrderAmount;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Services\CountryService;
 
 // End to end: the real DeliveryCosts, Checkout::getDeliveryData() and Carrier::getMethodAmount() on one matrix.
 
@@ -86,6 +90,7 @@ function parityObjectManager(Config $config): void
 {
     $om = Mockery::mock(ObjectManagerInterface::class);
     $om->shouldReceive('get')->with(Config::class)->andReturn($config);
+    $om->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
     ObjectManager::setInstance($om);
 }
 
@@ -100,17 +105,17 @@ function parityOrderAmount(Config $config, float $orderAmount, string $deliveryT
 
     $checkoutData = [
         'carrier'         => $carrier,
-        'packageType'     => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
+        'packageType'     => PackageType::PACKAGE_NAME,
         'deliveryType'    => $deliveryType,
         'shipmentOptions' => $shipmentOptions,
     ];
-    if (AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME === $deliveryType) {
+    if (DeliveryType::PICKUP_NAME === $deliveryType) {
         $checkoutData['pickupLocation'] = [
             'location_name' => 'Shop', 'location_code' => 'X1', 'street' => 'Main',
             'number' => '1', 'postal_code' => '1000AA', 'city' => 'Amsterdam', 'cc' => 'NL',
         ];
     }
-    setPrivateProperty($method, 'deliveryOptions', new DeliveryOptionsV3Adapter($checkoutData));
+    setPrivateProperty($method, 'deliveryOptions', DeliveryOptions::fromCheckoutData($checkoutData));
 
     return invokePrivateMethod($method, 'getMethodAmount', [$quote]);
 }
@@ -132,6 +137,27 @@ it('the checkout shows per delivery type the price the order charges', function 
         expect($orderPrice)->toBe($widgetPrice, "order and widget disagree on $deliveryType at $orderAmount");
     }
 })->with(['below the threshold' => [30.0], 'above the threshold' => [120.0]]);
+
+it('the checkout shows per option the fee the order charges', function () {
+    // A fee of its own per option, so a path that reads another option's fee shows too.
+    $fees = [];
+    foreach (array_values(ShipmentOption::feePaths()) as $i => $feePath) {
+        $fees[$feePath] = 1.25 + $i;
+    }
+
+    $config = parityConfig(true, $fees);
+    parityObjectManager($config);
+
+    $widget = checkoutCarrierSettings($config, parityTax(), parityDeliveryCosts($config, 120.0), parityQuote());
+
+    foreach (array_keys(ShipmentOption::feePaths()) as $option) {
+        $priceKey   = invokePrivateMethod(newInstanceWithoutConstructor(Checkout::class), 'getPriceKeyFromOption', [$option]);
+        $orderPrice = parityOrderAmount($config, 120.0, 'standard', 'postnl', [$option => true]);
+
+        expect($widget)->toHaveKey($priceKey)
+            ->and($orderPrice)->toBe($widget['priceStandardDelivery'] + $widget[$priceKey], "order and widget disagree on $option");
+    }
+});
 
 it('surcharge view shows the difference with standard delivery', function () {
     $config = parityConfig(false);

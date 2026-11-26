@@ -17,10 +17,10 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
+use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
 use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
-use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 
 class Config extends AbstractHelper
 {
@@ -32,9 +32,8 @@ class Config extends AbstractHelper
     /**
      * Prefix; append the fingerprint of the api key the settings belong to.
      *
-     * Keyed by api key rather than scope: the settings describe a MyParcel account, several stores may
-     * share one key, and callers holding only a key must be able to resolve them. Always default scope
-     * (scope_id 0) — never pass a store/website scope here.
+     * Keyed by api key, not scope: the settings describe an account that several stores can share.
+     * Always default scope (scope_id 0). Never pass a store or website scope here.
      */
     public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
     public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
@@ -53,6 +52,14 @@ class Config extends AbstractHelper
     public const MYPARCEL_TRACK_TITLE               = 'MyParcel';
     public const EXPORT_MODE_PPS                    = 'pps';
     public const EXPORT_MODE_SHIPMENTS              = 'shipments';
+
+    /**
+     * Records or shipments per export request; both export paths chunk by it. 20 is our choice, to keep
+     * an export clear of timeouts; 100 is the most the API takes in one request.
+     */
+    private const DEFAULT_EXPORT_CHUNK_SIZE  = 20;
+    private const MAX_EXPORT_CHUNK_SIZE      = 100;
+    private const XML_PATH_EXPORT_CHUNK_SIZE = 'print/export_chunk_size';
 
     public const CARRIERS_XML_PATH_MAP
         = [
@@ -129,11 +136,10 @@ class Config extends AbstractHelper
     }
 
     /**
-     * Every (scope, scopeId) a config value could be stored at, for reading a path across the whole
-     * installation.
+     * Get every (scope, scopeId) a config value can be stored at, except the admin store.
      *
-     * Excludes the admin store, and skips a website that has no stores. Throws whatever the store
-     * manager throws — callers decide whether an incomplete list beats none.
+     * Skips a website that has no stores. Throws what the store manager throws: the caller decides
+     * whether an incomplete list is better than none.
      *
      * @return array<int, array{0: string, 1: int}>
      */
@@ -210,7 +216,6 @@ class Config extends AbstractHelper
         return $this->getConfigValue("$path$code", $storeId);
     }
 
-
     /**
      * Get general settings
      *
@@ -227,6 +232,23 @@ class Config extends AbstractHelper
     public function getMagentoCarrierConfig(string $code = '')
     {
         return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code);
+    }
+
+    /** Get how many records one export request carries; a value the admin field refuses gives the default. */
+    public function getExportChunkSize(): int
+    {
+        $configured = $this->getGeneralConfig(self::XML_PATH_EXPORT_CHUNK_SIZE);
+
+        // digits only, as the field's validate-digits: is_numeric() would let 20.5 and 1e2 through
+        if (! ctype_digit((string) $configured)) {
+            return self::DEFAULT_EXPORT_CHUNK_SIZE;
+        }
+
+        $size = (int) $configured;
+
+        return 1 <= $size && $size <= self::MAX_EXPORT_CHUNK_SIZE
+            ? $size
+            : self::DEFAULT_EXPORT_CHUNK_SIZE;
     }
 
     /**

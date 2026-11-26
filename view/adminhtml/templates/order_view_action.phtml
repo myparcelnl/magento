@@ -7,6 +7,7 @@
                 "url": "<?= $block->getOrderAjaxUrl() ?>",
                 "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail() ?>",
                 "settings": <?= $block->getPrintSettings() ?>,
+                "label_warning_header": "<?= $escaper->escapeJs($block->getLabelWarningHeader()) ?>",
                 "button_present": true,
                 "button_send_return_mail_present": true,
                 "number_of_positions" : <?= $block->getNumberOfPrintPositions() ?>,
@@ -14,7 +15,7 @@
                     "action_options": {
                         "request_type": true,
                         "package_type": true,
-                        "print_position": <?= $block->isToRowCountry() ? 'false' : 'true' ?>,
+                        "print_position": true,
                         "label_amount": false
                     }
                 <?php else: ?>

@@ -15,7 +15,9 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 
+/** The paper size setting. LabelPositions turns A4 into slots; anything else prints A6. */
 class PaperType implements OptionSourceInterface
 {
     /**
@@ -25,7 +27,10 @@ class PaperType implements OptionSourceInterface
      */
     public function toOptionArray()
     {
-        return [['value' => 'A4', 'label' => __('A4')], ['value' => 'A6', 'label' => __('A6')]];
+        return [
+            ['value' => ShipmentParametersPaperSize::A4, 'label' => __('A4')],
+            ['value' => ShipmentParametersPaperSize::A6, 'label' => __('A6')],
+        ];
     }
 
     /**
@@ -35,6 +40,6 @@ class PaperType implements OptionSourceInterface
      */
     public function toArray()
     {
-        return ['A4' => __('A4'), 'A6' => __('A6')];
+        return [ShipmentParametersPaperSize::A4 => __('A4'), ShipmentParametersPaperSize::A6 => __('A6')];
     }
 }

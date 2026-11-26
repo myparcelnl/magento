@@ -1,0 +1,152 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MyParcelNL\Magento\Service\Export;
+
+/**
+ * Records what happened to each order in a chunked export batch, named by increment id.
+ *
+ * A **blamed** order is one the API objected to: it gets its own message with the API's text.
+ * A **collateral** order only shared a rejected chunk: it is counted, never named, so it does
+ * not hide the message that matters.
+ */
+class ExportReport
+{
+    /** @var array<string,int> increment id => MyParcel shipment id */
+    private array $succeeded = [];
+
+    /** @var array<string,string[]> increment id => every reason it was blamed, in the order they arrived */
+    private array $blamed = [];
+
+    /** @var array<string,array{reason: string, refused: bool}> increment ids that did not ship but were never blamed */
+    private array $collateral = [];
+
+    /**
+     * Record a shipped order. A success never clears a failure: each collo is a shipment under the
+     * same increment id, so one collo can succeed while another fails.
+     */
+    public function succeed(string $incrementId, int $shipmentId): void
+    {
+        $this->succeeded[$incrementId] = $shipmentId;
+
+        // Collateral is only recorded after the retry, so it belongs to another collo of this order.
+        if (isset($this->collateral[$incrementId])) {
+            $this->failPartially($incrementId, $this->collateral[$incrementId]['reason'], $this->collateral[$incrementId]['refused']);
+        }
+    }
+
+    /**
+     * Blame an order. Reasons accumulate: one rejected shipment can break several rules, and the
+     * merchant must fix all of them.
+     */
+    public function fail(string $incrementId, string $reason): void
+    {
+        $reason = trim($reason);
+
+        if ('' === $reason) {
+            // The API named this order but gave no text. Keep it, or the order is in neither list.
+            $reason = (string) __('The MyParcel API refused this order without giving a reason.');
+        }
+
+        $collateral = $this->collateral[$incrementId] ?? null;
+        unset($this->collateral[$incrementId]);
+
+        if (! in_array($reason, $this->blamed[$incrementId] ?? [], true)) {
+            $this->blamed[$incrementId][] = $reason;
+        }
+
+        // A timed-out collo may exist; dropping that line invites a re-export that bills it twice.
+        if (null !== $collateral && ! $collateral['refused']) {
+            $this->failPartially($incrementId, $collateral['reason'], false);
+        }
+    }
+
+    /**
+     * Record an order that did not ship because something else in its chunk failed.
+     *
+     * @param bool $refused the API validated the chunk and refused it, so nothing was created.
+     *                      False for any other failure, which changes what the admin is told.
+     */
+    public function failCollateral(string $incrementId, string $reason, bool $refused): void
+    {
+        if (isset($this->blamed[$incrementId])) {
+            if (! $refused) {
+                $this->failPartially($incrementId, $reason, false);
+            }
+
+            return;
+        }
+
+        if (isset($this->succeeded[$incrementId])) {
+            $this->failPartially($incrementId, $reason, $refused);
+
+            return;
+        }
+
+        $this->collateral[$incrementId] = ['reason' => trim($reason), 'refused' => $refused];
+    }
+
+    /** Blame an order that shipped some colli and not others, which a count of collateral would hide. */
+    private function failPartially(string $incrementId, string $reason, bool $refused): void
+    {
+        $this->fail($incrementId, (string) ($refused
+            ? __('Not every collo of this order was exported: %1', trim($reason))
+            : __('It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.', trim($reason))));
+    }
+
+    /** @return array<string,int> */
+    public function succeeded(): array
+    {
+        return $this->succeeded;
+    }
+
+    /** @return array<string,string[]> increment id => its reasons, unjoined */
+    public function failureReasons(): array
+    {
+        return $this->blamed;
+    }
+
+    /** @return string[] increment ids that did not ship and were not blamed */
+    public function collateral(): array
+    {
+        // strval: PHP turns a numeric key such as '100000004' into an int.
+        return array_map('strval', array_keys($this->collateral));
+    }
+
+    /**
+     * Get one line per blamed order, then at most one line for the collateral, without increment ids.
+     *
+     * @return string[] ready for the admin message area
+     */
+    public function failureMessages(): array
+    {
+        $messages = [];
+
+        foreach ($this->blamed as $incrementId => $reasons) {
+            $messages[] = sprintf('%s: %s', $incrementId, implode('; ', $reasons));
+        }
+
+        if ([] === $this->collateral) {
+            return $messages;
+        }
+
+        // A count, not a sentence per number: __() has no plural forms.
+        $count = count($this->collateral);
+        // One reason per failed chunk, so a batch over several chunks can give more than one.
+        $reason = implode(' ', array_unique(array_filter(array_column($this->collateral, 'reason'))));
+
+        // Read from the entries left, not tracked: succeed() and fail() take entries out again.
+        if (! in_array(false, array_column($this->collateral, 'refused'), true)) {
+            $messages[] = (string) __('Orders that were not exported because MyParcel refused this batch: %1. Reason: %2', $count, $reason);
+
+            return $messages;
+        }
+
+        // Never "not exported" here: the call may have been processed, and re-running would then
+        // create a second billable shipment for every one of these orders.
+        $messages[] = (string) __('Orders that MyParcel did not confirm: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2', $count, $reason);
+
+        return $messages;
+    }
+}

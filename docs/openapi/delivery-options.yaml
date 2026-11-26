@@ -1,7 +1,7 @@
 openapi: 3.1.0
 
 info:
-  title: MyParcelNL Magento — Delivery Options API
+  title: "MyParcelNL Magento: Delivery Options API"
   version: 1.0.0
   description: |
     REST API for retrieving delivery options associated with a Magento order.
@@ -14,7 +14,7 @@ info:
     API version. When no version is specified the server defaults to version 1.
 
     **Error format:** Error responses follow
-    [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+    [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
 
 servers:
   - url: /rest
@@ -217,31 +217,49 @@ components:
     ShipmentOptions:
       type: object
       description: |
-        Shipment options. Boolean options follow ADR-0013: an empty object `{}`
-        means enabled; the key is omitted when disabled. All properties are
-        optional — omitted means not enabled. Boolean field shapes are sourced
-        from the Order API's `ShipmentOptionsCommon` schema. The `insurance`
-        field diverges intentionally: this API uses an integer-micro amount
-        (Magento convention) instead of the Order API's Money object format.
+        Shipment options. Each yes/no option that is on is an empty object `{}`
+        (ADR-0013); an option that is off is omitted. The yes/no options are the
+        Order API's `ShipmentOptionsCommon` properties, as in the PDK spec.
+        `insurance` diverges from the Order API on purpose: it uses an
+        integer-micro amount (Magento convention) instead of the Money object
+        format.
       properties:
-        requiresAgeVerification:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresAgeVerification"
-        requiresSignature:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresSignature"
-        recipientOnlyDelivery:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/recipientOnlyDelivery"
+        additionalInsurance:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/additionalInsurance"
+        deliverAtPostalPoint:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/deliverAtPostalPoint"
+        freshFood:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/freshFood"
+        frozen:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/frozen"
+        hideSender:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/hideSender"
+        noTracking:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/noTracking"
         oversizedPackage:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/oversizedPackage"
         printReturnLabelAtDropOff:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/printReturnLabelAtDropOff"
-        hideSender:
-          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/hideSender"
         priorityDelivery:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/priorityDelivery"
+        recipientOnlyDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/recipientOnlyDelivery"
+        requiresAgeVerification:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresAgeVerification"
+        requiresCashOnDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresCashOnDelivery"
         requiresReceiptCode:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresReceiptCode"
+        requiresSignature:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresSignature"
+        returnContributionFee:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/returnContributionFee"
+        returnOnFirstFailedDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/returnOnFirstFailedDelivery"
         sameDayDelivery:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/sameDayDelivery"
+        saturdayDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/saturdayDelivery"
         scheduledCollection:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/scheduledCollection"
         insurance:
@@ -319,7 +337,7 @@ components:
       type: object
       description: |
         Error response following
-        [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+        [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
       required:
         - type
         - status

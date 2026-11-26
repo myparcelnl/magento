@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Setup\Migrations;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use MyParcelNL\Magento\Setup\QueryBuilder;
 
@@ -35,16 +37,16 @@ class ReplaceFitInMailbox
      */
     private $setup;
 
-    /**
-     * @param  \MyParcelNL\Magento\Setup\QueryBuilder    $queryBuilder
-     * @param  \Magento\Framework\Setup\SchemaSetupInterface $setup
-     */
+    private MetadataPool $metadataPool;
+
     public function __construct(
         QueryBuilder    $queryBuilder,
-        SchemaSetupInterface $setup
+        SchemaSetupInterface $setup,
+        MetadataPool $metadataPool
     ) {
         $this->queryBuilder = $queryBuilder;
         $this->setup = $setup;
+        $this->metadataPool = $metadataPool;
     }
 
     /**
@@ -58,6 +60,12 @@ class ReplaceFitInMailbox
             ->getConnection();
     }
 
+    /** Get the column the catalog value tables are keyed by: `entity_id` on Open Source, `row_id` on Commerce. */
+    private function linkField(): string
+    {
+        return $this->metadataPool->getMetadata(ProductInterface::class)->getLinkField();
+    }
+
     /**
      * @return void
      * @throws \Exception
@@ -65,16 +73,16 @@ class ReplaceFitInMailbox
     public function updateCatalogProductEntity(): void
     {
         $connection = $this->resourceConnection();
+        $linkField  = $this->linkField();
 
         $query   = $this->queryBuilder
             ->select(
-                'catalog_product_entity_varchar.entity_id',
                 'catalog_product_entity_varchar.value_id',
                 'catalog_product_entity_varchar.value',
                 'eav_attribute.attribute_id'
             )
             ->from($this->setup->getTable('catalog_product_entity'), 'product ')
-            ->leftJoin($this->setup->getTable('catalog_product_entity_varchar') . ' AS catalog_product_entity_varchar ON product.entity_id = catalog_product_entity_varchar.entity_id')
+            ->leftJoin($this->setup->getTable('catalog_product_entity_varchar') . sprintf(' AS catalog_product_entity_varchar ON product.%s = catalog_product_entity_varchar.%s', $linkField, $linkField))
             ->leftJoin(sprintf($this->setup->getTable('eav_attribute') . ' AS eav_attribute ON \'%s\' = eav_attribute.attribute_code', $this->attributeName))
             ->where('catalog_product_entity_varchar.attribute_id = eav_attribute.attribute_id');
         $results = $connection->fetchAll($query);

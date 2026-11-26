@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Model\Source\PricedDeliveryType;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCosts
@@ -75,7 +75,7 @@ class DeliveryCosts
     }
 
     /**
-     * Returns the base price bare, without any tax settings applied, used inside Magento (it will apply tax settings later).
+     * Get the base price without tax settings applied. Magento applies them later.
      *
      * @param Quote       $quote to get the weight and default carrier, package type and country, and calculate tax
      * @param string|null $carrierName override carrier from quote if you want
@@ -95,8 +95,8 @@ class DeliveryCosts
         $defaultOptions = new DefaultOptions($quote);
 
         $carrierName = $carrierName ?? $defaultOptions->getCarrierName();
-        $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
-        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
+        $packageType = PackageType::NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
+        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCodes::CC_NL;
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
                        + $this->weight->getQuoteWeightInGrams($quote);
 
@@ -107,7 +107,7 @@ class DeliveryCosts
                 'country'       => $countryCode,
                 'weight'        => $weight,
                 'order_amount'  => $orderAmount ?? $this->getOrderAmount($quote),
-                'delivery_type' => $deliveryTypeName ?? PricedDeliveryType::DEFAULT,
+                'delivery_type' => $deliveryTypeName ?? DeliveryType::DEFAULT_NAME,
             ]
         );
     }
@@ -133,9 +133,9 @@ class DeliveryCosts
             }
         }
 
-        // a type outside PricedDeliveryType::NAMES is a fee on top of standard delivery
-        if (! in_array($conditions['delivery_type'], PricedDeliveryType::NAMES, true)) {
-            $conditions['delivery_type'] = PricedDeliveryType::DEFAULT;
+        // a type outside DeliveryType::pricedPerTypeNames() is a fee on top of standard delivery
+        if (! in_array($conditions['delivery_type'], DeliveryType::pricedPerTypeNames(), true)) {
+            $conditions['delivery_type'] = DeliveryType::DEFAULT_NAME;
         }
 
         $json = $this->config->getGeneralConfig('matrix/delivery_costs');
@@ -172,7 +172,7 @@ class DeliveryCosts
 
             $return[] = [
                 'definition' => $definition,
-                // the sort rank: points first, between equal points the tightest met threshold wins — the
+                // the sort rank: points first, between equal points the tightest met threshold wins, the
                 // highest minimum, then the lowest maximum (negated, so every key ranks higher-is-better)
                 'rank'       => [$totalPoints, $minimum, -$maximum],
             ];
@@ -220,12 +220,12 @@ class DeliveryCosts
     }
 
     /**
-     * Scores a specific condition against the defined conditions in the matrix, using the actual conditions from the quote.
+     * Score one condition of the quote against the defined conditions in the matrix.
      * Several conditions of one type match when one of them matches, except the order amounts: a rule must meet each.
      *
      * @param string $condition the name of the condition from self::CONDITIONS
      * @param array  $conditions actual conditions from the quote
-     * @param array  $definedConditions from the matrix, each condition is an associative array with 'type' and 'value' keys
+     * @param array  $definedConditions from the matrix, each an array with 'type' and 'value' keys
      * @return int 0 when not met, or the points for the condition when met, or 1 when unspecified.
      */
     private function scoreCondition(string $condition, array $conditions, array $definedConditions): int
@@ -305,14 +305,27 @@ class DeliveryCosts
         }
     }
 
-
     /**
+     * Convert euros to cents. Rounded, not truncated: 0.29 * 100 is 28.999999999999996 in binary
+     * floating point, and a cast makes 29 cents into 28.
+     *
      * @param float $price in Euros
      *
      * @return int price in cents
      */
     public static function getPriceInCents(float $price): int
     {
-        return (int) ($price * 100);
+        return self::roundHalfUp($price * 100);
+    }
+
+    /**
+     * Round half up, the same on every PHP version. round() changed in PHP 8.4: 1.005 * 100 gives
+     * 101 before 8.4 and 100 from 8.4.
+     *
+     * @TODO Use round() when the minimum PHP version is 8.4.
+     */
+    public static function roundHalfUp(float $value): int
+    {
+        return (int) floor($value + 0.5);
     }
 }

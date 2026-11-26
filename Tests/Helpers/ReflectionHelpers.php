@@ -28,8 +28,39 @@ function setPrivateProperty(object $object, string $property, $value): void
     throw new ReflectionException(sprintf('Property %s::$%s does not exist', get_class($object), $property));
 }
 
+/** Reads a property of any visibility, also one declared private on a parent class. */
+function getPrivateProperty(object $object, string $property)
+{
+    for ($class = new ReflectionClass($object); $class; $class = $class->getParentClass()) {
+        if ($class->hasProperty($property)) {
+            $reflected = $class->getProperty($property);
+            $reflected->setAccessible(true);
+
+            return $reflected->getValue($object);
+        }
+    }
+
+    throw new ReflectionException(sprintf('Property %s::$%s does not exist', get_class($object), $property));
+}
+
 /** Builds an instance without its constructor, to wire only the collaborators a test needs. */
 function newInstanceWithoutConstructor(string $class): object
 {
     return (new ReflectionClass($class))->newInstanceWithoutConstructor();
+}
+
+/**
+ * Builds an instance without its constructor and sets the named properties of any visibility.
+ *
+ * @param array<string,mixed> $properties
+ */
+function instanceWithProperties(string $class, array $properties): object
+{
+    $instance = newInstanceWithoutConstructor($class);
+
+    foreach ($properties as $property => $value) {
+        setPrivateProperty($instance, $property, $value);
+    }
+
+    return $instance;
 }

@@ -6,7 +6,6 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton;
-use MyParcelNL\Magento\Service\Settings;
 
 /**
  * Subclass exposing a stub getCurrentScope() so we can exercise getScopeComment()
@@ -20,7 +19,7 @@ final class FakeApiAccessTokenButton extends ApiAccessTokenButton
     public function __construct(array $stubScope)
     {
         $this->stubScope = $stubScope;
-        // intentionally skip parent::__construct — getScopeComment only needs getCurrentScope.
+        // Skip parent::__construct on purpose: getScopeComment only needs getCurrentScope.
     }
 
     public function getCurrentScope(): array
