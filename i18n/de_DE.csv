@@ -49,11 +49,11 @@ Label description,Etikettenbeschreibung
 Country of origin,Ursprungsland
 "This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dieses Land erscheint auf den internationalen Versandetiketten. Von hier werden Ihre Produkte versandt. Sie können NL, BE, DE usw. verwenden. Dies wird auf Produktebene durch das Herstellungsland überschrieben."
 Create Concept,Konzept erstellen
-"Enable create label concept, when invoice is printed.","Konzeptsendung erstellen, wenn die Rechnung gedruckt wird."
+"Enable create label concept, when invoice is printed.","Konzept-Etiketten erstellen, wenn Sie eine Rechnung drucken."
 Delivery methods,Versandmethoden
 Preferred pickup locations view,Bevorzugte Ansicht für Abholorte
 Switching the view is allowed,Wechsel der Ansicht ist erlaubt
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wenn Abholorte aktiviert sind, kann der Nutzer zwischen Karten- oder Listenansicht wählen. Diese Einstellung legt fest, welche Option beim Öffnen der Abholorte zuerst ausgewählt wird."
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wenn Abholorte aktiviert sind, kann der Nutzer zwischen Karte und Liste wählen. Diese Einstellung legt fest, welche Option beim Öffnen der Abholorte zuerst ausgewählt wird."
 Show list first,Liste zuerst anzeigen
 Show map first,Karte zuerst anzeigen
 Default shipping options,Standard-Versandoptionen
@@ -97,7 +97,7 @@ If age check is active then the evening delivery is not possible,"Wenn die Alter
 If age check is active then the morning delivery is not possible,"Wenn die Altersprüfung aktiv ist, ist die Morgenzustellung nicht möglich"
 Morning delivery fee,Morgenzustellung Kosten
 Evening delivery active,Abendzustellung aktiviert
-Monday delivery,Montagszustellung
+Monday delivery,Montagslieferung
 Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Die Zustellung am Montag kann besondere Bedingungen erfordern, die sich von anderen (Wochen-)Tagen unterscheiden, einschließlich, aber nicht beschränkt auf Kosten und Bestellschluss."
 Number of days,Anzahl der Tage
 Delivery enabled,Zustellung aktiviert
@@ -119,7 +119,6 @@ Track number,Sendungsnummer
 Track status,Sendungsstatus
 Track action,Sendungsaktion
 MyParcel options,MyParcel-Optionen
-Package,Paket
 Insured up to:,Versichert bis:
 Download package label,Paketetikett herunterladen
 Download small package label,Kleines-Paket-Etikett herunterladen
@@ -143,7 +142,6 @@ MyParcel Shipment Email Template for Guest,E-Mail-Vorlage für MyParcel-Sendung 
 Action type,Aktionstyp
 Download label,Etikett herunterladen
 Open in new tab,In neuem Tab öffnen
-Package Type,Pakettyp
 Print position,Druckposition
 MyParcel version,MyParcel-Version
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","Version %1 der Erweiterung ist in Ihrem Webshop installiert. Aktuell ist Version %2 die neueste stabile Version. Falls Probleme auftreten, empfehlen wir die Installation der neuesten stabilen Version."
@@ -167,6 +165,7 @@ Do you want to know what they are doing in the near future? Below you can find t
 API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,"API-Schlüssel ist unbekannt. Gehen Sie zu den Einstellungen im Backoffice, um einen API-Schlüssel zu erstellen. Tragen Sie den API-Schlüssel in die Einstellungen ein."
 Basic settings,Basis-Einstellungen
 Delivery settings,Lieferung
+Titles,Titel
 day,Tag
 days,Tage
 Hide days,Tage ausblenden
@@ -195,7 +194,6 @@ Fit in mailbox,Passt in Briefkasten
 Methods,Versandmethode
 The extra myparcel options are added to this shipping method,Die zusätzlichen MyParcel-Optionen werden zu dieser Versandmethode hinzugefügt.
 Delivery title,Liefertitel
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wenn Abholorte aktiviert sind, kann der Nutzer zwischen Karte und Liste wählen. Diese Einstellung legt fest, welche Option beim Öffnen der Abholorte zuerst ausgewählt wird."
 Deliver the package only at address of the intended recipient.,Liefern Sie das Paket nur an die Adresse des vorgesehenen Empfängers.
 This will be added to the regular shipping price,Dies wird zu den normalen Versandkosten addiert
 Not possible if Pickup at PostNL location is not active,Nicht möglich wenn 'Abholung an PostNL-Standort' nicht aktiviert ist
@@ -203,14 +201,11 @@ Signature on receipt,Unterschrift bei Empfang
 Signature on receipt title,Unterschrift bei Empfang Titel
 Signature on receipt fee,Unterschrift bei Empfang Kosten
 Hide sender,Absender verbergen
-This will be added to the regular shipping price,Dies wird zu den normalen Versandkosten addiert
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,"Wenn beide ausgewählt sind, wird dieser Preis zu den normalen Versandkosten addiert. Leer lassen, um es nicht zu verwenden."
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Um diese Funktion optimal zu nutzen, legen Sie zuerst das Gewicht oder das 'Passt in Briefkasten'-Volumen jedes Produkts fest. Unabhängig davon werden Sendungen, die schwerer als das hier angegebene Gewicht sind, nicht als Briefkastenpaket versendet."
-This will be added to the regular shipping price,Dies wird zu den normalen Versandkosten addiert
 Pickup at PostNL location,Abholung an PostNL-Standort
 Pickup active,Abholung aktiv
 Standard delivery Title,Standardlieferung Titel
-Signature on receipt title,Unterschrift bei Empfang Titel
 Hide sender title,Absender verbergen Titel
 Printerless return,Retoure ohne Drucker
 Frozen,Tiefgekühlt
@@ -257,7 +252,7 @@ Thursday,Donnerstag
 Friday,Freitag
 Saturday,Samstag
 Sunday,Sonntag
-"Enable create label concept, when invoice is printed.","Konzept-Etiketten erstellen, wenn Sie eine Rechnung drucken."
+Package,Paket
 Mailbox,Briefkastenpaket
 Digital stamp,Digitale Briefmarke
 Small package,Kleines Paket
@@ -286,29 +281,20 @@ Enabling this setting automatically creates a related return shipment for any sh
 Show details in summary,Details in Übersicht anzeigen
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Wo die Versandmethode angezeigt wird, die aktuell bekannten Details (ja) oder den Methodentitel (nein) anzeigen."
 
-Delivery Options,Lieferung zu Hause oder auf der Arbeit
+Delivery at home or at work,Lieferung zu Hause oder auf der Arbeit
 Delivery options,
 Back to overview,Zurück zur Übersicht
 Delivery,Lieferung
 Pickup,Abholung
 Pickup location,Abholort
+%1 location:,%1-Abholort:
 Open map,Karte öffnen
 Confirm,Bestätigen
-Standard Delivery,Standardlieferung
-Morning Delivery,Morgenzustellung
-Evening Delivery,Abendzustellung
+Standard delivery,Standardlieferung
 Pickup locations,Abholung an einem Abholort
-Same day Delivery,Taggleiche Lieferung
-Hide Sender,Absender verbergen
 List,Liste
 Map,Karte
-Mailbox,Briefkastenpaket
-Digital Stamp,Digitale Briefmarke
-Packet,Kleines Paket
 Signature,Unterschrift bei Empfang
-Priority delivery,Prio-Lieferung
-Only Recipient,Nur Empfänger
-Monday delivery,Montagslieferung
 Saturday delivery,Samstagslieferung
 Load more,Mehr laden
 Options,Optionen
@@ -320,7 +306,6 @@ Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method
 Rule name,Regelname
 Select a condition...,Bedingung auswählen...
 Carrier name,Versanddienstleister-Name
-Country,Land
 Package type,Pakettyp
 Maximum weight (in grams),Maximalgewicht (in Gramm)
 Country part of,Land Teil von
@@ -423,7 +408,6 @@ This will be added to or subtracted from the regular shipping price,Dies wird zu
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wenn aktiviert, werden Paketautomaten von den Abholorten für alle Produkte ausgeschlossen. Es werden nur physische Abholpunkte angezeigt."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Mit 'Gesamte Bestellung exportieren' exportiert MyParcel jede Bestellung vollständig in das Backoffice zur weiteren Verarbeitung.
 
-Titles,Titel
 API Access,API-Zugang
 API access token,API-Zugriffstoken
 "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Generieren Sie ein Token für den REST-API-Zugriff in diesem Bereich. Das Klartext-Token wird einmal angezeigt, kopieren Sie es, bevor Sie die Seite verlassen. Nur der Hash wird gespeichert. Klicken Sie zum Rotieren erneut auf Generieren; das vorherige Token in diesem Bereich hört sofort auf zu funktionieren. Um ein Token zu löschen (damit die zugehörigen Stores zu einem übergeordneten Token zurückkehren, falls vorhanden), klicken Sie auf Widerrufen."

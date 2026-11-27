@@ -49,11 +49,11 @@ Label description,Descrizione etichetta
 Country of origin,Paese di origine
 "This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Questo paese apparirà sulle etichette di spedizione internazionali. È il paese da cui vengono spediti i prodotti. Puoi usare NL, BE, DE ecc. Verrà sovrascritto dal paese di produzione a livello di prodotto."
 Create Concept,Crea bozza
-"Enable create label concept, when invoice is printed.",Crea bozza di spedizione quando viene stampata la fattura.
+"Enable create label concept, when invoice is printed.",Crea etichette bozza quando stampi una fattura.
 Delivery methods,Metodi di spedizione
 Preferred pickup locations view,Vista preferita per i punti di ritiro
 Switching the view is allowed,È consentito cambiare vista
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Quando i punti di ritiro sono abilitati, l'utente può scegliere tra vista a mappa o a elenco. Questa impostazione determina quale opzione viene selezionata per prima all'apertura dei punti di ritiro."
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Quando i punti di ritiro sono abilitati, l'utente può scegliere tra mappa o elenco. Questa impostazione determina quale opzione viene selezionata per prima all'apertura dei punti di ritiro."
 Show list first,Mostra prima l'elenco
 Show map first,Mostra prima la mappa
 Default shipping options,Opzioni di spedizione predefinite
@@ -119,7 +119,6 @@ Track number,Numero di tracciamento
 Track status,Stato di tracciamento
 Track action,Azione di tracciamento
 MyParcel options,Opzioni MyParcel
-Package,Pacco
 Insured up to:,Assicurato fino a:
 Download package label,Scarica etichetta pacco
 Download small package label,Scarica etichetta piccolo pacco
@@ -143,7 +142,6 @@ MyParcel Shipment Email Template for Guest,Template email per spedizione MyParce
 Action type,Tipo di azione
 Download label,Scarica etichetta
 Open in new tab,Apri in nuova scheda
-Package Type,Tipo di pacco
 Print position,Posizione di stampa
 MyParcel version,Versione MyParcel
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","La versione %1 dell'estensione è installata sul tuo webshop. Attualmente la versione %2 è la versione stabile più recente. Se riscontri problemi, consigliamo di installare l'ultima versione stabile."
@@ -167,6 +165,7 @@ Do you want to know what they are doing in the near future? Below you can find t
 API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,Chiave API sconosciuta. Vai alle impostazioni nel backoffice per creare una chiave API. Inserisci la chiave API nelle impostazioni.
 Basic settings,Impostazioni di base
 Delivery settings,Consegna
+Titles,Titoli
 day,giorno
 days,giorni
 Hide days,Nascondi giorni
@@ -195,7 +194,6 @@ Fit in mailbox,Entra nella buca lettere
 Methods,Metodo di spedizione
 The extra myparcel options are added to this shipping method,Le opzioni MyParcel aggiuntive vengono aggiunte a questo metodo di spedizione.
 Delivery title,Titolo consegna
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Quando i punti di ritiro sono abilitati, l'utente può scegliere tra mappa o elenco. Questa impostazione determina quale opzione viene selezionata per prima all'apertura dei punti di ritiro."
 Deliver the package only at address of the intended recipient.,Consegna il pacco solo all'indirizzo del destinatario previsto.
 This will be added to the regular shipping price,Verrà aggiunto al normale costo di spedizione
 Not possible if Pickup at PostNL location is not active,Non possibile se 'Ritiro presso punto PostNL' non è attivo
@@ -203,14 +201,11 @@ Signature on receipt,Firma alla consegna
 Signature on receipt title,Titolo firma alla consegna
 Signature on receipt fee,Costo firma alla consegna
 Hide sender,Nascondi mittente
-This will be added to the regular shipping price,Verrà aggiunto al normale costo di spedizione
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,"Se entrambi sono selezionati, questo prezzo verrà aggiunto al normale costo di spedizione. Lascia vuoto per non utilizzarlo."
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Per utilizzare al meglio questa funzione, imposta il peso o il volume 'Entra nella buca lettere' di ogni prodotto. Indipendentemente da ciò, le spedizioni più pesanti del peso qui specificato non saranno inviate come buca lettere."
-This will be added to the regular shipping price,Verrà aggiunto al normale costo di spedizione
 Pickup at PostNL location,Ritiro presso punto PostNL
 Pickup active,Ritiro attivo
 Standard delivery Title,Titolo consegna standard
-Signature on receipt title,Titolo firma alla consegna
 Hide sender title,Titolo nascondi mittente
 Printerless return,Reso senza stampante
 Frozen,Surgelato
@@ -257,7 +252,7 @@ Thursday,Giovedì
 Friday,Venerdì
 Saturday,Sabato
 Sunday,Domenica
-"Enable create label concept, when invoice is printed.",Crea etichette bozza quando stampi una fattura.
+Package,Pacco
 Mailbox,Pacco buca lettere
 Digital stamp,Francobollo digitale
 Small package,Piccolo pacco
@@ -286,29 +281,20 @@ Enabling this setting automatically creates a related return shipment for any sh
 Show details in summary,Mostra dettagli nel riepilogo
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Dove viene mostrato il metodo di spedizione, mostra i dettagli attualmente noti (sì) o il titolo del metodo (no)."
 
-Delivery Options,Consegna a casa o al lavoro
+Delivery at home or at work,Consegna a casa o al lavoro
 Delivery options,
 Back to overview,Torna alla panoramica
 Delivery,Consegna
 Pickup,Ritiro
 Pickup location,Punto di ritiro
+%1 location:,Punto di ritiro %1:
 Open map,Apri mappa
 Confirm,Conferma
-Standard Delivery,Consegna standard
-Morning Delivery,Consegna mattutina
-Evening Delivery,Consegna serale
+Standard delivery,Consegna standard
 Pickup locations,Ritiro presso un punto di ritiro
-Same day Delivery,Consegna in giornata
-Hide Sender,Nascondi mittente
 List,Elenco
 Map,Mappa
-Mailbox,Pacco buca lettere
-Digital Stamp,Francobollo digitale
-Packet,Piccolo pacco
 Signature,Firma alla consegna
-Priority delivery,Consegna prioritaria
-Only Recipient,Solo destinatario
-Monday delivery,Consegna del lunedì
 Saturday delivery,Consegna del sabato
 Load more,Carica altro
 Options,Opzioni
@@ -320,7 +306,6 @@ Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method
 Rule name,Nome regola
 Select a condition...,Seleziona una condizione...
 Carrier name,Nome corriere
-Country,Paese
 Package type,Tipo di pacco
 Maximum weight (in grams),Peso massimo (in grammi)
 Country part of,Paese parte di
@@ -423,7 +408,6 @@ This will be added to or subtracted from the regular shipping price,Questo verr�
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Quando abilitato, i locker per pacchi saranno esclusi dai punti di ritiro per tutti i prodotti. Verranno mostrati solo i punti di ritiro fisici."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Con 'Esporta intero ordine', MyParcel esporterà ogni ordine nella sua interezza al back office per ulteriori elaborazioni."
 
-Titles,Titoli
 API Access,Accesso API
 API access token,Token di accesso API
 "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Genera un token per l'accesso all'API REST in questo ambito. Il token in testo normale viene mostrato una sola volta, copialo prima di navigare altrove. Viene memorizzato solo il suo hash. Per ruotarlo, clicca di nuovo su Genera; il token precedente in questo ambito smette di funzionare immediatamente. Per cancellare un token (rilasciando i suoi store a un token con ambito padre se ne esiste uno), clicca su Revoca."

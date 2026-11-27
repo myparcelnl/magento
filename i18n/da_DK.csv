@@ -49,11 +49,11 @@ Label description,Labelbeskrivelse
 Country of origin,Oprindelsesland
 "This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dette land vises på de internationale forsendelseslabels. Det er her, dine produkter sendes fra. Du kan bruge NL, BE, DE osv. Det vil blive overskrevet af fremstillingslandet på produktniveau."
 Create Concept,Opret kladde
-"Enable create label concept, when invoice is printed.","Opret kladdeforsendelse, når fakturaen udskrives."
+"Enable create label concept, when invoice is printed.","Opret kladdelabels, når du printer en faktura."
 Delivery methods,Forsendelsesmetoder
 Preferred pickup locations view,Foretrukket visning af afhentningssteder
 Switching the view is allowed,Skift af visning er tilladt
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Når afhentningssteder er aktiveret, kan brugeren vælge mellem kort- eller listevisning. Denne indstilling bestemmer, hvilken mulighed der vælges først, når afhentningsstederne åbnes."
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Når afhentningssteder er aktiveret, kan brugeren vælge mellem kort eller liste. Denne indstilling bestemmer, hvilken mulighed der vælges først, når afhentningsstederne åbnes."
 Show list first,Vis liste først
 Show map first,Vis kort først
 Default shipping options,Standard forsendelsesmuligheder
@@ -119,7 +119,6 @@ Track number,Trackingnummer
 Track status,Trackingstatus
 Track action,Trackinghandling
 MyParcel options,MyParcel-indstillinger
-Package,Pakke
 Insured up to:,Forsikret op til:
 Download package label,Download pakkelabel
 Download small package label,Download label for lille pakke
@@ -143,7 +142,6 @@ MyParcel Shipment Email Template for Guest,E-mail-skabelon for MyParcel-forsende
 Action type,Handlingstype
 Download label,Download label
 Open in new tab,Åbn i ny fane
-Package Type,Pakketype
 Print position,Printposition
 MyParcel version,MyParcel-version
 "The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","Version %1 af udvidelsen er installeret i din webshop. I øjeblikket er version %2 den nyeste stabile version. Hvis du oplever et problem, anbefaler vi, at du installerer den nyeste stabile version."
@@ -167,6 +165,7 @@ Do you want to know what they are doing in the near future? Below you can find t
 API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,API-nøglen er ikke kendt. Gå til indstillingerne i backoffice for at oprette en API-nøgle. Indtast API-nøglen i indstillingerne.
 Basic settings,Grundlæggende indstillinger
 Delivery settings,Levering
+Titles,Titler
 day,dag
 days,dage
 Hide days,Skjul dage
@@ -195,7 +194,6 @@ Fit in mailbox,Passer i brevkasse
 Methods,Forsendelsesmetode
 The extra myparcel options are added to this shipping method,De ekstra MyParcel-muligheder tilføjes til denne forsendelsesmetode.
 Delivery title,Leveringstitel
-"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Når afhentningssteder er aktiveret, kan brugeren vælge mellem kort eller liste. Denne indstilling bestemmer, hvilken mulighed der vælges først, når afhentningsstederne åbnes."
 Deliver the package only at address of the intended recipient.,Lever kun pakken til den tilsigtede modtagers adresse.
 This will be added to the regular shipping price,Dette lægges til den normale forsendelsespris
 Not possible if Pickup at PostNL location is not active,Ikke muligt hvis 'Afhentning på PostNL-sted' ikke er aktiv
@@ -203,14 +201,11 @@ Signature on receipt,Underskrift ved modtagelse
 Signature on receipt title,Titel for underskrift ved modtagelse
 Signature on receipt fee,Gebyr for underskrift ved modtagelse
 Hide sender,Skjul afsender
-This will be added to the regular shipping price,Dette lægges til den normale forsendelsespris
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,"Hvis begge er valgt, lægges denne pris til den normale forsendelsespris. Lad være tomt for ikke at bruge den."
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","For at bruge dette optimalt skal du indstille en vægt eller 'Passer i brevkasse'-volumen for hvert produkt. Uanset hvad sendes forsendelser, der er tungere end den her angivne vægt, ikke som brevkasse."
-This will be added to the regular shipping price,Dette lægges til den normale forsendelsespris
 Pickup at PostNL location,Afhentning på PostNL-sted
 Pickup active,Afhentning aktiv
 Standard delivery Title,Titel for standardlevering
-Signature on receipt title,Titel for underskrift ved modtagelse
 Hide sender title,Titel for skjul afsender
 Printerless return,Returnering uden printer
 Frozen,Frossen
@@ -257,7 +252,7 @@ Thursday,Torsdag
 Friday,Fredag
 Saturday,Lørdag
 Sunday,Søndag
-"Enable create label concept, when invoice is printed.","Opret kladdelabels, når du printer en faktura."
+Package,Pakke
 Mailbox,Brevkassepakke
 Digital stamp,Digitalt frimærke
 Small package,Lille pakke
@@ -286,29 +281,20 @@ Enabling this setting automatically creates a related return shipment for any sh
 Show details in summary,Vis detaljer i oversigt
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Hvor forsendelsesmetoden vises, vis de aktuelt kendte detaljer (ja) eller metodetitlen (nej)."
 
-Delivery Options,Levering hjemme eller på arbejdet
+Delivery at home or at work,Levering hjemme eller på arbejdet
 Delivery options,
 Back to overview,Tilbage til oversigt
 Delivery,Levering
 Pickup,Afhentning
 Pickup location,Afhentningssted
+%1 location:,%1-afhentningssted:
 Open map,Åbn kort
 Confirm,Bekræft
-Standard Delivery,Standardlevering
-Morning Delivery,Morgenlevering
-Evening Delivery,Aftenlevering
+Standard delivery,Standardlevering
 Pickup locations,Afhentning på et afhentningssted
-Same day Delivery,Samme dag-levering
-Hide Sender,Skjul afsender
 List,Liste
 Map,Kort
-Mailbox,Brevkassepakke
-Digital Stamp,Digitalt frimærke
-Packet,Lille pakke
 Signature,Underskrift ved modtagelse
-Priority delivery,Prioriteret levering
-Only Recipient,Kun modtager
-Monday delivery,Mandagslevering
 Saturday delivery,Lørdagslevering
 Load more,Indlæs flere
 Options,Muligheder
@@ -320,7 +306,6 @@ Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method
 Rule name,Regelnavn
 Select a condition...,Vælg en betingelse...
 Carrier name,Transportørnavn
-Country,Land
 Package type,Pakketype
 Maximum weight (in grams),Maksimal vægt (i gram)
 Country part of,Land del af
@@ -423,7 +408,6 @@ This will be added to or subtracted from the regular shipping price,Dette vil bl
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Når aktiveret, vil pakkebokse blive udelukket fra afhentningssteder for alle produkter. Kun fysiske afhentningssteder vil blive vist."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Med 'Eksporter hele ordren' vil MyParcel eksportere hver ordre i sin helhed til back office til videre behandling.
 
-Titles,Titler
 API Access,API-adgang
 API access token,API-adgangstoken
 "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Generer et token til REST API-adgang i dette omfang. Klartekst-tokenet vises én gang, kopier det inden du navigerer væk. Kun dets hash gemmes. For at rotere skal du klikke på Generer igen; det forrige token i dette omfang holder op med at virke øjeblikkeligt. For at slette et token (frigive dets butikker til et token med overordnet omfang, hvis der er et), klik på Tilbagekald."

@@ -142,7 +142,7 @@ define(
                     $.mage.__('Download label');
                     $.mage.__('Open in new tab');
                     $.mage.__('Concept');
-                    $.mage.__('Package Type');
+                    $.mage.__('Package type');
                     $.mage.__('Default');
                     $.mage.__('Package');
                     $.mage.__('Print position');
