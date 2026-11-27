@@ -92,7 +92,7 @@ Express delivery,Binnen 1 dag bezorgd
 Express delivery fee,Binnen 1 dag bezorgd kosten
 Express delivery active,Binnen 1 dag bezorgd ingeschakeld
 Same day delivery,Zelfde dag bezorgd
-Same day title,Zelfde dag titel
+Early morning delivery,Vroege ochtendlevering
 Morning delivery active,Ochtendlevering ingeschakeld
 If age check is active then the evening delivery is not possible,Als de leeftijdscontrole actief is dan is avondbezorging niet mogelijk
 If age check is active then the morning delivery is not possible,Als de leeftijdscontrole actief is dan is ochtendbezorging niet mogelijk
@@ -263,7 +263,6 @@ Enable create label concept, when invoice is printed.
 Mailbox,Brievenbuspakje
 Digital stamp,Digitale postzegel
 Small package,Klein pakket
-Print return label directly,Print het retour label direct
 I use the following weight type,Ik gebruik de volgende eenheid voor gewicht
 This is the type of weight that I use with my products.,Dit is de eenheid die je gebruikt voor het gewicht van je producten.
 Default,Standaard
@@ -276,11 +275,8 @@ error3505,Postcode is niet geldig voor het gekozen land.
 
 no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
 location_page, locatiewijzer
-Without options,Zonder opties
-Options equal to shipment,Opties overnemen van heenzending
 Export to MyParcel, Exporteer naar MyParcel
 Already exported, Reeds geëxporteerd
-Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,Na het activeren van deze instelling wordt er bij het exporteren van elke zending automatisch een retour zending aangemaakt. Als je het label print wordt ook meteen het retour label geprint.
 Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no)."," ""Waar de verzendmethode wordt getoond"
 
@@ -312,7 +308,7 @@ packet_title,Klein pakket
 package_title,Pakket
 signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
-priority_delivery_title,Prioriteitslevering
+priority_delivery_title,Prio levering
 only_recipient_title,Alleen ontvanger
 monday_delivery_title,Maandag bezorging
 saturday_delivery,Zaterdag bezorging
@@ -433,7 +429,7 @@ The minimum amount from when signature is active.,Het minimale bedrag vanaf wann
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Dit bepaalt hoe de bezorgkosten aan de klant worden getoond via de bezorgopties. De prijs kan worden weergegeven als totaal voor elke bezorgoptie of als toeslag bovenop de normale verzendkosten.
 This setting applies to domestic shipments only,Deze instelling geldt alleen voor binnenlandse zendingen
 This will be added to or subtracted from the regular shipping price,Dit wordt opgeteld bij of afgetrokken van de normale verzendkosten
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Gebruik percentage van het totale orderbedrag voor verzekering. Na de berekening wordt de eerstvolgende beschikbare prijsschaal geselecteerd.
+Use percentage of total order amount for insurance.,Gebruik percentage van het totale orderbedrag voor verzekering.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wanneer ingeschakeld, worden pakketkluizen uitgesloten van ophaallocaties voor alle producten. Alleen fysieke afhaalpunten worden getoond."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Met 'Exporteer hele bestelling' exporteert MyParcel elke bestelling volledig naar de backoffice voor verdere verwerking.
 
@@ -456,6 +452,63 @@ A token is currently configured at this scope.,Er is op dit bereik momenteel een
 "Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.","Dekt uitsluitend deze store. Door dit token uit te geven wordt deze store verwijderd uit het zicht van het token op standaardbereik en van elk token op bovenliggend websitebereik: vanaf nu hoort deze store exclusief bij dit token op store-view-bereik."
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dekt elke store-view binnen deze website die niet apart op store-view-bereik een eigen token heeft. Door dit token uit te geven worden deze stores verwijderd uit het zicht van het token op standaardbereik; een store-view binnen deze website met een eigen token blijft onzichtbaar voor dit token."
 Covers every store not tokened separately at website or store-view scope.,Dekt elke store die niet apart op website- of store-view-bereik een eigen token heeft.
-24 hour priority,24 uur prio
-"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox 24 uur prio in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio-instelling uit staat."
+24 hour priority,Prio levering
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox prio levering in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio levering instelling uit staat."
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key en gebruik daarna de knop MyParcel Backoffice-instellingen importeren."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kon niet vaststellen welke opties dit account heeft, daarom worden alle opties getoond. Een optie die het account niet heeft, wordt geweigerd bij het exporteren van de zending."
+No standard weight,Geen standaardgewicht
+Create MyParcel consignment,MyParcel zending aanmaken
+Export Entire Order,Volledige bestelling exporteren
+Label amount:,Aantal labels:
+Letter,Ongefrankeerd
+Return if no answer,Retour bij geen gehoor
+Your contract allows € %1 to € %2. Enter 0 to switch insurance off.,Uw contract staat € %1 tot € %2 toe. Vul 0 in om de verzekering uit te zetten.
+"The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.",Het toegestane bereik kon niet worden opgehaald. Elk bedrag wordt hier geaccepteerd en MyParcel beslist. Vul 0 in om de verzekering uit te zetten.
+"""%1"" is not a whole number of euros","""%1"" is geen heel bedrag in euro's"
+%1 is outside your contract range of € %2 to € %3,%1 valt buiten het bereik van uw contract: € %2 tot € %3
+%1 was not saved: %2.,%1 is niet opgeslagen: %2.
+%1 holds a value that is no longer valid: %2. Change it.,%1 heeft een waarde die niet meer geldig is: %2. Pas deze aan.
+Importing the MyParcel Backoffice settings failed:,Het importeren van de MyParcel Backoffice-instellingen is mislukt:
+Importing the MyParcel Backoffice settings failed. Check the log for details.,Het importeren van de MyParcel Backoffice-instellingen is mislukt. Bekijk het logbestand voor details.
+"Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Uw contract staat € %1 tot € %2 toe. Verzekering is verplicht voor deze vervoerder en kan niet worden uitgezet."
+MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.
+Records per export request,Records per exportverzoek
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Hoeveel zendingen of orders in een verzoek naar MyParcel gaan. Laat leeg voor 20. Verlaag dit als grote exports een time-out geven. Het maximum is 100.
+Return label sent,Retourlabel verstuurd
+MyParcel does not know shipment %1 for the API key of this store.,MyParcel kent zending %1 niet onder de API key van deze store.
+The carrier of shipment %1 does not support return labels.,De vervoerder van zending %1 ondersteunt geen retourlabels.
+No MyParcel shipments were found to make a return label for.,Er zijn geen MyParcel-zendingen gevonden om een retourlabel voor te maken.
+"MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel heeft deze orders niet bevestigd, dus het is onbekend of MyParcel ze heeft aangemaakt: %1. Controleer ze in de MyParcel backoffice voordat je ze opnieuw exporteert."
+"Not every collo of this order was exported: %1","Niet elk collo van deze order is geëxporteerd: %1"
+"It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Het is onbekend of MyParcel elk collo van deze order heeft aangemaakt: %1. Controleer de order in de MyParcel backoffice voordat je hem opnieuw exporteert."
+"Orders that were not exported because MyParcel refused this batch: %1. Reason: %2","Orders die niet zijn geëxporteerd omdat MyParcel deze batch heeft geweigerd: %1. Reden: %2"
+"Orders that MyParcel did not confirm: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2","Orders die MyParcel niet heeft bevestigd: %1. Het is onbekend of de zendingen zijn aangemaakt. Controleer ze in de MyParcel backoffice voordat je ze opnieuw exporteert. Reden: %2"
+"MyParcel created these orders, but they could not be marked as exported: %1. Do not export them again. Please check the log.","MyParcel heeft deze orders aangemaakt, maar ze konden niet als geëxporteerd worden gemarkeerd: %1. Exporteer ze niet opnieuw. Controleer het log."
+The MyParcel API refused this order without giving a reason.,De MyParcel API heeft deze bestelling geweigerd zonder een reden te geven.
+The MyParcel API did not return a shipment for this order.,De MyParcel API heeft geen zending teruggegeven voor deze bestelling.
+No answer arrived from the server. The MyParcel export may have run: check the shipping status before you export again.,Er kwam geen antwoord van de server. De MyParcel export is mogelijk uitgevoerd: controleer de verzendstatus voordat u opnieuw exporteert.
+The MyParcel labels could not be downloaded.,De MyParcel labels konden niet worden gedownload.
+The MyParcel export failed. Please check the log.,De MyParcel export is mislukt. Controleer het log.
+No shipments were given to print labels for.,Er zijn geen zendingen opgegeven om labels voor te printen.
+The MyParcel labels could not be fetched. Please check the log.,De MyParcel labels konden niet worden opgehaald. Controleer het log.
+The MyParcel labels could not be fetched. %1,De MyParcel labels konden niet worden opgehaald. %1
+No MyParcel labels to download.,Er zijn geen MyParcel labels om te downloaden.
+Some labels are missing. %1,Sommige labels ontbreken. %1
+The return label mail is sent to the customer.,De mail met het retourlabel is naar de klant verstuurd.
+An unexpected error occurred. Please check the log.,Er is een onverwachte fout opgetreden. Controleer het log.
+"Unknown configuration scope ""%1"".","Onbekend configuratiebereik ""%1""."
+Configuration scope id must be a number.,Het id van het configuratiebereik moet een getal zijn.
+"Configuration scope ""%1"" has no id %2.","Configuratiebereik ""%1"" heeft geen id %2."
+Customs declaration: %1,Douaneaangifte: %1
+"carrier ""%1"" is not one this module knows","vervoerder ""%1"" is niet bekend in deze module"
+This order is a pickup but its pickup location cannot be read (%1),"Deze bestelling wordt opgehaald, maar de afhaallocatie kan niet worden gelezen (%1)"
+this order is a pickup but carries no pickup location,"deze bestelling wordt opgehaald, maar heeft geen afhaallocatie"
+%1 label file(s) could not be merged. Please check the log.,%1 labelbestand(en) konden niet worden samengevoegd. Controleer het log.
+"created as MyParcel shipment %1, but the id could not be stored: %2","aangemaakt als MyParcel zending %1, maar het id kon niet worden opgeslagen: %2"
+"MyParcel carrier capabilities","MyParcel vervoerdermogelijkheden"
+"Per-account carrier capability answers from the MyParcel API","Antwoorden van de MyParcel API over de mogelijkheden van de vervoerders, per account"
+"this order has no billing address, so it cannot be exported","deze bestelling heeft geen factuuradres en kan daarom niet worden geëxporteerd"
+"this order has no shipping address, so it cannot be exported","deze bestelling heeft geen verzendadres en kan daarom niet worden geëxporteerd"
+"customs item %1: %2","douane-artikel %1: %2"
+"It is unknown whether MyParcel created and mailed the return labels of %1 shipment(s): %2. Check them in the MyParcel backoffice before you send them again.","Het is onbekend of MyParcel de retourlabels van %1 zending(en) heeft aangemaakt en gemaild: %2. Controleer ze in de MyParcel backoffice voordat je ze opnieuw verstuurt."
+"%1: %2 of %3 order notes were not exported to MyParcel.","%1: %2 van %3 ordernotities zijn niet naar MyParcel geëxporteerd."

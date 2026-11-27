@@ -2,68 +2,60 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\Event;
+use Magento\Framework\DataObject;
 use Magento\Framework\Event\Observer;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Address;
 use MyParcelNL\Magento\Model\Quote\SaveOrderBeforeSalesModelQuoteObserver;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * Runs the observer for a shipping address and returns the track status it set on the order, or null.
+ * Run the observer for a MyParcel quote whose delivery options column holds $stored.
+ *
+ * @return array<string, mixed> what the order was given, by field
  */
-function runObserverForAddress(?string $postcode, ?string $countryId, array $street = ['Antareslaan 31']): ?string
+function orderDataAfterQuote(?string $stored): array
 {
-    $address = Mockery::mock(Address::class);
-    $address->shouldReceive('getStreet')->andReturn($street);
-    $address->shouldReceive('getPostcode')->andReturn($postcode);
-    $address->shouldReceive('getCountryId')->andReturn($countryId);
-
-    $trackStatus = null;
-    $order       = Mockery::mock(Order::class);
-    $order->shouldReceive('getShippingAddress')->andReturn($address);
-    $order->shouldReceive('setData')
-        ->andReturnUsing(function (string $key, $value) use (&$trackStatus, $order) {
-            if (Config::FIELD_TRACK_STATUS === $key) {
-                $trackStatus = (string) $value;
-            }
-
-            return $order;
-        });
-
     $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('hasData')->andReturn(false);
+    $quote->shouldReceive('hasData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturnTrue();
+    $quote->shouldReceive('getData')->with(Config::FIELD_DELIVERY_OPTIONS)->andReturn($stored);
+    $quote->shouldReceive('getShippingAddress')->andReturn(new DataObject(['shipping_method' => 'myparcel_postnl']));
 
-    $event = Mockery::mock(Event::class);
-    $event->shouldReceive('getData')->with('quote')->andReturn($quote);
-    $event->shouldReceive('getData')->with('order')->andReturn($order);
+    $written = [];
+    $order   = Mockery::mock(Order::class);
+    $order->shouldReceive('getShippingAddress')->andReturn(new DataObject());
+    $order->shouldReceive('setData')->andReturnUsing(static function ($key, $value) use (&$written, $order) {
+        $written[$key] = $value;
 
-    $observer = Mockery::mock(Observer::class);
-    $observer->shouldReceive('getEvent')->andReturn($event);
+        return $order;
+    });
 
-    (new SaveOrderBeforeSalesModelQuoteObserver(Mockery::mock(DeliveryRepository::class)))->execute($observer);
+    $delivery = Mockery::mock(DeliveryRepository::class);
+    $delivery->shouldReceive('getDropOffDayFromDeliveryOptions')->andReturn('2026-11-25');
+    $delivery->shouldReceive('getCarrierFromDeliveryOptions')->andReturn('postnl');
 
-    return $trackStatus;
+    $observer = new Observer(['event' => new DataObject(['quote' => $quote, 'order' => $order])]);
+
+    (new SaveOrderBeforeSalesModelQuoteObserver($delivery))->execute($observer);
+
+    return $written;
 }
 
-it('does not set a warning for a valid dutch address', function () {
-    expect(runObserverForAddress('2132 JE', 'NL'))->toBeNull();
-});
+it('copies no delivery options from an empty column', function (?string $stored) {
+    // The export would throw "Unable to unserialize value" on an order that holds ''.
+    expect(orderDataAfterQuote($stored))->toBe([]);
+})->with([
+    'null'         => [null],
+    'empty string' => [''],
+]);
 
-it('warns about the postal code when it is invalid', function () {
-    expect(runObserverForAddress('12345', 'NL'))->toContain('Please check postal code');
-});
+it('copies the delivery options, drop-off day and carrier of a choice', function () {
+    $json = '{"carrier":"postnl","deliveryType":"standard"}';
 
-it('warns about the postal code being null', function () {
-    expect(runObserverForAddress(null, 'NL'))->toContain('Please check postal code');
-});
-
-it('warns about the postal code being null for belgium', function () {
-    expect(runObserverForAddress(null, 'BE'))->toContain('Please check postal code');
-});
-
-it('does not set a warning when the country is null', function () {
-    expect(runObserverForAddress('1234', null))->toBeNull();
+    expect(orderDataAfterQuote($json))->toBe([
+        Config::FIELD_DELIVERY_OPTIONS => $json,
+        Config::FIELD_DROP_OFF_DAY     => '2026-11-25',
+        Config::FIELD_MYPARCEL_CARRIER => 'postnl',
+    ]);
 });

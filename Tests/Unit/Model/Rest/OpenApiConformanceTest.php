@@ -71,12 +71,12 @@ function buildRequestHandler(): OrderDeliveryOptionsV1Request
 }
 
 // ---------------------------------------------------------------------------
-// Schema validation — full pipeline
+// Schema validation: full pipeline
 // ---------------------------------------------------------------------------
 
 it('full response validates against the DeliveryOptions schema', function () {
     $handler  = buildRequestHandler();
-    $response = $handler->transform(mockFullAdapter());
+    $response = $handler->transform(fullDeliveryOptions());
 
     $errors = validateAgainstSpec($response);
 
@@ -84,19 +84,21 @@ it('full response validates against the DeliveryOptions schema', function () {
 });
 
 it('response with all boolean shipment options enabled validates', function () {
-    $response = buildRequestHandler()->transform(mockFullAdapter([
-        'hasAgeCheck'        => true,
-        'hasSignature'       => true,
-        'hasOnlyRecipient'   => true,
-        'hasLargeFormat'     => true,
-        'isReturn'           => true,
-        'hasHideSender'      => true,
-        'isPriorityDelivery' => true,
-        'hasReceiptCode'     => true,
-        'isSameDayDelivery'  => true,
-        'hasCollect'         => true,
-        'getInsurance'       => 100,
-        'getLabelDescription' => 'Test label',
+    $response = buildRequestHandler()->transform(fullDeliveryOptions([
+        'age_check'         => true,
+        'signature'         => true,
+        'only_recipient'    => true,
+        'large_format'      => true,
+        'return'            => true,
+        'hide_sender'       => true,
+        'priority_delivery' => true,
+        'receipt_code'      => true,
+        'same_day_delivery' => true,
+        'collect'           => true,
+        'fresh_food'        => true,
+        'frozen'            => true,
+        'insurance'         => 100,
+        'label_description' => 'Test label',
     ]));
 
     $errors = validateAgainstSpec($response);
@@ -112,12 +114,12 @@ it('error response validates against the ProblemDetails schema', function (int $
 })->with([400, 404, 406, 409, 500]);
 
 // ---------------------------------------------------------------------------
-// Negative cases — verify the spec actually rejects invalid output
+// Negative cases: the spec rejects invalid output
 // ---------------------------------------------------------------------------
 
 it('rejects an unknown carrier enum value', function () {
     $handler  = buildRequestHandler();
-    $response = $handler->transform(mockFullAdapter());
+    $response = $handler->transform(fullDeliveryOptions());
 
     $response['carrier'] = 'INVALID_CARRIER';
 

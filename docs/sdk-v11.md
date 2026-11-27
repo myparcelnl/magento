@@ -1,0 +1,271 @@
+# Magento and SDK v11
+
+How this module uses SDK v11 and why. Keep it current: change it in the same PR as the code it
+describes.
+
+**PPS** is the export mode `Config::EXPORT_MODE_PPS`: setting *Mode* = "Export entire order"
+(`myparcelnl_magento_general/print/export_mode`). The module then sends each order to the Order v1
+API through the SDK's `Fulfilment` classes, and the back office makes the shipments. The code also
+calls this mode "fulfilment" and "Order v1".
+
+**Proposition** is the MyParcel brand an account belongs to, such as MyParcel or SendMyParcel. The
+module reads its id from the stored account settings (`Service\TrackTrace\AccountProposition`).
+
+## Why the module owns its shipment domain layer
+
+The module was pinned at `myparcelnl/sdk` `11.0.0-beta.15` because **beta.22 deleted the legacy
+consignment stack** it was built on. No later SDK could be installed: no bug fixes, no regenerated
+clients, no new carriers or options. The pin is now `11.0.0-beta.36`, and the vocabulary maps under
+`src/Model/Shipment/` are the module's own: the consignment classes that held package types,
+delivery types and option names are gone. Beta.36 adds `Services\Mapping\ApiMapperService`, which
+maps these names to ids and to v2 names; INT-1563 replaces the module maps with it.
+
+**Carriers are the exception.** `MyParcelNL\Sdk\Model\Carrier\` survived beta.22, so
+`Model\Shipment\Carrier` takes each name from the SDK class that owns it
+(`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
+stays the module's own is *which* carriers it supports (the ones in `Config::CARRIERS_XML_PATH_MAP`,
+a subset of the SDK's), `V2_NAMES_MAP` until INT-1563, and that DPD is the one carrier with BE as local country. An account's real set comes from
+capabilities, never from either list.
+
+These features went with the deleted stack and are module code now:
+
+- **Multi-account batch export.** `MyParcelCollection` grouped consignments by API key and split the
+  calls per account. In v11 the key is a constructor argument on each service, so the module groups
+  (`Service\Export\ShipmentExportService`, `ShipmentApiProvider`, `LabelPdfMerger`).
+- **Option probes.** The admin form and the checkout asked a throwaway consignment which package
+  types, options and insurance tiers exist. Those answers were the same for every merchant. They now
+  come from the capabilities and contract-definitions endpoints, per account
+  (`Service\Capabilities\`, with the value objects `CapabilitySet` and `InsuranceRange` in
+  `Model\Shipment\Capabilities\`).
+
+`myparcelnl/pdk` made the same migration first and is the reference where the SDK is silent.
+
+These rules run through the result:
+
+1. **The API is the validator.** Capabilities inform what the UI offers. They never gate an export.
+2. **A stored value the module does not recognise is kept and sent**, or fails its own shipment
+   naming the order. It is never replaced with a value the module does recognise. For an unknown
+   package type the bulk export refuses the order and the New Shipment form preselects nothing, so
+   the admin chooses. Only the checkout price, where nobody can choose, falls back to package and
+   logs a warning.
+3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
+   module truth.
+
+**When capabilities cannot be had, the module offers everything.** `Capabilities\CapabilitiesProvider` answers
+a permissive set when a store has no API key, a request will not serialise, the same request failed
+within the last 60 seconds, a fetch fails, the cache or lock backend throws, or another process is
+already fetching the same request. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
+concurrent render misses the same request at once, and making them wait for one call is the cost being
+avoided, not the fix.
+
+**The SDK decides which options exist.** `Capabilities\Client` sends the request that the generated
+`ShipmentApi` builds, with a 2 s connect timeout, and returns the raw response entries.
+`CapabilitySet` reads each entry into the generated response model and skips an entry that does not
+read, so one malformed entry does not cost the whole answer. An option the SDK does not know is not
+offered until an SDK update; the export could not send it anyway. A new carrier, package type or
+delivery type reads as a plain string (`EnumFallback`), but a model that holds one throws on
+`json_encode()`. So the cache keeps the raw entries, never a model.
+
+`Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
+ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
+render pays is one connect timeout per *distinct* request it asks: `CapabilitiesLookup` memoises per
+API key, country, package type and carrier, and `CapabilitiesProvider` memoises per request body on top of
+that.
+
+## Deliberate divergences from `myparcelnl/pdk`
+
+All deliberate. A reader who finds them should treat them as decisions, not omissions.
+
+1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
+   private `hydrateModel()`. The mapper builds typed generated models through typed setters, so the keys
+   in the request body come from each model's own `attributeMap`. It also maps module option names to the V2
+   names, through the aliases of the SDK's `ShipmentOptionMapper::aliases()` (`V2NameMapTest` pins them),
+   and it normalises `null` to an empty object, because `null` means "enabled, unconfigured" while
+   `false` and `0` are meaningful.
+2. **`filterSupportedCapabilities()` is not ported.** A module allow-list is the mechanism by
+   which upstream additions break integrations. The generated models are the only filter.
+3. **`InsuranceTierMath` is not ported.** The API accepts any amount in range.
+4. **An option the package type cannot carry narrows the package type; the PDK drops the option.**
+   `CapabilitiesOptionCalculator` forces any option the narrowed response omits to `DISABLED`, so a
+   mailbox order simply loses its age check. For 18+ goods that is a compliance failure, so the
+   module keeps the option and rules the package type out at checkout instead
+   (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`).
+
+## Vocabulary per boundary
+
+The module uses several vocabularies for the same carrier, package type, delivery type and option names. Hand each
+boundary the one it expects.
+
+| Boundary | Vocabulary | Established by |
+|---|---|---|
+| Shipment create, the outbound path | **integer id** | `ShipmentOptions::openAPITypes()` forces `package_type` to `int`; `setPackageType()` / `setDeliveryType()` coerce a string to an id before storing |
+| Capabilities request and response | **v2 enum name** (`SMALL_PACKAGE`, `STANDARD_DELIVERY`) | `CapabilitiesRequest::withPackageType()`; the response's `getPackageTypes()` |
+| Versioned REST v1 endpoint | Order API enum name | `Model\Rest\Transformer\PackageTypeTransformer` |
+| `core_config_data`, the order's delivery-options JSON, the checkout widget | **module snake_case** | Persisted data; cannot change without a migration |
+
+One map per kind, on the facade that owns the names. `Carrier::V2_NAMES_MAP` is keyed by the SDK's
+own carrier names; the map itself is the module's. `Carrier::V2_NAMES_MAP`,
+`PackageType::V2_NAMES_MAP` and `DeliveryType::V2_NAMES_MAP` each have a `toV2*()` and a
+`fromV2*()`. Shipment option names come from the SDK's `ShipmentOptionMapper`. **`fromV2*()` returns
+null for a value the module does not know, and the caller leaves it out** rather than substituting
+one. `CapabilitySet::unknownValues()` reports a carrier, package type or delivery type that the SDK's
+generated enums do not know, as a sign that the SDK needs an update.
+
+`Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
+`mapToCoreApi()`: the key the module reads from a capabilities response must be the key the SDK
+writes in a request.
+
+**The REST transformers keep their own maps.** `Model\Rest\Transformer\{Carrier,PackageType,
+DeliveryType}Transformer` bind to **Order API** enums while capabilities is **Core API**. The strings
+match today, but they are two generated contracts that can diverge. There is also a live difference:
+`CarrierTransformer::LEGACY_NAME_MAP` maps `ups` but not `upsstandard`, the name
+`Config::CARRIERS_XML_PATH_MAP` uses, so sharing the map would change a shipped versioned response.
+Merging them needs a test for that difference first.
+
+## Money scales
+
+The money scales coexist, and each mistake is a factor of 100 or 10,000 on a merchant's insured value.
+
+| Scale | Where | Established by |
+|---|---|---|
+| Whole euros | Every stored setting, the frozen legacy tiers, `Adapter\DeliveryOptions\ShipmentOptions::getInsurance()` | The module's own domain |
+| Cents | **Core API**: capabilities, contract definitions, shipment create | `Tests/Fixtures/capabilities-acceptance-v2.json` answers `max: 500000` for a €5000 bound |
+| Integer-micro (1 EUR = 1 000 000) | The module's **own** REST v1 delivery-options response | `docs/openapi/delivery-options.yaml`, which records the divergence from the Order API's Money object as deliberate |
+
+Between the first two, insurance amounts convert in one place, `Model\Shipment\Capabilities\InsuranceRange`.
+Prices (customs values, order lines) convert in `Service\DeliveryCosts::getPriceInCents()`.
+The third is `Model\Rest\Transformer\ShipmentOptionsTransformer`'s alone.
+
+## SDK defects and their workarounds
+
+Each workaround names what to delete once the fix lands.
+
+| # | Defect | Workaround, delete when fixed |
+|---|---|---|
+| 1 | `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` substitute `getenv('API_KEY')` for an empty key | `ShipmentApiProvider` raises before any factory sees an empty key. `Capabilities\Client` uses no factory |
+| 2 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
+| 3 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
+| 4 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
+| 5 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 6 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
+| 7 | `Collection\Fulfilment\OrderCollection::getShipmentOptions()` sends a fixed list of options and drops `hide_sender`, `fresh_food`, `frozen` and `same_day_delivery` without an error, so an Order v1 order ships without them | None possible: the module cannot build the request itself. Fix it in the SDK: send every option the `ShipmentOptions` holds |
+| 8 | `ShipmentQueryService::findMany()` is final and sends `link_consumer_portal` as null, so the answer carries no track & trace link | `Service\Export\ShipmentQuery` repeats the query with the flag set. Delete it and use the SDK service once the flag is a parameter |
+
+One generation trap worth knowing: `ShipmentDefsShipment::getParentId()` returns a property-less
+stub, so colli are paired by nesting, never by id.
+
+## HS code length
+
+The module stores what the merchant types, up to 18 characters, and sends digits only, at most 10.
+
+- **18 stored:** a customs declaration holds a commodity code of 8 + 2 digits plus 4-character TARIC
+  and national additional codes, UCC data elements 6/14 to 6/17 ([Delegated Regulation 2015/2446,
+  Annex B](https://legislation.gov.uk/eur/2015/2446/annex/B/title/II/adopted)). HMRC counts this
+  "full commodity code" as 18 characters ([CDSSG08010](https://www.gov.uk/hmrc-internal-manuals/customs-cds-volume-3-tariff-step-by-step-guide/cdssg08010)),
+  and the [TARIC extraction notes](https://circabc.europa.eu/d/d/versionStore/version2Store/1d467c48-210b-43e7-82e0-d37639c2d991/Explanation%20for%20the%20Taric%20database%20extractions)
+  give additional codes 4 characters.
+- **10 sent:** 10 digits is TARIC and the UK, US and Canadian tariffs. The Order API takes an `hsCode`
+  of 6 to 12 characters (`CustomsDeclarationGroupsInner`), the SDK cuts to 10, and the UPU ITMATT check accepts 6, 8 or 10
+  ([ITMATT notes](https://www.upu.int/getmedia/51b0b239-ea60-4c79-84d2-fc688ac482de/complianceWithUpuStandardsExplanatoryNotesITMATTEn.pdf)).
+  The Core API declares no maximum.
+- **What the cut loses:** national tariffs reach 13 digits, China the longest, 12 in the Gulf
+  states ([UPU National Customs Tariff Reference List, January 2025](https://www.upu.int/getmedia/3f7f8f46-03a0-4ec0-8722-bac9936524df/nationalCustomsTariffReferenceList.pdf)).
+  A tariff code is hierarchical, so a cut code is its parent: valid, less specific.
+- **Digits only:** dots and spaces (`6109.10`) are display formatting. Neither API spec gives a
+  pattern, and a code cut by characters could end on a dot.
+
+## What changed for merchants
+
+**Removed**
+
+- Pre-export address validation. `ValidatePostalCode` is deleted in the SDK and `ValidateStreet`
+  survives; half a check is worse than none, so the API is the only authority. The "please check
+  street" and "please check postal code" grid warnings are gone, and a malformed address no longer
+  drops its order out of a mass action before export.
+- The per-country print-position rule on the order and shipment views. It answered the same for
+  every order, and the grid never used it; positions are offered everywhere.
+- The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
+- Return in the box and its default `print/return_in_the_box`. There is no replacement.
+- Same day delivery in the checkout, with its title setting. No admin field switched it on since
+  #731. INT-1464 can bring it back.
+- The New Shipment form's digital stamp weights 100 and 350 gram. The form now offers the weights of
+  the setting: 20, 50, 200 and 2000 gram.
+- A carrier outside the account's contract leaves the checkout, also when its switch is on.
+- The rules that removed an option by destination or carrier: signature on a Belgian "only
+  recipient" shipment, large format outside the EU, age check outside NL, and priority delivery and
+  receipt code outside NL or for a carrier other than PostNL. The export sends an option that is
+  chosen or on by default, and the API refuses one that the shipment cannot have.
+
+**Corrected**
+
+- The EU country list gains Malta and loses Kosovo, moving both between the EU and ROW branches for
+  customs and insurance.
+- `early_morning` and `same_day` ship as chosen. They used to ship, and be charged, as standard.
+- Receipt code applies to standard delivery only. Evening and morning orders keep signature and
+  only-recipient instead of losing them.
+- The label description uses all 45 characters and is visibly shortened when cut.
+- The HS code is stored as text of up to 18 characters and sent as digits only, at most 10. It was
+  an INT column that clamped long codes.
+- Age check: the product attribute and carrier default tiers work, the New Shipment form pre-checks
+  the box from the same answer the export uses, and there is no NL-only gate.
+- A PPS order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,
+  and the status cron recovers rows an earlier run left stamped with a placeholder.
+- Every collo of a multicollo gets its own track and barcode, in both export modes.
+- Return labels and status polling use each order's own account, not the first order's.
+- The order grid's PPS export honours the modal's carrier and package type.
+- A PPS order sends the VAT of one unit, as it sends the price of one unit, and its weight counts
+  the rows a label ships. Its recipient carries the region, as a label carries the state.
+- The grid and the order view link the barcodes the status cron writes to an order whose track
+  holds no barcode, or that has no shipment.
+- An Order v1 order line sends the weight of the order row in grams, and the sku that was sold. It
+  sent the catalog weight in the shop's weight unit, cut to a whole number.
+- The checkout offers pickup for every package type the account's capabilities allow. It offered
+  pickup for package type `package` only.
+- Euro-to-cent conversion rounds instead of truncating.
+
+**New**
+
+- Insurance is any amount within the contract range. The settings screen validates per carrier
+  against contract definitions; the export clamps per shipment against capabilities for the real
+  destination and package type. GLS gains a Belgium insurance field. `insurance_percentage` no
+  longer rounds up to the next tier, so the same settings can give a lower insured amount.
+- More than one label for a shipment makes one multicollo shipment wherever the account's
+  capabilities allow more than one collo. It was PostNL to NL or BE, package type package only.
+- The checkout leaves out a package type or a carrier that cannot carry an option the order forces
+  on, such as age check. When capabilities cannot be read, it offers them all.
+- A shipment's reference in the MyParcel backoffice is `<shipment id>-<collo number>`, not the
+  shipment id alone.
+- Export runs in chunks of a configurable size, default 20. Each chunk is recorded before the next is
+  sent, a rejected chunk is re-sent once without the orders the API named, and failures are reported
+  per order with the API's own sentence and field.
+- The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
+- The track & trace link comes from the API. The fallback host follows the account's proposition.
+- A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
+- The shipping method title lists every option that is on, with the option labels of the options
+  modal ("Signature on receipt", not "Signature").
+- The delivery costs matrix lists the carriers of the account's contract, GLS included. When the
+  contract cannot be read, it lists every carrier.
+
+## Open risks
+
+- **Capability parity** is the least certain part. Where PDK and the OpenAPI spec disagree, an
+  observed acceptance response wins.
+- **Rule 1, "the API is the validator",** holds only while the API's error reaches the admin legibly. Anything
+  that swallows or flattens a rejection breaks it. **The log is the deliberate exception**:
+  `Rejection::shapeOf()` records the body's keys and field pointers and never its values, because
+  the API names the field it refused in text that quotes what was sent: on an address, the
+  consumer's own data. The admin's per-order message still comes from `Rejection::reasons()` and is
+  unchanged.
+- **The SDK defects above** leave workaround code in place until they land.
+- **Label customs values assume a EUR base currency.** The Core API takes EUR only, so a label
+  declares each item at its base price and labels it EUR. On a website with another base currency
+  the declared values are wrong. Main had the same gap. An Order v1 order declares the price paid
+  in the order currency and is not affected.
+- **The REST transformers** bind to the generated Order API enums, the highest-churn SDK surface.
+  `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
+- **The PPS status poll asks for every order the account has.** `OrderCollection::query()` is given
+  no parameters, so the API answers with its own default page and the increment ids are matched in
+  PHP afterwards: an order past that page never matches, and the call is made once per API key per
+  tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
+  spec names a filter for the external identifier, so the parameter name has to come from the API
+  team before this can be narrowed. Defect 4 covers the user agent on the same call.

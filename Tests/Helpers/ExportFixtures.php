@@ -1,0 +1,327 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\App\RequestInterface;
+use Magento\Sales\Model\Order\Shipment\Track;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Service\Export\LabelHttpClient;
+use MyParcelNL\Magento\Service\Export\LabelPdfMerger;
+use MyParcelNL\Magento\Service\Export\LabelPositions;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
+use MyParcelNL\Magento\Service\Export\ShipmentExportService;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipment;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesPostShipmentsV12;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesPostShipmentsV12Data;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11;
+use MyParcelNL\Sdk\Model\Shipment\Shipment;
+
+/**
+ * Fixtures for the export scenarios.
+ *
+ * The mocked ShipmentApi is the seam: ShipmentCreateService is final and builds its own request, so
+ * the only place to observe what was sent per key is the api double it was handed.
+ */
+
+/**
+ * A Track double whose writes are observable.
+ *
+ * Only the plumbing is shared: every writer must return the track so the production chains keep
+ * working, which is the part that is easy to get wrong. Each caller records into its own shape.
+ *
+ * getData() answers with what setData() wrote, because production code reads a field back to decide
+ * whether it still needs fetching. A caller's own getData() answers the keys nothing wrote.
+ *
+ * @param array<string,callable> $handlers keyed by method: setTrackNumber, setData, save
+ * @param array<string,mixed>    $getters  keyed by method; a Closure is used as the answer
+ */
+function recordingTrack(array $handlers, array $getters = []): Track
+{
+    $track   = Mockery::mock(Track::class);
+    $written = [];
+
+    // Callers skip a save of an unchanged model, so the double has to answer this. True unless a
+    // test says otherwise: a track a test bothered to build is one it expects to be written.
+    $getters += ['hasDataChanges' => true];
+
+    $supplied = $getters['getData'] ?? null;
+
+    $getters['getData'] = static function (?string $key = null) use (&$written, $supplied) {
+        if (null !== $key && array_key_exists($key, $written)) {
+            return $written[$key];
+        }
+
+        return $supplied instanceof Closure ? $supplied($key) : $supplied;
+    };
+
+    foreach ($getters as $method => $answer) {
+        $expectation = $track->shouldReceive($method);
+        $answer instanceof Closure
+            ? $expectation->andReturnUsing($answer)
+            : $expectation->andReturn($answer);
+    }
+
+    foreach (['setTrackNumber', 'setData', 'save'] as $method) {
+        $handler = $handlers[$method] ?? null;
+
+        $track->shouldReceive($method)->andReturnUsing(
+            static function (...$args) use ($track, $handler, $method, &$written) {
+                // Only the two-argument form: nothing in this module hands setData() an array.
+                if ('setData' === $method && 2 === count($args)) {
+                    $written[$args[0]] = $args[1];
+                }
+
+                if (null !== $handler) {
+                    $handler(...$args);
+                }
+
+                return $track;
+            }
+        );
+    }
+
+    return $track;
+}
+
+/**
+ * A Track double that remembers what was written to it, so per-chunk persistence is observable.
+ *
+ * It carries an entity id by default, as a grid track loaded from the database does; pass
+ * $trackEntityId null for the observer flow's unsaved track, which must not be save()d.
+ */
+function exportTrack(?int $existingShipmentId = null, ?int $trackEntityId = 1, ?int &$saves = null): Track
+{
+    $saves = 0;
+
+    return recordingTrack(
+        [
+            'save' => function () use (&$saves): void {
+                $saves++;
+            },
+        ],
+        [
+            'getId'   => $trackEntityId,
+            'getData' => static function (?string $key = null) use ($existingShipmentId) {
+                return 'myparcel_consignment_id' === $key ? $existingShipmentId : null;
+            },
+        ]
+    );
+}
+
+function builtShipmentFor(
+    string  $apiKey,
+    string  $incrementId,
+    ?int    $existingShipmentId = null,
+    ?Track  $track = null,
+    ?string $labelDescription = null
+): BuiltShipment
+{
+    $options = array_filter(['package_type' => 1, 'label_description' => $labelDescription]);
+
+    $shipment = (new Shipment())
+        ->setCarrier(1)
+        ->setReferenceIdentifier($incrementId . '-1')
+        ->setRecipient(['cc' => 'NL', 'postal_code' => '2132JE', 'city' => 'Hoofddorp', 'street' => 'Antareslaan', 'number' => '31', 'person' => 'Test'])
+        ->setPhysicalProperties(['weight' => 1000])
+        ->setOptions($options);
+
+    return new BuiltShipment($shipment, $track ?? exportTrack($existingShipmentId), $apiKey, $incrementId);
+}
+
+/**
+ * The reference identifiers of the shipments in one postShipments() call.
+ *
+ * @return string[]
+ */
+function postedReferences(array $args): array
+{
+    return array_map(
+        static fn(Shipment $s): string => (string) $s->getReferenceIdentifier(),
+        postShipmentsRequestIn($args)->getData()->getShipments()
+    );
+}
+
+/**
+ * Finds the request by type, not by position.
+ *
+ * @return \MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11
+ */
+function postShipmentsRequestIn(array $args)
+{
+    foreach ($args as $arg) {
+        if ($arg instanceof ShipmentPostShipmentsRequestV11) {
+            return $arg;
+        }
+    }
+
+    throw new RuntimeException('postShipments() was called without a request object');
+}
+
+/**
+ * Answers every create by echoing each request's own references back, in reverse order.
+ *
+ * @param bool|int      $failing true fails every call; a number fails that call (1-based) only
+ * @param callable|null $onCall  receives the call number before the call is answered
+ */
+function makeShipmentApiSpy(array &$calls, $failing = false, ?callable $onCall = null): ShipmentApi
+{
+    $api = Mockery::mock(ShipmentApi::class);
+    $api->shouldReceive('postShipments')->andReturnUsing(
+        function (...$args) use (&$calls, $failing, $onCall) {
+            $shipments = postShipmentsRequestIn($args)->getData()->getShipments();
+            $calls[]   = postedReferences($args);
+
+            if ($onCall) {
+                $onCall(count($calls));
+            }
+
+            if (true === $failing || count($calls) === $failing) {
+                throw new RuntimeException('the API refused this chunk');
+            }
+
+            $created = [];
+            $nextId  = 1000 + count($calls) * 100;
+
+            // Reference identifiers are always set: parseCreateResponse() falls back to pairing by
+            // index when one is missing, which would quietly make the correlation test assert the
+            // SDK's positional fallback instead of our own lookup.
+            foreach (array_reverse($shipments) as $shipment) {
+                $created[] = (new ShipmentDefsShipment())
+                    ->setId(++$nextId)
+                    ->setReferenceIdentifier((string) $shipment->getReferenceIdentifier());
+            }
+
+            return (new ShipmentResponsesPostShipmentsV12())
+                ->setData((new ShipmentResponsesPostShipmentsV12Data())->setShipments($created));
+        }
+    );
+
+    return $api;
+}
+
+/**
+ * @param array<string,ShipmentApi>             $clientsByKey
+ * @param int|string|null                       $chunkSize    the raw config value; a string tests the fallback
+ * @param \Psr\Http\Client\ClientInterface|null $httpClient   what the label and return services send with
+ */
+function makeExportService(array $clientsByKey, $chunkSize = null, ?\Psr\Http\Client\ClientInterface $httpClient = null): ShipmentExportService
+{
+    $httpClient = $httpClient ?? Mockery::mock(\Psr\Http\Client\ClientInterface::class);
+
+    $provider = Mockery::mock(ShipmentApiProvider::class);
+    $provider->shouldReceive('clientFor')->andReturnUsing(function (string $apiKey) use ($clientsByKey) {
+        if (! isset($clientsByKey[$apiKey])) {
+            throw new RuntimeException('no client configured for this key');
+        }
+
+        return $clientsByKey[$apiKey];
+    });
+
+    return new ShipmentExportService(
+        $provider,
+        createConfig(['print/export_chunk_size' => $chunkSize]),
+        new LabelPdfMerger(),
+        createUserAgent(),
+        new LabelHttpClient($httpClient),
+        $httpClient
+    );
+}
+
+/**
+ * An api double that rejects the whole request with a 422 and the given body verbatim.
+ *
+ * The shape of `errors` decides whether an error can be tied to one order, so supply real bodies.
+ */
+function makeRejectingShipmentApi(array $body, array &$calls): ShipmentApi
+{
+    $api = Mockery::mock(ShipmentApi::class);
+    $api->shouldReceive('postShipments')->andReturnUsing(function (...$args) use ($body, &$calls) {
+        $calls[] = postedReferences($args);
+
+        throw new ApiException(
+            '[422] Client error: `POST https://api.myparcel.nl/shipments` resulted in a `422 (truncated...)',
+            422,
+            [],
+            json_encode($body)
+        );
+    });
+
+    return $api;
+}
+
+/**
+ * Rejects the first call with $body, then behaves like the ordinary spy.
+ *
+ * This is the retry path: the API refuses a chunk, the service re-sends it without the orders the
+ * response named, and that second call goes through.
+ */
+function makeRejectOnceShipmentApi(array $body, array &$calls): ShipmentApi
+{
+    $ordinary = makeShipmentApiSpy($calls);
+    $attempts = 0;
+
+    $api = Mockery::mock(ShipmentApi::class);
+    $api->shouldReceive('postShipments')->andReturnUsing(
+        function (...$args) use ($body, &$calls, $ordinary, &$attempts) {
+            $attempts++;
+
+            if (1 === $attempts) {
+                $calls[] = postedReferences($args);
+
+                throw new ApiException('[422] Client error (truncated...)', 422, [], json_encode($body));
+            }
+
+            return $ordinary->postShipments(...$args);
+        }
+    );
+
+    return $api;
+}
+
+/** A transport failure that says nothing about whether shipments were created. */
+function makeTimingOutShipmentApi(array &$calls): ShipmentApi
+{
+    $api = Mockery::mock(ShipmentApi::class);
+    $api->shouldReceive('postShipments')->andReturnUsing(function (...$args) use (&$calls) {
+        $calls[] = postedReferences($args);
+
+        throw new ApiException('cURL error 28: Operation timed out', 0, [], null);
+    });
+
+    return $api;
+}
+
+/**
+ * @param string|null $paperType what myparcelnl_magento_general/print/paper_type resolves to; null
+ *                               for a store with no value, which reads as A6
+ */
+function makeLabelPositions(?string $paperType = null): LabelPositions
+{
+    return new LabelPositions(createConfig(['print/paper_type' => $paperType]));
+}
+
+/**
+ * The options an export ends up with for a given POST, through the real setOptionsFromParameters().
+ *
+ * The constructor is skipped: it builds half a dozen services, while setOptionsFromParameters()
+ * reads only the request and the label positions.
+ *
+ * @param array<string,mixed> $params
+ */
+function optionsFromParams(array $params, ?string $paperType = null): array
+{
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getParam')
+        ->andReturnUsing(static function (string $name, $default = null) use ($params) {
+            return $params[$name] ?? $default;
+        });
+
+    $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
+    setPrivateProperty($collection, 'request', $request);
+    setPrivateProperty($collection, 'labelPositions', makeLabelPositions($paperType));
+
+    return $collection->setOptionsFromParameters()->getOptions();
+}

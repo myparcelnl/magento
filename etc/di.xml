@@ -11,6 +11,12 @@
             </argument>
         </arguments>
     </virtualType>
+    <!-- The order grid the module refreshes after writing its two columns -->
+    <type name="MyParcelNL\Magento\Service\OrderGridColumns">
+        <arguments>
+            <argument name="orderGrid" xsi:type="object">Magento\Sales\Model\ResourceModel\Order\Grid</argument>
+        </arguments>
+    </type>
     <!-- API delivery settings -->
     <preference for="MyParcelNL\Magento\Api\DeliveryOptionsInterface"
                 type="MyParcelNL\Magento\Model\Checkout\DeliveryOptions" />
@@ -71,127 +77,53 @@
                 sortOrder="10"/>
     </type>
 
-    <!-- Get the insurance rates for Postnl -->
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+    <!-- Validators consulted when a dynamic setting is saved; each claims its own paths. -->
+    <type name="MyParcelNL\Magento\Observer\ConfigChange">
         <arguments>
-            <argument name="carrierName" xsi:type="string">postnl</argument>
-            <argument name="type" xsi:type="string">local</argument>
+            <argument name="validators" xsi:type="array">
+                <item name="insurance_amount" xsi:type="object">MyParcelNL\Magento\Service\Settings\Validator\InsuranceAmount</item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Fallback track & trace url. Keys are the account's proposition id; one not listed keeps the default. -->
+    <type name="MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl">
+        <arguments>
+            <argument name="defaultBaseUrl" xsi:type="string">https://myparcel.me/track-trace/</argument>
+            <argument name="baseUrlsByProposition" xsi:type="array">
+                <!-- 3 is AccountDefsPlatformId::BELGIE -->
+                <item name="3" xsi:type="string">https://sendmyparcel.me/track-trace/</item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Its own lookup: answeredPermissively() must tell what this block asked, not other callers. -->
+    <type name="MyParcelNL\Magento\Block\Sales\NewShipment">
+        <arguments>
+            <argument name="capabilityLookup" xsi:type="object" shared="false">MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup</argument>
+        </arguments>
+    </type>
+    <!-- The HTTP client of the capabilities and contract definitions requests. Its timeouts are set per request. -->
+    <virtualType name="MyParcelNL\Magento\Service\Capabilities\HttpClient" type="GuzzleHttp\Client"/>
+    <type name="MyParcelNL\Magento\Service\Capabilities\Client">
+        <arguments>
+            <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Service\Capabilities\HttpClient</argument>
+        </arguments>
+    </type>
+    <!-- The HTTP client of the label and return requests, with the SDK's request timeout. -->
+    <virtualType name="MyParcelNL\Magento\Service\Export\HttpClient" type="GuzzleHttp\Client">
+        <arguments>
+            <argument name="config" xsi:type="array">
+                <item name="timeout" xsi:type="const">MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT</item>
+            </argument>
         </arguments>
     </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+    <type name="MyParcelNL\Magento\Service\Export\LabelHttpClient">
         <arguments>
-            <argument name="carrierName" xsi:type="string">postnl</argument>
-            <argument name="type" xsi:type="string">BE</argument>
+            <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Service\Export\HttpClient</argument>
         </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+    </type>
+    <type name="MyParcelNL\Magento\Service\Export\ShipmentExportService">
         <arguments>
-            <argument name="carrierName" xsi:type="string">postnl</argument>
-            <argument name="type" xsi:type="string">EU</argument>
+            <argument name="httpClient" xsi:type="object">MyParcelNL\Magento\Service\Export\HttpClient</argument>
         </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">postnl</argument>
-            <argument name="type" xsi:type="string">ROW</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPSStandard\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">upsstandard</argument>
-            <argument name="type" xsi:type="string">local</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Get the insurance rates for DHLForYou -->
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhlforyou</argument>
-            <argument name="type" xsi:type="string">local</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhlforyou</argument>
-            <argument name="type" xsi:type="string">BE</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Get the insurance rates for DHLEuroPlus -->
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
-            <argument name="type" xsi:type="string">local</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
-            <argument name="type" xsi:type="string">BE</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
-            <argument name="type" xsi:type="string">EU</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
-            <argument name="type" xsi:type="string">ROW</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Get the insurance rates for DHLParcelConnect -->
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
-            <argument name="type" xsi:type="string">EU</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
-            <argument name="type" xsi:type="string">ROW</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Get the insurance rates for GLS -->
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">gls</argument>
-            <argument name="type" xsi:type="string">local</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">gls</argument>
-            <argument name="type" xsi:type="string">BE</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">gls</argument>
-            <argument name="type" xsi:type="string">EU</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
-        <arguments>
-            <argument name="carrierName" xsi:type="string">gls</argument>
-            <argument name="type" xsi:type="string">ROW</argument>
-        </arguments>
-    </virtualType>
+    </type>
 </config>

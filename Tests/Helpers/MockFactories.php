@@ -7,8 +7,10 @@ use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\DataObject;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Integration\Api\IntegrationServiceInterface;
 use Magento\Integration\Model\Integration;
+use Magento\Sales\Api\ShipmentTrackRepositoryInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Authorization\ApiAccessTokenUserContext;
@@ -92,4 +94,32 @@ function mockStoreManager(array $stores): StoreManagerInterface
     $mgr = Mockery::mock(StoreManagerInterface::class);
     $mgr->shouldReceive('getStores')->with(false)->andReturn($storeMocks);
     return $mgr;
+}
+
+/** A message manager that appends each error message, as a string, to $into->errors. */
+function errorRecordingMessageManager(object $into): ManagerInterface
+{
+    $messageManager = Mockery::mock(ManagerInterface::class);
+    $messageManager->shouldReceive('addErrorMessage')->andReturnUsing(
+        static function ($message) use ($messageManager, $into) {
+            $into->errors[] = (string) $message;
+
+            return $messageManager;
+        }
+    );
+
+    return $messageManager;
+}
+
+/** A track repository whose save() calls save() on the track, so a test double can record it. */
+function savingTrackRepository(): ShipmentTrackRepositoryInterface
+{
+    $repository = Mockery::mock(ShipmentTrackRepositoryInterface::class);
+    $repository->shouldReceive('save')->andReturnUsing(static function ($track) {
+        $track->save();
+
+        return $track;
+    });
+
+    return $repository;
 }
