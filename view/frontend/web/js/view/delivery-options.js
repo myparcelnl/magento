@@ -131,9 +131,44 @@ define(
           requestAnimationFrame(function() { // wait for the element to actually be added to the DOM
             deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent, deliveryOptions.getAddress());
           });
+          deliveryOptions.selectPickupByDefault(newDeliveryOptionsDiv);
         }
 
         deliveryOptions.rendered(true);
+      },
+
+      /**
+       * Select the pickup tab until the customer chooses; depends on the radio markup of the widget.
+       *
+       * @param {HTMLElement} container - The delivery options div.
+       */
+      selectPickupByDefault: function(container) {
+        // the widget replaces window.MyParcelConfig, so read the module's own copy
+        if (!checkout.configuration().preselectPickup) {
+          return;
+        }
+
+        const observer = new MutationObserver(() => {
+          const pickupInput = container.querySelector('input[type="radio"][value="pickup"]');
+
+          if (!pickupInput) {
+            return;
+          }
+
+          stop();
+
+          if (!pickupInput.checked) {
+            pickupInput.click();
+          }
+        });
+
+        function stop() {
+          observer.disconnect();
+          container.removeEventListener('change', stop, true);
+        }
+
+        container.addEventListener('change', stop, true);
+        observer.observe(container, {childList: true, subtree: true});
       },
 
       /**
